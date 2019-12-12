@@ -12,7 +12,7 @@ A machine learning approach for Multiple Sequence Alignment (MSA)
 - We carefully designed NeuroAligns underlying model in order to avoid components that scale quadratic or worse in the number of sequences
 
 # Results so far
-![](./results/barplot.png =100x20)
+<img src="results/barplot.png" alt="drawing" width="400"/>
 
 # Underlying model
 Internally, NeuroAlign makes use of Graph Neural Networks (GNN). GNNs were already successfully applied to other NP-complete problems and grant many convenient properties for MSA prediction.
