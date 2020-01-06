@@ -34,9 +34,9 @@ args = parser.parse_args()
 
 num_alignments = 1509
 data_threads = 20
-test_frac = 0.2
+test_frac = 0.15
 num_training_iteration = 10000
-savestate_milestones = 100
+savestate_milestones = 50
 
 SEED = 1
 np.random.seed(SEED)
@@ -48,7 +48,7 @@ print("Data reading and preprocessing. This may take some time...")
 def load_one(filename):
     #print("Reading ", filename)
     anchor_set = AnchorSet.anchor_set_from_file(filename)
-    AnchorSet.read_solution("data/"+filename.split('/')[1]+".fasta", anchor_set)
+    AnchorSet.read_solution("../data/data/"+filename.split('/')[3]+".fasta", anchor_set)
     pattern_set = PatternSet.find_patterns(anchor_set)
     PatternSet.compute_targets(pattern_set)
     seq_graph, pattern_graph, target_graph = ProteinGraphNN.pattern_set_to_input_target_dicts(pattern_set)
@@ -58,7 +58,7 @@ filenames = []
 for i in range(num_alignments):
     #files can be missing when no anchors were found for a parameter choice r, t, minrow
     #skip these files
-    dir = "anchors_"+str(args.r)+"_"+str(args.t)+"_"+str(args.a)
+    dir = "../data/anchors_"+str(args.r)+"_"+str(args.t)+"_"+str(args.a)
     if os.path.isfile(dir+"/A"+"{0:0=4d}".format(i)+".anchors") and os.path.isfile(dir+"/A"+"{0:0=4d}".format(i)+".meta"):
         filenames.append(dir+"/A"+"{0:0=4d}".format(i))
 
@@ -76,11 +76,11 @@ input_seq_graphs, input_pattern_graphs, target_graphs = list(input_seq_graphs), 
 num_test_instances = max(1,int(np.floor(len(input_seq_graphs)*test_frac)))
 
 #remember training/test split
-os.makedirs(os.path.dirname("./model_proteinGNN"), exist_ok=True)
-with open("./model_proteinGNN/traing_instances.txt", "w") as f:
+os.makedirs(os.path.dirname("../data/model_proteinGNN"), exist_ok=True)
+with open("../data/model_proteinGNN/traing_instances.txt", "w") as f:
     for filename in filenames[num_test_instances:]:
         f.write(filename+"\n")
-with open("./model_proteinGNN/test_instances.txt", "w") as f:
+with open("../data/model_proteinGNN/test_instances.txt", "w") as f:
     for filename in filenames[:num_test_instances]:
         f.write(filename+"\n")
 
@@ -114,7 +114,7 @@ def print__(*args):
     print(textline)
 
 if args.steps_so_far > 0:
-    saver.restore(session, "./model_proteinGNN/it_"+str(args.steps_so_far)+".ckpt")
+    saver.restore(session, "../data/model_proteinGNN/it_"+str(args.steps_so_far)+".ckpt")
     print("Successfully loaded model num ", args.steps_so_far)
 
 batch_losses = []
@@ -124,7 +124,7 @@ for i in range(args.steps_so_far, args.steps_so_far + num_training_iteration):
     seq_in_batch = []
     pat_in_batch = []
     tar_batch = []
-    #randomly draw samples until batch is full (allow overflow; batch_size = #edges)
+    #randomly draw samples until batch is full (allow overflow; batch_size ^= #nodes)
     while sum([len(g["nodes"]) for g in seq_in_batch]) < args.batch_size:
         choice = np.random.randint(len(train_seq_input_graphs))
         seq_in_batch.append(train_seq_input_graphs[choice])
@@ -139,7 +139,7 @@ for i in range(args.steps_so_far, args.steps_so_far + num_training_iteration):
         print__("Iteration ", i, " with batch loss ", batch_losses[-1], " Av last 100:", sum(batch_losses[-100:])/100)
 
     if i%savestate_milestones==0 and i>0:
-        saver.save(session, "./model_proteinGNN/it_"+str(i)+".ckpt")
+        saver.save(session, "../data/model_proteinGNN/it_"+str(i)+".ckpt")
 
         test_loss = predictor.test(session, test_seq_input_graphs, test_pattern_input_graphs, test_target_graphs)
         print__("Test loss: ", test_loss)

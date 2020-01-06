@@ -770,7 +770,7 @@ def jaccard_index(setA, setB):
 #returns a set of indices into anchors denoting the greedily selected subset
 def greedy_best(anchor_set, pred):
 
-    QUALITY_THRESHOLD = 0.0
+    QUALITY_THRESHOLD = 0.2
     assert anchor_set.anchor_data.shape[0]==len(pred), "anchors and predictions do not have matching lengths"
 
     #simple predictions based on score for comparison, comment out in case

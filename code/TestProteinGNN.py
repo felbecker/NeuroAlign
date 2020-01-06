@@ -41,13 +41,13 @@ test_mp_iterations = 30
 print("Data reading and preprocessing. This may take some time...")
 
 filenames = []
-with open("./model_proteinGNN/test_instances.txt", "r") as f:
+with open("../data/model_proteinGNN/test_instances.txt", "r") as f:
     for line in f:
         filenames.append(line.strip())
 
 #load a previously trained model and make predictions
-anchor_set = AnchorSet.anchor_set_from_file(filenames[0])
-AnchorSet.read_solution("data/"+filenames[0].split('/')[1]+".fasta", anchor_set)
+anchor_set = AnchorSet.anchor_set_from_file("../data/"+filenames[0])
+AnchorSet.read_solution("../data/data/"+filenames[0].split('/')[1]+".fasta", anchor_set)
 pattern_set = PatternSet.find_patterns(anchor_set)
 PatternSet.compute_targets(pattern_set)
 example_seq_graph, example_pattern_graph, example_target_graph = ProteinGraphNN.pattern_set_to_input_target_dicts(pattern_set)
@@ -62,14 +62,14 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 saver = tf.train.Saver()
-saver.restore(sess, "./model_proteinGNN/it_"+str(args.model_steps)+".ckpt")
+saver.restore(sess, "../data/model_proteinGNN/it_"+str(args.model_steps)+".ckpt")
 
 global_pred = np.zeros((0))
 global_ref = np.zeros((0))
 for f in filenames[args.start_at:]:
     print("testing ", f)
-    anchor_set = AnchorSet.anchor_set_from_file(f)
-    AnchorSet.read_solution("data/"+f.split('/')[1]+".fasta", anchor_set)
+    anchor_set = AnchorSet.anchor_set_from_file("../data/"+f)
+    AnchorSet.read_solution("../data/data/"+f.split('/')[1]+".fasta", anchor_set)
     pattern_set = PatternSet.find_patterns(anchor_set)
     PatternSet.compute_targets(pattern_set)
     seq_graph, pattern_graph, target_graph = ProteinGraphNN.pattern_set_to_input_target_dicts(pattern_set)
@@ -80,7 +80,7 @@ for f in filenames[args.start_at:]:
     unwrapped_selection = AnchorSet.unwrap_selection(anchor_set, greedy_selection)
     unwrapped_anchors = AnchorSet.unwrap_anchor_set(anchor_set)
     name = f.split('/')[1]
-    AnchorSet.read_solution("./data/"+name+".fasta", unwrapped_anchors)
+    AnchorSet.read_solution("../data/data/"+name+".fasta", unwrapped_anchors)
     reference_solution = unwrapped_anchors.solution
     score_pred = AnchorSet.jaccard_index(unwrapped_selection, reference_solution)
     print("prediction score: ", score_pred)

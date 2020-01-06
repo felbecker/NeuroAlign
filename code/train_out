@@ -1,344 +1,606 @@
-Iteration  0  with batch loss  2.080693
-Iteration  1  with batch loss  1.3330014
-Iteration  2  with batch loss  1.2651178
-Iteration  3  with batch loss  1.0416071
-Iteration  4  with batch loss  1.1182042
-Iteration  5  with batch loss  1.085022
-Iteration  6  with batch loss  1.1422609
-Iteration  7  with batch loss  0.8608104
-Iteration  8  with batch loss  0.9137362
-Iteration  9  with batch loss  0.8620068
-Iteration  10  with batch loss  0.94204456
-Iteration  11  with batch loss  0.8854481
-Iteration  12  with batch loss  0.814332
-Iteration  13  with batch loss  1.3702883
-Iteration  14  with batch loss  0.95941424
-Iteration  15  with batch loss  1.0344594
-Iteration  16  with batch loss  0.82246053
-Iteration  17  with batch loss  0.7577597
-Iteration  18  with batch loss  0.8120106
-Iteration  19  with batch loss  1.1985525
-Iteration  20  with batch loss  1.5381099
-Iteration  21  with batch loss  1.1609515
-Iteration  22  with batch loss  0.8268672
-Iteration  23  with batch loss  0.86334145
-Iteration  24  with batch loss  0.79024667
-Iteration  25  with batch loss  0.9810442
-Iteration  26  with batch loss  0.8882024
-Iteration  27  with batch loss  1.4286792
-Iteration  28  with batch loss  1.0056423
-Iteration  29  with batch loss  0.86784977
-Iteration  30  with batch loss  0.8140724
-Iteration  31  with batch loss  0.80706555
-Iteration  32  with batch loss  1.3980924
-Iteration  33  with batch loss  0.8183293
-Iteration  34  with batch loss  0.86542976
-Iteration  35  with batch loss  0.81541145
-Iteration  36  with batch loss  0.82102275
-Iteration  37  with batch loss  0.8009982
-Iteration  38  with batch loss  0.78354394
-Iteration  39  with batch loss  0.7947419
-Iteration  40  with batch loss  0.8220515
-Iteration  41  with batch loss  1.2896247
-Iteration  42  with batch loss  0.9909494
-Iteration  43  with batch loss  0.7828261
-Iteration  44  with batch loss  0.9816647
-Iteration  45  with batch loss  0.76285833
-Iteration  46  with batch loss  0.78196716
-Iteration  47  with batch loss  0.8390486
-Iteration  48  with batch loss  0.8226428
-Iteration  49  with batch loss  0.86184186
-Iteration  50  with batch loss  0.7605703
-Test loss:  0.775775734947321
-Iteration  51  with batch loss  0.6965284
-Iteration  52  with batch loss  0.97933096
-Iteration  53  with batch loss  0.801906
-Iteration  54  with batch loss  0.9108309
-Iteration  55  with batch loss  0.74158436
-Iteration  56  with batch loss  0.9603684
-Iteration  57  with batch loss  0.929
-Iteration  58  with batch loss  0.80723286
-Iteration  59  with batch loss  0.8361251
-Iteration  60  with batch loss  0.7847362
-Iteration  61  with batch loss  0.8845686
-Iteration  62  with batch loss  0.7386126
-Iteration  63  with batch loss  0.75011957
-Iteration  64  with batch loss  1.0411679
-Iteration  65  with batch loss  0.83303213
-Iteration  66  with batch loss  0.7412282
-Iteration  67  with batch loss  0.8302729
-Iteration  68  with batch loss  0.84315664
-Iteration  69  with batch loss  0.7624915
-Iteration  70  with batch loss  0.915316
-Iteration  71  with batch loss  0.8776238
-Iteration  72  with batch loss  0.8984068
-Iteration  73  with batch loss  0.8463505
-Iteration  74  with batch loss  1.037171
-Iteration  75  with batch loss  0.82526004
-Iteration  76  with batch loss  0.8126849
-Iteration  77  with batch loss  0.7469134
-Iteration  78  with batch loss  0.78531784
-Iteration  79  with batch loss  0.75708973
-Iteration  80  with batch loss  0.82221305
-Iteration  81  with batch loss  0.7274209
-Iteration  82  with batch loss  0.7429708
-Iteration  83  with batch loss  0.89905953
-Iteration  84  with batch loss  0.76770866
-Iteration  85  with batch loss  0.7785767
-Iteration  86  with batch loss  0.81046534
-Iteration  87  with batch loss  0.95444745
-Iteration  88  with batch loss  0.83903956
-Iteration  89  with batch loss  0.81131816
-Iteration  90  with batch loss  0.7860493
-Iteration  91  with batch loss  0.71912724
-Iteration  92  with batch loss  0.8150326
-Iteration  93  with batch loss  0.752507
-Iteration  94  with batch loss  0.85499233
-Iteration  95  with batch loss  1.0063571
-Iteration  96  with batch loss  0.84217
-Iteration  97  with batch loss  0.73681927
-Iteration  98  with batch loss  0.9028476
-Iteration  99  with batch loss  0.7646449  Av last 100: 0.9077311199903488
-Iteration  100  with batch loss  0.81484  Av last 100: 0.8950725901126861
-Test loss:  0.7396838256450886
-Iteration  101  with batch loss  0.78132576  Av last 100: 0.8895558339357376
-Iteration  102  with batch loss  0.7100087  Av last 100: 0.8840047430992126
-Iteration  103  with batch loss  0.6969203  Av last 100: 0.8805578744411469
-Iteration  104  with batch loss  0.8068528  Av last 100: 0.8774443602561951
-Iteration  105  with batch loss  0.78930575  Av last 100: 0.8744871979951858
-Iteration  106  with batch loss  0.8968061  Av last 100: 0.8720326501131058
-Iteration  107  with batch loss  0.77926624  Av last 100: 0.8712172085046768
-Iteration  108  with batch loss  1.0004807  Av last 100: 0.8720846527814865
-Iteration  109  with batch loss  0.7485173  Av last 100: 0.8709497576951981
-Iteration  110  with batch loss  0.9930873  Av last 100: 0.8714601850509643
-Iteration  111  with batch loss  0.7105855  Av last 100: 0.8697115588188171
-Iteration  112  with batch loss  0.8585474  Av last 100: 0.8701537126302719
-Iteration  113  with batch loss  0.7041738  Av last 100: 0.8634925681352615
-Iteration  114  with batch loss  0.7185967  Av last 100: 0.8610843926668167
-Iteration  115  with batch loss  0.8902369  Av last 100: 0.8596421682834625
-Iteration  116  with batch loss  0.7825849  Av last 100: 0.8592434120178223
-Iteration  117  with batch loss  0.78833497  Av last 100: 0.8595491647720337
-Iteration  118  with batch loss  0.733933  Av last 100: 0.8587683886289597
-Iteration  119  with batch loss  0.81792843  Av last 100: 0.8549621480703354
-Iteration  120  with batch loss  0.80485165  Av last 100: 0.8476295655965805
-Iteration  121  with batch loss  0.6820477  Av last 100: 0.8428405278921127
-Iteration  122  with batch loss  0.76513296  Av last 100: 0.8422231853008271
-Iteration  123  with batch loss  0.74917126  Av last 100: 0.8410814833641053
-Iteration  124  with batch loss  0.75169504  Av last 100: 0.8406959670782089
-Iteration  125  with batch loss  0.7173043  Av last 100: 0.838058568239212
-Iteration  126  with batch loss  0.72422206  Av last 100: 0.836418764591217
-Iteration  127  with batch loss  0.79358435  Av last 100: 0.8300678157806396
-Iteration  128  with batch loss  0.68612987  Av last 100: 0.8268726915121078
-Iteration  129  with batch loss  0.83912027  Av last 100: 0.826585396528244
-Iteration  130  with batch loss  0.72950876  Av last 100: 0.8257397603988648
-Iteration  131  with batch loss  0.75053436  Av last 100: 0.8251744484901429
-Iteration  132  with batch loss  0.66317904  Av last 100: 0.8178253149986268
-Iteration  133  with batch loss  0.6887514  Av last 100: 0.8165295362472534
-Iteration  134  with batch loss  0.84512955  Av last 100: 0.8163265341520309
-Iteration  135  with batch loss  0.75899297  Av last 100: 0.8157623493671418
-Iteration  136  with batch loss  0.7659338  Av last 100: 0.8152114599943161
-Iteration  137  with batch loss  0.68999094  Av last 100: 0.8141013872623444
-Iteration  138  with batch loss  0.8319791  Av last 100: 0.8145857387781144
-Iteration  139  with batch loss  0.83077073  Av last 100: 0.814946026802063
-Iteration  140  with batch loss  0.66472554  Av last 100: 0.8133727669715881
-Iteration  141  with batch loss  0.6924289  Av last 100: 0.807400808930397
-Iteration  142  with batch loss  0.9048795  Av last 100: 0.8065401101112366
-Iteration  143  with batch loss  0.8483275  Av last 100: 0.8071951240301132
-Iteration  144  with batch loss  1.0603266  Av last 100: 0.8079817426204682
-Iteration  145  with batch loss  0.7934089  Av last 100: 0.8082872480154037
-Iteration  146  with batch loss  1.2457539  Av last 100: 0.8129251152276993
-Iteration  147  with batch loss  1.3473271  Av last 100: 0.8180079001188278
-Iteration  148  with batch loss  1.5949917  Av last 100: 0.825731388926506
-Iteration  149  with batch loss  0.72105634  Av last 100: 0.8243235337734223
-Iteration  150  with batch loss  1.0516028  Av last 100: 0.8272338593006134
-Test loss:  0.8011294438245711
-Iteration  151  with batch loss  0.78868467  Av last 100: 0.8281554222106934
-Iteration  152  with batch loss  0.97913945  Av last 100: 0.8281535071134567
-Iteration  153  with batch loss  0.8060758  Av last 100: 0.8281952053308487
-Iteration  154  with batch loss  0.847264  Av last 100: 0.8275595360994339
-Iteration  155  with batch loss  0.9266025  Av last 100: 0.8294097173213959
-Iteration  156  with batch loss  0.93347573  Av last 100: 0.8291407907009125
-Iteration  157  with batch loss  0.81311816  Av last 100: 0.8279819720983506
-Iteration  158  with batch loss  0.9342089  Av last 100: 0.8292517328262329
-Iteration  159  with batch loss  0.8678659  Av last 100: 0.8295691412687302
-Iteration  160  with batch loss  0.95026  Av last 100: 0.8312243789434433
-Iteration  161  with batch loss  0.80491847  Av last 100: 0.8304278779029847
-Iteration  162  with batch loss  0.7845303  Av last 100: 0.8308870548009872
-Iteration  163  with batch loss  0.9966583  Av last 100: 0.8333524423837662
-Iteration  164  with batch loss  0.8793545  Av last 100: 0.8317343086004257
-Iteration  165  with batch loss  0.80590713  Av last 100: 0.831463058590889
-Iteration  166  with batch loss  0.6923313  Av last 100: 0.8309740895032882
-Iteration  167  with batch loss  0.72168756  Av last 100: 0.8298882359266281
-Iteration  168  with batch loss  0.78592837  Av last 100: 0.8293159532546998
-Iteration  169  with batch loss  0.8481266  Av last 100: 0.8301723039150238
-Iteration  170  with batch loss  0.81244504  Av last 100: 0.8291435945034027
-Iteration  171  with batch loss  0.714569  Av last 100: 0.8275130462646484
-Iteration  172  with batch loss  0.8392324  Av last 100: 0.8269213020801545
-Iteration  173  with batch loss  0.7980449  Av last 100: 0.8264382463693619
-Iteration  174  with batch loss  0.7367228  Av last 100: 0.823433764576912
-Iteration  175  with batch loss  0.9300585  Av last 100: 0.8244817489385605
-Iteration  176  with batch loss  0.84908223  Av last 100: 0.8248457223176956
-Iteration  177  with batch loss  0.69336724  Av last 100: 0.8243102610111237
-Iteration  178  with batch loss  0.7143941  Av last 100: 0.8236010235548019
-Iteration  179  with batch loss  0.88059896  Av last 100: 0.8248361158370972
-Iteration  180  with batch loss  0.8927732  Av last 100: 0.8255417174100876
-Iteration  181  with batch loss  0.7028945  Av last 100: 0.8252964532375335
-Iteration  182  with batch loss  0.76638937  Av last 100: 0.8255306386947632
-Iteration  183  with batch loss  0.94850636  Av last 100: 0.8260251069068909
-Iteration  184  with batch loss  0.71320254  Av last 100: 0.8254800456762313
-Iteration  185  with batch loss  0.714888  Av last 100: 0.8248431587219238
-Iteration  186  with batch loss  0.66151285  Av last 100: 0.8233536338806152
-Iteration  187  with batch loss  0.7620331  Av last 100: 0.8214294904470444
-Iteration  188  with batch loss  0.6981414  Av last 100: 0.8200205087661743
-Iteration  189  with batch loss  0.78112555  Av last 100: 0.8197185826301575
-Iteration  190  with batch loss  0.7781377  Av last 100: 0.8196394664049148
-Iteration  191  with batch loss  0.81492037  Av last 100: 0.8205973976850509
-Iteration  192  with batch loss  0.72321945  Av last 100: 0.8196792662143707
-Iteration  193  with batch loss  0.6659391  Av last 100: 0.8188135874271393
-Iteration  194  with batch loss  0.75992256  Av last 100: 0.8178628897666931
-Iteration  195  with batch loss  0.7507681  Av last 100: 0.8153070002794266
-Iteration  196  with batch loss  0.7753783  Av last 100: 0.8146390831470489
-Iteration  197  with batch loss  0.6961137  Av last 100: 0.8142320275306701
-Iteration  198  with batch loss  0.7055394  Av last 100: 0.8122589457035064
-Iteration  199  with batch loss  0.86397755  Av last 100: 0.8132522720098495
-Iteration  200  with batch loss  0.66532546  Av last 100: 0.8117571264505387
-Test loss:  0.7168165369772576
-Iteration  201  with batch loss  0.7297055  Av last 100: 0.8112409240007401
-Iteration  202  with batch loss  0.7504776  Av last 100: 0.8116456133127212
-Iteration  203  with batch loss  0.7439024  Av last 100: 0.8121154344081879
-Iteration  204  with batch loss  0.72742176  Av last 100: 0.8113211238384247
-Iteration  205  with batch loss  0.90443724  Av last 100: 0.8124724388122558
-Iteration  206  with batch loss  0.93306506  Av last 100: 0.8128350281715393
-Iteration  207  with batch loss  0.73712176  Av last 100: 0.8124135833978653
-Iteration  208  with batch loss  0.7174883  Av last 100: 0.8095836597681045
-Iteration  209  with batch loss  0.77078277  Av last 100: 0.8098063147068024
-Iteration  210  with batch loss  0.67984736  Av last 100: 0.8066739153861999
-Iteration  211  with batch loss  0.80070317  Av last 100: 0.8075750923156738
-Iteration  212  with batch loss  0.78481877  Av last 100: 0.8068378061056137
-Iteration  213  with batch loss  0.6747359  Av last 100: 0.8065434271097183
-Iteration  214  with batch loss  0.7327136  Av last 100: 0.8066845959424973
-Iteration  215  with batch loss  0.71106094  Av last 100: 0.8048928362131119
-Iteration  216  with batch loss  0.8267821  Av last 100: 0.8053348082304
-Iteration  217  with batch loss  0.7809213  Av last 100: 0.805260671377182
-Iteration  218  with batch loss  0.76573026  Av last 100: 0.8055786442756653
-Iteration  219  with batch loss  0.7732247  Av last 100: 0.8051316070556641
-Iteration  220  with batch loss  0.86028445  Av last 100: 0.8056859350204468
-Iteration  221  with batch loss  0.7417483  Av last 100: 0.8062829405069352
-Iteration  222  with batch loss  0.6854965  Av last 100: 0.805486575961113
-Iteration  223  with batch loss  0.7622889  Av last 100: 0.8056177526712418
-Iteration  224  with batch loss  0.7041285  Av last 100: 0.805142087340355
-Iteration  225  with batch loss  0.6745098  Av last 100: 0.8047141426801682
-Iteration  226  with batch loss  0.8116163  Av last 100: 0.8055880850553513
-Iteration  227  with batch loss  0.8370739  Av last 100: 0.8060229808092118
-Iteration  228  with batch loss  0.73098046  Av last 100: 0.8064714866876602
-Iteration  229  with batch loss  0.81460893  Av last 100: 0.8062263733148575
-Iteration  230  with batch loss  0.7876978  Av last 100: 0.8068082636594772
-Iteration  231  with batch loss  0.74000466  Av last 100: 0.8067029666900635
-Iteration  232  with batch loss  0.7702597  Av last 100: 0.8077737730741501
-Iteration  233  with batch loss  0.76314205  Av last 100: 0.8085176795721054
-Iteration  234  with batch loss  0.7513046  Av last 100: 0.8075794303417205
-Iteration  235  with batch loss  0.84062946  Av last 100: 0.8083957952260971
-Iteration  236  with batch loss  0.7334786  Av last 100: 0.8080712431669235
-Iteration  237  with batch loss  0.7370627  Av last 100: 0.8085419607162475
-Iteration  238  with batch loss  0.7128785  Av last 100: 0.8073509550094604
-Iteration  239  with batch loss  0.78535527  Av last 100: 0.8068968003988266
-Iteration  240  with batch loss  0.77838683  Av last 100: 0.8080334132909774
-Iteration  241  with batch loss  0.73341906  Av last 100: 0.8084433150291442
-Iteration  242  with batch loss  0.73501974  Av last 100: 0.8067447173595429
-Iteration  243  with batch loss  0.7401587  Av last 100: 0.8056630289554596
-Iteration  244  with batch loss  0.7422263  Av last 100: 0.8024820262193679
-Iteration  245  with batch loss  0.85635006  Av last 100: 0.8031114381551743
-Iteration  246  with batch loss  0.8061064  Av last 100: 0.7987149631977082
-Iteration  247  with batch loss  0.7399336  Av last 100: 0.7926410281658173
-Iteration  248  with batch loss  0.65176105  Av last 100: 0.7832087218761444
-Iteration  249  with batch loss  0.75928694  Av last 100: 0.7835910278558731
-Iteration  250  with batch loss  0.8034893  Av last 100: 0.7811098927259446
-Test loss:  0.7034051935997367
-Iteration  251  with batch loss  0.6887603  Av last 100: 0.7801106488704681
-Iteration  252  with batch loss  0.6938728  Av last 100: 0.7772579824924469
-Iteration  253  with batch loss  0.62791616  Av last 100: 0.7754763859510422
-Iteration  254  with batch loss  0.7364769  Av last 100: 0.7743685150146484
-Iteration  255  with batch loss  0.72736067  Av last 100: 0.7723760968446731
-Iteration  256  with batch loss  0.6980747  Av last 100: 0.7700220865011215
-Iteration  257  with batch loss  0.7851118  Av last 100: 0.7697420227527618
-Iteration  258  with batch loss  0.86840284  Av last 100: 0.7690839618444443
-Iteration  259  with batch loss  0.70950246  Av last 100: 0.7675003272294998
-Iteration  260  with batch loss  0.78083616  Av last 100: 0.7658060890436172
-Iteration  261  with batch loss  0.70810217  Av last 100: 0.764837926030159
-Iteration  262  with batch loss  0.77636945  Av last 100: 0.7647563177347183
-Iteration  263  with batch loss  0.67691034  Av last 100: 0.761558837890625
-Iteration  264  with batch loss  0.69090366  Av last 100: 0.7596743297576904
-Iteration  265  with batch loss  0.72311884  Av last 100: 0.7588464468717575
-Iteration  266  with batch loss  0.6730423  Av last 100: 0.7586535567045212
-Iteration  267  with batch loss  0.7574813  Av last 100: 0.7590114939212799
-Iteration  268  with batch loss  0.6705836  Av last 100: 0.7578580462932587
-Iteration  269  with batch loss  0.69920295  Av last 100: 0.7563688099384308
-Iteration  270  with batch loss  0.81425756  Av last 100: 0.7563869351148605
-Iteration  271  with batch loss  0.72804904  Av last 100: 0.7565217357873917
-Iteration  272  with batch loss  0.6972656  Av last 100: 0.7551020681858063
-Iteration  273  with batch loss  0.677841  Av last 100: 0.7539000290632248
-Iteration  274  with batch loss  0.67141056  Av last 100: 0.7532469063997269
-Iteration  275  with batch loss  0.67562956  Av last 100: 0.7507026171684266
-Iteration  276  with batch loss  0.69578475  Av last 100: 0.749169642329216
-Iteration  277  with batch loss  0.879149  Av last 100: 0.7510274600982666
-Iteration  278  with batch loss  0.6648996  Av last 100: 0.7505325150489807
-Iteration  279  with batch loss  0.6787373  Av last 100: 0.7485138982534408
-Iteration  280  with batch loss  0.7166713  Av last 100: 0.7467528790235519
-Iteration  281  with batch loss  0.8040708  Av last 100: 0.7477646416425705
-Iteration  282  with batch loss  0.7114171  Av last 100: 0.7472149187326431
-Iteration  283  with batch loss  0.740456  Av last 100: 0.7451344150304794
-Iteration  284  with batch loss  0.82738703  Av last 100: 0.7462762600183487
-Iteration  285  with batch loss  0.82913125  Av last 100: 0.7474186927080154
-Iteration  286  with batch loss  0.78677195  Av last 100: 0.7486712837219238
-Iteration  287  with batch loss  0.71617377  Av last 100: 0.7482126903533936
-Iteration  288  with batch loss  0.79037297  Av last 100: 0.749135006070137
-Iteration  289  with batch loss  0.7404592  Av last 100: 0.7487283426523209
-Iteration  290  with batch loss  0.7059587  Av last 100: 0.7480065530538559
-Iteration  291  with batch loss  0.73493713  Av last 100: 0.7472067207098008
-Iteration  292  with batch loss  0.79627615  Av last 100: 0.7479372876882553
-Iteration  293  with batch loss  0.6765541  Av last 100: 0.7480434376001358
-Iteration  294  with batch loss  0.6670055  Av last 100: 0.7471142667531967
-Iteration  295  with batch loss  0.6904651  Av last 100: 0.7465112364292145
-Iteration  296  with batch loss  0.7696221  Av last 100: 0.7464536744356155
-Iteration  297  with batch loss  0.6869588  Av last 100: 0.7463621252775192
-Iteration  298  with batch loss  0.683372  Av last 100: 0.7461404514312744
-Iteration  299  with batch loss  0.71993095  Av last 100: 0.7446999853849411
-Iteration  300  with batch loss  0.7127011  Av last 100: 0.7451737415790558
-Test loss:  0.6691611231492719
-Iteration  301  with batch loss  0.7936689  Av last 100: 0.745813375711441
-Iteration  302  with batch loss  0.7139224  Av last 100: 0.7454478234052658
-Iteration  303  with batch loss  0.72992754  Av last 100: 0.7453080749511719
-Iteration  304  with batch loss  0.7267426  Av last 100: 0.7453012835979461
-Iteration  305  with batch loss  0.80170274  Av last 100: 0.744273938536644
-Iteration  306  with batch loss  0.68216133  Av last 100: 0.7417649012804032
-Iteration  307  with batch loss  0.82095134  Av last 100: 0.7426031970977783
-Iteration  308  with batch loss  0.6933835  Av last 100: 0.7423621493577958
-Iteration  309  with batch loss  0.6599715  Av last 100: 0.7412540364265442
-Iteration  310  with batch loss  0.7528193  Av last 100: 0.7419837558269501
-Iteration  311  with batch loss  0.7929626  Av last 100: 0.7419063502550125
-Iteration  312  with batch loss  0.69484776  Av last 100: 0.7410066401958466
-Iteration  313  with batch loss  0.8169902  Av last 100: 0.7424291831254959
-Iteration  314  with batch loss  0.6677851  Av last 100: 0.7417798984050751
-Iteration  315  with batch loss  0.74739987  Av last 100: 0.7421432876586914
-Iteration  316  with batch loss  0.72979724  Av last 100: 0.741173439025879
-Iteration  317  with batch loss  0.78692245  Av last 100: 0.7412334507703782
-Iteration  318  with batch loss  0.85159624  Av last 100: 0.7420921105146409
-Iteration  319  with batch loss  0.73265445  Av last 100: 0.7416864079236984
-Iteration  320  with batch loss  0.74942815  Av last 100: 0.7405778449773789
-Iteration  321  with batch loss  0.6792354  Av last 100: 0.7399527162313462
-Iteration  322  with batch loss  0.80787754  Av last 100: 0.7411765265464783
-Iteration  323  with batch loss  0.70646137  Av last 100: 0.740618250966072
-Iteration  324  with batch loss  0.7502501  Av last 100: 0.7410794669389724
-Iteration  325  with batch loss  0.72083545  Av last 100: 0.7415427231788635
-Iteration  326  with batch loss  0.79835045  Av last 100: 0.7414100646972657
-Iteration  327  with batch loss  0.7623981  Av last 100: 0.7406633067131042
-Iteration  328  with batch loss  0.6042528  Av last 100: 0.7393960303068161
-Iteration  329  with batch loss  0.7950703  Av last 100: 0.7392006438970565
-Iteration  330  with batch loss  0.65759146  Av last 100: 0.7378995805978775
-Iteration  331  with batch loss  0.74693817  Av last 100: 0.7379689157009125
-Iteration  332  with batch loss  0.8102155  Av last 100: 0.7383684736490249
-Iteration  333  with batch loss  0.6660652  Av last 100: 0.7373977053165436
-Iteration  334  with batch loss  0.69815725  Av last 100: 0.7368662315607071
-Iteration  335  with batch loss  0.7017207  Av last 100: 0.7354771441221237
-Iteration  336  with batch loss  0.6778939  Av last 100: 0.7349212968349457
-Iteration  337  with batch loss  0.64744544  Av last 100: 0.7340251243114472
+Iteration  1150  with batch loss  0.31288916
+Test loss:  0.13129234940093448
+Iteration  1151  with batch loss  0.27966806
+Iteration  1152  with batch loss  0.159697
+Iteration  1153  with batch loss  0.16835158
+Iteration  1154  with batch loss  0.1970287
+Iteration  1155  with batch loss  0.23881279
+Iteration  1156  with batch loss  0.29079857
+Iteration  1157  with batch loss  0.14099753
+Iteration  1158  with batch loss  0.18715547
+Iteration  1159  with batch loss  0.118497096
+Iteration  1160  with batch loss  0.3242618
+Iteration  1161  with batch loss  0.20679608
+Iteration  1162  with batch loss  0.13990852
+Iteration  1163  with batch loss  0.19162461
+Iteration  1164  with batch loss  0.12831527
+Iteration  1165  with batch loss  0.21675627
+Iteration  1166  with batch loss  0.18661697
+Iteration  1167  with batch loss  0.22712219
+Iteration  1168  with batch loss  0.21490341
+Iteration  1169  with batch loss  0.16728437
+Iteration  1170  with batch loss  0.1565503
+Iteration  1171  with batch loss  0.1842293
+Iteration  1172  with batch loss  0.1627528
+Iteration  1173  with batch loss  0.16096808
+Iteration  1174  with batch loss  0.17719887
+Iteration  1175  with batch loss  0.12874016
+Iteration  1176  with batch loss  0.2353608
+Iteration  1177  with batch loss  0.22947626
+Iteration  1178  with batch loss  0.31651092
+Iteration  1179  with batch loss  0.099824235
+Iteration  1180  with batch loss  0.22684932
+Iteration  1181  with batch loss  0.23885791
+Iteration  1182  with batch loss  0.15124965
+Iteration  1183  with batch loss  0.25561103
+Iteration  1184  with batch loss  0.26242095
+Iteration  1185  with batch loss  0.2383844
+Iteration  1186  with batch loss  0.16768551
+Iteration  1187  with batch loss  0.21309763
+Iteration  1188  with batch loss  0.2047533
+Iteration  1189  with batch loss  0.087973915
+Iteration  1190  with batch loss  0.36291215
+Iteration  1191  with batch loss  0.12418525
+Iteration  1192  with batch loss  0.27545995
+Iteration  1193  with batch loss  0.18424277
+Iteration  1194  with batch loss  0.20295961
+Iteration  1195  with batch loss  0.20393373
+Iteration  1196  with batch loss  0.1497484
+Iteration  1197  with batch loss  0.14803511
+Iteration  1198  with batch loss  0.102958396
+Iteration  1199  with batch loss  0.20688182
+Iteration  1200  with batch loss  0.15184097
+Test loss:  0.14031299681101048
+Iteration  1201  with batch loss  0.10862891
+Iteration  1202  with batch loss  0.27454284
+Iteration  1203  with batch loss  0.2677417
+Iteration  1204  with batch loss  0.16224174
+Iteration  1205  with batch loss  0.17920582
+Iteration  1206  with batch loss  0.13797653
+Iteration  1207  with batch loss  0.28119072
+Iteration  1208  with batch loss  0.06958028
+Iteration  1209  with batch loss  0.11389229
+Iteration  1210  with batch loss  0.12739636
+Iteration  1211  with batch loss  0.09803195
+Iteration  1212  with batch loss  0.27032536
+Iteration  1213  with batch loss  0.07905715
+Iteration  1214  with batch loss  0.2272653
+Iteration  1215  with batch loss  0.17910023
+Iteration  1216  with batch loss  0.15306285
+Iteration  1217  with batch loss  0.100047424
+Iteration  1218  with batch loss  0.13013029
+Iteration  1219  with batch loss  0.18294802
+Iteration  1220  with batch loss  0.16548252
+Iteration  1221  with batch loss  0.20706686
+Iteration  1222  with batch loss  0.23781995
+Iteration  1223  with batch loss  0.29010385
+Iteration  1224  with batch loss  0.1535493
+Iteration  1225  with batch loss  0.16223508
+Iteration  1226  with batch loss  0.17858279
+Iteration  1227  with batch loss  0.15886763
+Iteration  1228  with batch loss  0.14510095
+Iteration  1229  with batch loss  0.066843465
+Iteration  1230  with batch loss  0.16478576
+Iteration  1231  with batch loss  0.17699735
+Iteration  1232  with batch loss  0.17041738
+Iteration  1233  with batch loss  0.14475001
+Iteration  1234  with batch loss  0.10112214
+Iteration  1235  with batch loss  0.20836137
+Iteration  1236  with batch loss  0.17982323
+Iteration  1237  with batch loss  0.16193244
+Iteration  1238  with batch loss  0.118784934
+Iteration  1239  with batch loss  0.19547845
+Iteration  1240  with batch loss  0.15775056
+Iteration  1241  with batch loss  0.12655678
+Iteration  1242  with batch loss  0.22480862
+Iteration  1243  with batch loss  0.2908389
+Iteration  1244  with batch loss  0.23464619
+Iteration  1245  with batch loss  0.2893578
+Iteration  1246  with batch loss  0.21153848
+Iteration  1247  with batch loss  0.22490072
+Iteration  1248  with batch loss  0.28438687
+Iteration  1249  with batch loss  0.15725464  Av last 100: 0.18841649778187275
+Iteration  1250  with batch loss  0.14744848  Av last 100: 0.1867620909959078
+Test loss:  0.13615196743026867
+Iteration  1251  with batch loss  0.10975772  Av last 100: 0.18506298758089543
+Iteration  1252  with batch loss  0.18355423  Av last 100: 0.18530155993998051
+Iteration  1253  with batch loss  0.15939158  Av last 100: 0.18521196000277995
+Iteration  1254  with batch loss  0.14786167  Av last 100: 0.18472028978168964
+Iteration  1255  with batch loss  0.26676574  Av last 100: 0.18499981932342052
+Iteration  1256  with batch loss  0.18470357  Av last 100: 0.18393886931240558
+Iteration  1257  with batch loss  0.12598531  Av last 100: 0.18378874711692333
+Iteration  1258  with batch loss  0.18776971  Av last 100: 0.18379488952457904
+Iteration  1259  with batch loss  0.39342302  Av last 100: 0.18654414877295494
+Iteration  1260  with batch loss  0.27091387  Av last 100: 0.18601066932082178
+Iteration  1261  with batch loss  0.20161684  Av last 100: 0.18595887690782548
+Iteration  1262  with batch loss  0.23985025  Av last 100: 0.18695829421281815
+Iteration  1263  with batch loss  0.15246938  Av last 100: 0.18656674191355704
+Iteration  1264  with batch loss  0.22467522  Av last 100: 0.18753034144639968
+Iteration  1265  with batch loss  0.29159808  Av last 100: 0.18827875956892967
+Iteration  1266  with batch loss  0.20899001  Av last 100: 0.18850248992443086
+Iteration  1267  with batch loss  0.19639753  Av last 100: 0.18819524332880974
+Iteration  1268  with batch loss  0.10244702  Av last 100: 0.18707067936658858
+Iteration  1269  with batch loss  0.23206277  Av last 100: 0.1877184633910656
+Iteration  1270  with batch loss  0.29540426  Av last 100: 0.18910700291395188
+Iteration  1271  with batch loss  0.1821037  Av last 100: 0.18908574685454368
+Iteration  1272  with batch loss  0.11209663  Av last 100: 0.1885791850835085
+Iteration  1273  with batch loss  0.18701027  Av last 100: 0.18883960701525213
+Iteration  1274  with batch loss  0.15261087  Av last 100: 0.18859372697770596
+Iteration  1275  with batch loss  0.37055284  Av last 100: 0.19101185373961926
+Iteration  1276  with batch loss  0.18758789  Av last 100: 0.19053412459790706
+Iteration  1277  with batch loss  0.21809274  Av last 100: 0.19042028941214084
+Iteration  1278  with batch loss  0.19914727  Av last 100: 0.18924665294587611
+Iteration  1279  with batch loss  0.17982087  Av last 100: 0.19004661925137042
+Iteration  1280  with batch loss  0.12389559  Av last 100: 0.18901708200573922
+Iteration  1281  with batch loss  0.14126481  Av last 100: 0.1880411510169506
+Iteration  1282  with batch loss  0.115302436  Av last 100: 0.18768167890608312
+Iteration  1283  with batch loss  0.1352992  Av last 100: 0.18647856064140797
+Iteration  1284  with batch loss  0.17549188  Av last 100: 0.18560926996171476
+Iteration  1285  with batch loss  0.16394989  Av last 100: 0.1848649249225855
+Iteration  1286  with batch loss  0.0890577  Av last 100: 0.18407864682376385
+Iteration  1287  with batch loss  0.21426298  Av last 100: 0.1840903002768755
+Iteration  1288  with batch loss  0.12530747  Av last 100: 0.18329584203660487
+Iteration  1289  with batch loss  0.32845485  Av last 100: 0.18570065140724182
+Iteration  1290  with batch loss  0.27608934  Av last 100: 0.18483242332935335
+Iteration  1291  with batch loss  0.27228674  Av last 100: 0.18631343826651572
+Iteration  1292  with batch loss  0.22328399  Av last 100: 0.18579167872667313
+Iteration  1293  with batch loss  0.16667375  Av last 100: 0.18561598852276803
+Iteration  1294  with batch loss  0.18628085  Av last 100: 0.18544920086860656
+Iteration  1295  with batch loss  0.16521269  Av last 100: 0.18506199046969413
+Iteration  1296  with batch loss  0.2173431  Av last 100: 0.1857379375398159
+Iteration  1297  with batch loss  0.15183133  Av last 100: 0.18577589973807335
+Iteration  1298  with batch loss  0.06975146  Av last 100: 0.18544383034110068
+Iteration  1299  with batch loss  0.31614494  Av last 100: 0.18653646156191825
+Iteration  1300  with batch loss  0.11688327  Av last 100: 0.18618688456714153
+Test loss:  0.135972629183195
+Iteration  1301  with batch loss  0.19208457  Av last 100: 0.18702144116163255
+Iteration  1302  with batch loss  0.21048544  Av last 100: 0.18638086721301078
+Iteration  1303  with batch loss  0.12652782  Av last 100: 0.18496872827410699
+Iteration  1304  with batch loss  0.30087858  Av last 100: 0.1863550966978073
+Iteration  1305  with batch loss  0.1473324  Av last 100: 0.18603636249899863
+Iteration  1306  with batch loss  0.32793754  Av last 100: 0.18793597266077997
+Iteration  1307  with batch loss  0.2630603  Av last 100: 0.18775466844439506
+Iteration  1308  with batch loss  0.23481469  Av last 100: 0.18940701253712178
+Iteration  1309  with batch loss  0.10038065  Av last 100: 0.18927189618349075
+Iteration  1310  with batch loss  0.16848108  Av last 100: 0.1896827434003353
+Iteration  1311  with batch loss  0.26059642  Av last 100: 0.19130838811397552
+Iteration  1312  with batch loss  0.22488947  Av last 100: 0.1908540292084217
+Iteration  1313  with batch loss  0.07260667  Av last 100: 0.1907895243912935
+Iteration  1314  with batch loss  0.20189853  Av last 100: 0.19053585670888423
+Iteration  1315  with batch loss  0.15280518  Av last 100: 0.19027290619909765
+Iteration  1316  with batch loss  0.1090871  Av last 100: 0.18983314871788026
+Iteration  1317  with batch loss  0.12774085  Av last 100: 0.190110082924366
+Iteration  1318  with batch loss  0.1367662  Av last 100: 0.19017644196748734
+Iteration  1319  with batch loss  0.3040466  Av last 100: 0.1913874277472496
+Iteration  1320  with batch loss  0.13838002  Av last 100: 0.19111640274524688
+Iteration  1321  with batch loss  0.16547683  Av last 100: 0.19070050239562988
+Iteration  1322  with batch loss  0.26430976  Av last 100: 0.19096540048718452
+Iteration  1323  with batch loss  0.20984884  Av last 100: 0.1901628503203392
+Iteration  1324  with batch loss  0.30338633  Av last 100: 0.19166122063994406
+Iteration  1325  with batch loss  0.22748354  Av last 100: 0.19231370523571967
+Iteration  1326  with batch loss  0.21576396  Av last 100: 0.192685516923666
+Iteration  1327  with batch loss  0.10141338  Av last 100: 0.19211097441613675
+Iteration  1328  with batch loss  0.20898385  Av last 100: 0.1927498034387827
+Iteration  1329  with batch loss  0.13536681  Av last 100: 0.19343503691256048
+Iteration  1330  with batch loss  0.1957323  Av last 100: 0.19374450229108334
+Iteration  1331  with batch loss  0.29104224  Av last 100: 0.19488495118916035
+Iteration  1332  with batch loss  0.1656514  Av last 100: 0.19483729131519795
+Iteration  1333  with batch loss  0.21844319  Av last 100: 0.19557422302663327
+Iteration  1334  with batch loss  0.10908234  Av last 100: 0.1956538250297308
+Iteration  1335  with batch loss  0.1058171  Av last 100: 0.19462838232517243
+Iteration  1336  with batch loss  0.16725774  Av last 100: 0.19450272738933563
+Iteration  1337  with batch loss  0.2864184  Av last 100: 0.1957475870847702
+Iteration  1338  with batch loss  0.38737065  Av last 100: 0.19843344420194625
+Iteration  1339  with batch loss  0.13554172  Av last 100: 0.1978340768814087
+Iteration  1340  with batch loss  0.13464634  Av last 100: 0.1976030346751213
+Iteration  1341  with batch loss  0.21009965  Av last 100: 0.19843846336007118
+Iteration  1342  with batch loss  0.17050481  Av last 100: 0.19789542526006698
+Iteration  1343  with batch loss  0.17697409  Av last 100: 0.19675677716732026
+Iteration  1344  with batch loss  0.24446018  Av last 100: 0.1968549171090126
+Iteration  1345  with batch loss  0.10751194  Av last 100: 0.19503645837306977
+Iteration  1346  with batch loss  0.31311855  Av last 100: 0.19605225905776025
+Iteration  1347  with batch loss  0.11369387  Av last 100: 0.194940190538764
+Iteration  1348  with batch loss  0.31172454  Av last 100: 0.19521356724202632
+Iteration  1349  with batch loss  0.21996006  Av last 100: 0.1958406215161085
+Iteration  1350  with batch loss  0.14734645  Av last 100: 0.19583960123360156
+Test loss:  0.13447648117170088
+Iteration  1351  with batch loss  0.086796656  Av last 100: 0.1956099905818701
+Iteration  1352  with batch loss  0.20070268  Av last 100: 0.19578147508203983
+Iteration  1353  with batch loss  0.23004304  Av last 100: 0.1964879896491766
+Iteration  1354  with batch loss  0.16019352  Av last 100: 0.1966113080829382
+Iteration  1355  with batch loss  0.19282345  Av last 100: 0.1958718851953745
+Iteration  1356  with batch loss  0.13325854  Av last 100: 0.19535743482410908
+Iteration  1357  with batch loss  0.40779525  Av last 100: 0.19817553423345088
+Iteration  1358  with batch loss  0.14504986  Av last 100: 0.19774833567440508
+Iteration  1359  with batch loss  0.28628275  Av last 100: 0.1966769329458475
+Iteration  1360  with batch loss  0.10393038  Av last 100: 0.19500709801912308
+Iteration  1361  with batch loss  0.16977184  Av last 100: 0.19468864798545837
+Iteration  1362  with batch loss  0.35002938  Av last 100: 0.19579043924808504
+Iteration  1363  with batch loss  0.20701067  Av last 100: 0.19633585214614868
+Iteration  1364  with batch loss  0.14179626  Av last 100: 0.1955070625245571
+Iteration  1365  with batch loss  0.1329012  Av last 100: 0.19392009377479552
+Iteration  1366  with batch loss  0.2489414  Av last 100: 0.1943196077644825
+Iteration  1367  with batch loss  0.16716981  Av last 100: 0.1940273305773735
+Iteration  1368  with batch loss  0.26699612  Av last 100: 0.19567282155156135
+Iteration  1369  with batch loss  0.39486504  Av last 100: 0.19730084419250488
+Iteration  1370  with batch loss  0.14659794  Av last 100: 0.19581278100609778
+Iteration  1371  with batch loss  0.15364094  Av last 100: 0.19552815347909927
+Iteration  1372  with batch loss  0.21593344  Av last 100: 0.1965665215998888
+Iteration  1373  with batch loss  0.17647332  Av last 100: 0.19646115206182002
+Iteration  1374  with batch loss  0.25818053  Av last 100: 0.1975168486684561
+Iteration  1375  with batch loss  0.09112473  Av last 100: 0.19472256757318973
+Iteration  1376  with batch loss  0.2127306  Av last 100: 0.1949739947170019
+Iteration  1377  with batch loss  0.16143422  Av last 100: 0.19440740950405597
+Iteration  1378  with batch loss  0.23192036  Av last 100: 0.19473514042794704
+Iteration  1379  with batch loss  0.18067351  Av last 100: 0.19474366687238218
+Iteration  1380  with batch loss  0.18320575  Av last 100: 0.19533676847815515
+Iteration  1381  with batch loss  0.18284203  Av last 100: 0.19575254067778589
+Iteration  1382  with batch loss  0.15733697  Av last 100: 0.1961728859692812
+Iteration  1383  with batch loss  0.12162946  Av last 100: 0.1960361885279417
+Iteration  1384  with batch loss  0.21352899  Av last 100: 0.1964165595918894
+Iteration  1385  with batch loss  0.25557208  Av last 100: 0.19733278147876263
+Iteration  1386  with batch loss  0.1772343  Av last 100: 0.19821454755961895
+Iteration  1387  with batch loss  0.11547521  Av last 100: 0.1972266698628664
+Iteration  1388  with batch loss  0.3489288  Av last 100: 0.19946288324892522
+Iteration  1389  with batch loss  0.22889875  Av last 100: 0.1984673222154379
+Iteration  1390  with batch loss  0.21399307  Av last 100: 0.19784635953605176
+Iteration  1391  with batch loss  0.15988073  Av last 100: 0.19672229938209057
+Iteration  1392  with batch loss  0.0978424  Av last 100: 0.19546788349747657
+Iteration  1393  with batch loss  0.2266832  Av last 100: 0.1960679779946804
+Iteration  1394  with batch loss  0.19936946  Av last 100: 0.19619886413216592
+Iteration  1395  with batch loss  0.15930963  Av last 100: 0.1961398334801197
+Iteration  1396  with batch loss  0.22985862  Av last 100: 0.19626498863101005
+Iteration  1397  with batch loss  0.11422088  Av last 100: 0.1958888841420412
+Iteration  1398  with batch loss  0.1528402  Av last 100: 0.19671977154910564
+Iteration  1399  with batch loss  0.1380544  Av last 100: 0.1949388661235571
+Iteration  1400  with batch loss  0.22068666  Av last 100: 0.19597690001130105
+Test loss:  0.13351981151201917
+Iteration  1401  with batch loss  0.13424318  Av last 100: 0.1953984861075878
+Iteration  1402  with batch loss  0.0815566  Av last 100: 0.19410919770598412
+Iteration  1403  with batch loss  0.18504712  Av last 100: 0.19469439074397088
+Iteration  1404  with batch loss  0.1818484  Av last 100: 0.19350408896803856
+Iteration  1405  with batch loss  0.16615522  Av last 100: 0.19369231715798377
+Iteration  1406  with batch loss  0.11332895  Av last 100: 0.1915462312102318
+Iteration  1407  with batch loss  0.11016057  Av last 100: 0.19001723386347294
+Iteration  1408  with batch loss  0.30427727  Av last 100: 0.19071185968816282
+Iteration  1409  with batch loss  0.19967456  Av last 100: 0.19170479878783225
+Iteration  1410  with batch loss  0.27532262  Av last 100: 0.1927732141315937
+Iteration  1411  with batch loss  0.11249116  Av last 100: 0.1912921614944935
+Iteration  1412  with batch loss  0.13940892  Av last 100: 0.19043735593557357
+Iteration  1413  with batch loss  0.16052108  Av last 100: 0.19131650000810624
+Iteration  1414  with batch loss  0.22033481  Av last 100: 0.19150086283683776
+Iteration  1415  with batch loss  0.124705404  Av last 100: 0.19121986508369446
+Iteration  1416  with batch loss  0.11805731  Av last 100: 0.19130956716835498
+Iteration  1417  with batch loss  0.25992376  Av last 100: 0.192631396278739
+Iteration  1418  with batch loss  0.18780157  Av last 100: 0.19314175002276898
+Iteration  1419  with batch loss  0.24361698  Av last 100: 0.1925374538451433
+Iteration  1420  with batch loss  0.24069542  Av last 100: 0.19356060780584813
+Iteration  1421  with batch loss  0.18857616  Av last 100: 0.1937916011363268
+Iteration  1422  with batch loss  0.19332996  Av last 100: 0.19308180309832096
+Iteration  1423  with batch loss  0.29010636  Av last 100: 0.1938843782991171
+Iteration  1424  with batch loss  0.12851597  Av last 100: 0.19213567472994328
+Iteration  1425  with batch loss  0.15435004  Av last 100: 0.19140433974564075
+Iteration  1426  with batch loss  0.17497753  Av last 100: 0.19099647544324397
+Iteration  1427  with batch loss  0.18895665  Av last 100: 0.19187190815806388
+Iteration  1428  with batch loss  0.052642398  Av last 100: 0.1903084935992956
+Iteration  1429  with batch loss  0.18467191  Av last 100: 0.19080154456198214
+Iteration  1430  with batch loss  0.17865542  Av last 100: 0.19063077576458454
+Iteration  1431  with batch loss  0.21116832  Av last 100: 0.18983203656971454
+Iteration  1432  with batch loss  0.25371334  Av last 100: 0.190712656006217
+Iteration  1433  with batch loss  0.24058467  Av last 100: 0.19093407087028028
+Iteration  1434  with batch loss  0.20979202  Av last 100: 0.1919411676377058
+Iteration  1435  with batch loss  0.19083707  Av last 100: 0.1927913673222065
+Iteration  1436  with batch loss  0.2691489  Av last 100: 0.1938102787733078
+Iteration  1437  with batch loss  0.26500952  Av last 100: 0.1935961899161339
+Iteration  1438  with batch loss  0.27292487  Av last 100: 0.19245173215866088
+Iteration  1439  with batch loss  0.088053405  Av last 100: 0.1919768489897251
+Iteration  1440  with batch loss  0.24323954  Av last 100: 0.19306278094649315
+Iteration  1441  with batch loss  0.21815708  Av last 100: 0.19314335525035858
+Iteration  1442  with batch loss  0.1449547  Av last 100: 0.192887854129076
+Iteration  1443  with batch loss  0.09475025  Av last 100: 0.1920656157284975
+Iteration  1444  with batch loss  0.08232206  Av last 100: 0.19044423453509807
+Iteration  1445  with batch loss  0.23297942  Av last 100: 0.1916989093273878
+Iteration  1446  with batch loss  0.34265706  Av last 100: 0.191994294449687
+Iteration  1447  with batch loss  0.14101677  Av last 100: 0.1922675234079361
+Iteration  1448  with batch loss  0.34081528  Av last 100: 0.19255843073129653
+Iteration  1449  with batch loss  0.23309523  Av last 100: 0.19268978238105774
+Iteration  1450  with batch loss  0.1251412  Av last 100: 0.192467729896307
+Test loss:  0.13433514453225853
+Iteration  1451  with batch loss  0.13362063  Av last 100: 0.19293596968054771
+Iteration  1452  with batch loss  0.21168709  Av last 100: 0.19304581373929977
+Iteration  1453  with batch loss  0.26115745  Av last 100: 0.19335695788264273
+Iteration  1454  with batch loss  0.23026675  Av last 100: 0.19405769020318986
+Iteration  1455  with batch loss  0.17369042  Av last 100: 0.1938663598895073
+Iteration  1456  with batch loss  0.17633317  Av last 100: 0.19429710626602173
+Iteration  1457  with batch loss  0.32269546  Av last 100: 0.1934461084008217
+Iteration  1458  with batch loss  0.3127413  Av last 100: 0.19512302294373512
+Iteration  1459  with batch loss  0.23110484  Av last 100: 0.19457124382257462
+Iteration  1460  with batch loss  0.22653729  Av last 100: 0.1957973129302263
+Iteration  1461  with batch loss  0.19718093  Av last 100: 0.1960714038461447
+Iteration  1462  with batch loss  0.14050087  Av last 100: 0.19397611878812313
+Iteration  1463  with batch loss  0.24420427  Av last 100: 0.19434805475175382
+Iteration  1464  with batch loss  0.18735242  Av last 100: 0.19480361633002757
+Iteration  1465  with batch loss  0.21036838  Av last 100: 0.19557828806340694
+Iteration  1466  with batch loss  0.15309986  Av last 100: 0.19461987264454364
+Iteration  1467  with batch loss  0.14815918  Av last 100: 0.19442976631224154
+Iteration  1468  with batch loss  0.11866953  Av last 100: 0.19294650048017503
+Iteration  1469  with batch loss  0.19169188  Av last 100: 0.19091476887464523
+Iteration  1470  with batch loss  0.20855308  Av last 100: 0.1915343202650547
+Iteration  1471  with batch loss  0.18742342  Av last 100: 0.19187214508652686
+Iteration  1472  with batch loss  0.13166311  Av last 100: 0.19102944180369377
+Iteration  1473  with batch loss  0.23346451  Av last 100: 0.19159935370087625
+Iteration  1474  with batch loss  0.16731638  Av last 100: 0.19069071218371392
+Iteration  1475  with batch loss  0.09284607  Av last 100: 0.190707925632596
+Iteration  1476  with batch loss  0.09915531  Av last 100: 0.18957217268645762
+Iteration  1477  with batch loss  0.27472103  Av last 100: 0.19070504076778888
+Iteration  1478  with batch loss  0.17853679  Av last 100: 0.19017120502889157
+Iteration  1479  with batch loss  0.31864572  Av last 100: 0.1915509270876646
+Iteration  1480  with batch loss  0.08945474  Av last 100: 0.190613416954875
+Iteration  1481  with batch loss  0.22455935  Av last 100: 0.19103059016168117
+Iteration  1482  with batch loss  0.2633621  Av last 100: 0.19209084160625933
+Iteration  1483  with batch loss  0.11744017  Av last 100: 0.19204894870519637
+Iteration  1484  with batch loss  0.11952713  Av last 100: 0.19110893011093139
+Iteration  1485  with batch loss  0.27526528  Av last 100: 0.19130586206912994
+Iteration  1486  with batch loss  0.184118  Av last 100: 0.1913746990263462
+Iteration  1487  with batch loss  0.13436833  Av last 100: 0.19156363025307654
+Iteration  1488  with batch loss  0.2023927  Av last 100: 0.1900982691347599
+Iteration  1489  with batch loss  0.19836897  Av last 100: 0.18979297131299971
+Iteration  1490  with batch loss  0.2029734  Av last 100: 0.1896827745437622
+Iteration  1491  with batch loss  0.1924542  Av last 100: 0.19000850930809976
+Iteration  1492  with batch loss  0.21083316  Av last 100: 0.19113841690123082
+Iteration  1493  with batch loss  0.20554785  Av last 100: 0.19092706345021726
+Iteration  1494  with batch loss  0.1685313  Av last 100: 0.190618681833148
+Iteration  1495  with batch loss  0.14915761  Av last 100: 0.19051716171205044
+Iteration  1496  with batch loss  0.08679253  Av last 100: 0.1890865007787943
+Iteration  1497  with batch loss  0.22825967  Av last 100: 0.19022688865661622
+Iteration  1498  with batch loss  0.27357587  Av last 100: 0.19143424540758133
+Iteration  1499  with batch loss  0.10438975  Av last 100: 0.19109759889543057
+Iteration  1500  with batch loss  0.17622195  Av last 100: 0.19065295182168485
+Test loss:  0.13203824512625525
+Iteration  1501  with batch loss  0.2248532  Av last 100: 0.19155905209481716
+Iteration  1502  with batch loss  0.07864002  Av last 100: 0.19152988627552986
+Iteration  1503  with batch loss  0.1989321  Av last 100: 0.1916687360405922
+Iteration  1504  with batch loss  0.098746985  Av last 100: 0.190837721824646
+Iteration  1505  with batch loss  0.101816855  Av last 100: 0.19019433818757533
+Iteration  1506  with batch loss  0.14519969  Av last 100: 0.19051304556429385
+Iteration  1507  with batch loss  0.2530285  Av last 100: 0.19194172501564025
+Iteration  1508  with batch loss  0.10894445  Av last 100: 0.18998839683830737
+Iteration  1509  with batch loss  0.18012007  Av last 100: 0.18979285188019276
+Iteration  1510  with batch loss  0.15577693  Av last 100: 0.18859739504754544
+Iteration  1511  with batch loss  0.30585927  Av last 100: 0.19053107611835002
+Iteration  1512  with batch loss  0.29925138  Av last 100: 0.19212950073182583
+Iteration  1513  with batch loss  0.13493897  Av last 100: 0.19187367968261243
+Iteration  1514  with batch loss  0.07675387  Av last 100: 0.19043787024915218
+Iteration  1515  with batch loss  0.18878882  Av last 100: 0.19107870437204838
+Iteration  1516  with batch loss  0.20179622  Av last 100: 0.19191609345376492
+Iteration  1517  with batch loss  0.36328053  Av last 100: 0.19294966123998164
+Iteration  1518  with batch loss  0.08762266  Av last 100: 0.19194787211716174
+Iteration  1519  with batch loss  0.26398727  Av last 100: 0.19215157501399516
+Iteration  1520  with batch loss  0.13908976  Av last 100: 0.191135518476367
+Iteration  1521  with batch loss  0.30277324  Av last 100: 0.19227748923003674
+Iteration  1522  with batch loss  0.23810415  Av last 100: 0.1927252311259508
+Iteration  1523  with batch loss  0.32703802  Av last 100: 0.19309454776346682
+Iteration  1524  with batch loss  0.14348072  Av last 100: 0.19324419520795344
+Iteration  1525  with batch loss  0.19075257  Av last 100: 0.19360822044312953
+Iteration  1526  with batch loss  0.30684835  Av last 100: 0.19492692865431308
+Iteration  1527  with batch loss  0.25947896  Av last 100: 0.19563215173780918
+Iteration  1528  with batch loss  0.26537874  Av last 100: 0.19775951519608498
+Iteration  1529  with batch loss  0.2595041  Av last 100: 0.19850783720612525
+Iteration  1530  with batch loss  0.19901933  Av last 100: 0.19871147632598876
+Iteration  1531  with batch loss  0.12197523  Av last 100: 0.19781954541802407
+Iteration  1532  with batch loss  0.12666379  Av last 100: 0.19654904991388322
+Iteration  1533  with batch loss  0.16839181  Av last 100: 0.1958271212875843
+Iteration  1534  with batch loss  0.16496386  Av last 100: 0.1953788396716118
+Iteration  1535  with batch loss  0.30203414  Av last 100: 0.1964908103644848
+Iteration  1536  with batch loss  0.17533594  Av last 100: 0.19555268093943595
+Iteration  1537  with batch loss  0.23341861  Av last 100: 0.19523677185177804
+Iteration  1538  with batch loss  0.14270501  Av last 100: 0.1939345732331276
+Iteration  1539  with batch loss  0.17234272  Av last 100: 0.1947774663567543
+Iteration  1540  with batch loss  0.15689817  Av last 100: 0.19391405269503592
+Iteration  1541  with batch loss  0.13782653  Av last 100: 0.19311074718832968
+Iteration  1542  with batch loss  0.06388998  Av last 100: 0.19230010002851486
+Iteration  1543  with batch loss  0.24822101  Av last 100: 0.1938348076492548
+Iteration  1544  with batch loss  0.18576665  Av last 100: 0.19486925356090068
+Iteration  1545  with batch loss  0.19204243  Av last 100: 0.19445988364517688
+Iteration  1546  with batch loss  0.15552545  Av last 100: 0.19258856751024722
+Iteration  1547  with batch loss  0.14007042  Av last 100: 0.19257910408079623
+Iteration  1548  with batch loss  0.19124837  Av last 100: 0.1910834350436926
+Iteration  1549  with batch loss  0.24893169  Av last 100: 0.19124179966747762
+Iteration  1550  with batch loss  0.09918286  Av last 100: 0.19098221622407435
+Test loss:  0.1320293523773481
+Iteration  1551  with batch loss  0.116375096  Av last 100: 0.190809760838747
+Iteration  1552  with batch loss  0.17190109  Av last 100: 0.19041190087795257
+Iteration  1553  with batch loss  0.114937544  Av last 100: 0.18894970178604126
+Iteration  1554  with batch loss  0.12774263  Av last 100: 0.18792446061968804
+Iteration  1555  with batch loss  0.19384408  Av last 100: 0.1881259971857071
+Iteration  1556  with batch loss  0.10391359  Av last 100: 0.18740180134773254
+Iteration  1557  with batch loss  0.3430567  Av last 100: 0.1876054137945175
+Iteration  1558  with batch loss  0.26688018  Av last 100: 0.18714680254459382
+Iteration  1559  with batch loss  0.19257253  Av last 100: 0.1867614795267582
+Iteration  1560  with batch loss  0.18182927  Av last 100: 0.18631439939141273
+Iteration  1561  with batch loss  0.13405693  Av last 100: 0.1856831593811512
+Iteration  1562  with batch loss  0.13158627  Av last 100: 0.18559401333332062
+Iteration  1563  with batch loss  0.27331382  Av last 100: 0.18588510885834694
+Iteration  1564  with batch loss  0.16032088  Av last 100: 0.18561479344964027
+Iteration  1565  with batch loss  0.19665623  Av last 100: 0.1854776719212532
+Iteration  1566  with batch loss  0.18052182  Av last 100: 0.18575189143419266
+Iteration  1567  with batch loss  0.23259655  Av last 100: 0.1865962651371956
+Iteration  1568  with batch loss  0.15465441  Av last 100: 0.18695611394941808
+Iteration  1569  with batch loss  0.20467211  Av last 100: 0.18708591632544994
+Iteration  1570  with batch loss  0.23785892  Av last 100: 0.18737897478044033
+Iteration  1571  with batch loss  0.0982903  Av last 100: 0.18648764356970787
+Iteration  1572  with batch loss  0.21688668  Av last 100: 0.1873398792743683
+Iteration  1573  with batch loss  0.214287  Av last 100: 0.1871481041610241
+Iteration  1574  with batch loss  0.114078954  Av last 100: 0.18661572992801667
+Iteration  1575  with batch loss  0.31190223  Av last 100: 0.18880629144608974
+Iteration  1576  with batch loss  0.09794472  Av last 100: 0.18879418559372424
+Iteration  1577  with batch loss  0.13472892  Av last 100: 0.1873942645639181
+Iteration  1578  with batch loss  0.14365703  Av last 100: 0.18704546697437763
+Iteration  1579  with batch loss  0.1625441  Av last 100: 0.18548445083200932
+Iteration  1580  with batch loss  0.081880026  Av last 100: 0.18540870368480683
+Iteration  1581  with batch loss  0.18139614  Av last 100: 0.18497707158327104
+Iteration  1582  with batch loss  0.18831591  Av last 100: 0.1842266096174717
+Iteration  1583  with batch loss  0.10126968  Av last 100: 0.18406490467488765
+Iteration  1584  with batch loss  0.17463456  Av last 100: 0.1846159789711237
+Iteration  1585  with batch loss  0.091288894  Av last 100: 0.18277621515095233
+Iteration  1586  with batch loss  0.120597795  Av last 100: 0.18214101307094097
+Iteration  1587  with batch loss  0.17177676  Av last 100: 0.18251509733498097
+Iteration  1588  with batch loss  0.1873227  Av last 100: 0.18236439742147922
+Iteration  1589  with batch loss  0.1858717  Av last 100: 0.1822394248098135
+Iteration  1590  with batch loss  0.15368688  Av last 100: 0.18174655966460704
+Iteration  1591  with batch loss  0.11377529  Av last 100: 0.18095977053046228
+Iteration  1592  with batch loss  0.21165311  Av last 100: 0.1809679700434208
+Iteration  1593  with batch loss  0.12609677  Av last 100: 0.18017345920205116
+Iteration  1594  with batch loss  0.22776486  Av last 100: 0.18076579481363297
+Iteration  1595  with batch loss  0.19007702  Av last 100: 0.18117498889565467
+Iteration  1596  with batch loss  0.17208982  Av last 100: 0.18202796176075936
+Iteration  1597  with batch loss  0.16876322  Av last 100: 0.18143299728631973
+Iteration  1598  with batch loss  0.1381003  Av last 100: 0.18007824152708055
+Iteration  1599  with batch loss  0.17719114  Av last 100: 0.18080625541508197
+Iteration  1600  with batch loss  0.12076202  Av last 100: 0.18025165610015392
+Test loss:  0.1295634035388349
+Iteration  1601  with batch loss  0.19464886  Av last 100: 0.1799496126919985
+Iteration  1602  with batch loss  0.14221245  Av last 100: 0.1805853369832039
+Iteration  1603  with batch loss  0.21435066  Av last 100: 0.18073952257633208
+Iteration  1604  with batch loss  0.16401076  Av last 100: 0.18139216035604477
+Iteration  1605  with batch loss  0.15962532  Av last 100: 0.18197024501860143
+Iteration  1606  with batch loss  0.099140406  Av last 100: 0.18150965221226215
+Iteration  1607  with batch loss  0.21759538  Av last 100: 0.18115532092750072
+Iteration  1608  with batch loss  0.12339696  Av last 100: 0.18129984602332117
+Iteration  1609  with batch loss  0.15093043  Av last 100: 0.18100794970989229
+Iteration  1610  with batch loss  0.25181395  Av last 100: 0.18196831986308099
+Iteration  1611  with batch loss  0.08873216  Av last 100: 0.179797048792243
+Iteration  1612  with batch loss  0.1985703  Av last 100: 0.17879023797810079
+Iteration  1613  with batch loss  0.19349398  Av last 100: 0.17937578804790974
+Iteration  1614  with batch loss  0.13896371  Av last 100: 0.17999788649380208
+Iteration  1615  with batch loss  0.18622373  Av last 100: 0.17997223563492298
+Iteration  1616  with batch loss  0.13544185  Av last 100: 0.17930869199335575
+Iteration  1617  with batch loss  0.15096496  Av last 100: 0.17718553625047206
+Iteration  1618  with batch loss  0.19006327  Av last 100: 0.178209942355752
+Iteration  1619  with batch loss  0.075782426  Av last 100: 0.1763278938829899
+Iteration  1620  with batch loss  0.18932314  Av last 100: 0.17683022767305373
+Iteration  1621  with batch loss  0.23316218  Av last 100: 0.17613411709666252
+Iteration  1622  with batch loss  0.15052362  Av last 100: 0.17525831177830697
+Iteration  1623  with batch loss  0.11651495  Av last 100: 0.1731530810892582
+Iteration  1624  with batch loss  0.16717815  Av last 100: 0.17339005544781685
+Iteration  1625  with batch loss  0.17096521  Av last 100: 0.17319218188524246
+Iteration  1626  with batch loss  0.10141963  Av last 100: 0.17113789469003676
+Iteration  1627  with batch loss  0.23950271  Av last 100: 0.17093813225626944
+Iteration  1628  with batch loss  0.10669382  Av last 100: 0.16935128301382066
+Iteration  1629  with batch loss  0.12008718  Av last 100: 0.16795711368322372
+Iteration  1630  with batch loss  0.21057402  Av last 100: 0.1680726605653763
+Iteration  1631  with batch loss  0.21861862  Av last 100: 0.1690390944480896
+Iteration  1632  with batch loss  0.19230889  Av last 100: 0.16969554543495177
+Iteration  1633  with batch loss  0.17883445  Av last 100: 0.1697999718785286
+Iteration  1634  with batch loss  0.24889417  Av last 100: 0.1706392750144005
+Iteration  1635  with batch loss  0.1085013  Av last 100: 0.16870394662022592
+Iteration  1636  with batch loss  0.22721574  Av last 100: 0.16922274455428124
+Iteration  1637  with batch loss  0.0915263  Av last 100: 0.1678038214147091
+Iteration  1638  with batch loss  0.14220032  Av last 100: 0.16779877454042436
+Iteration  1639  with batch loss  0.18773697  Av last 100: 0.1679527170956135
+Iteration  1640  with batch loss  0.15896498  Av last 100: 0.16797338515520097
+Iteration  1641  with batch loss  0.17244263  Av last 100: 0.1683195461332798
+Iteration  1642  with batch loss  0.24638548  Av last 100: 0.1701445011794567
+Iteration  1643  with batch loss  0.13904665  Av last 100: 0.16905275762081146
+Iteration  1644  with batch loss  0.19527675  Av last 100: 0.16914785861968995
+Iteration  1645  with batch loss  0.10849752  Av last 100: 0.16831240959465504
+Iteration  1646  with batch loss  0.13153864  Av last 100: 0.16807254157960416
+Iteration  1647  with batch loss  0.13899562  Av last 100: 0.16806179352104664
+Iteration  1648  with batch loss  0.29127124  Av last 100: 0.16906202219426633
+Iteration  1649  with batch loss  0.23508252  Av last 100: 0.16892353050410747
+Iteration  1650  with batch loss  0.21634214  Av last 100: 0.17009512327611445
+Test loss:  0.1310691107501726
+Iteration  1651  with batch loss  0.19040012  Av last 100: 0.17083537355065345
+Iteration  1652  with batch loss  0.3064622  Av last 100: 0.1721809846162796
+Iteration  1653  with batch loss  0.14849964  Av last 100: 0.1725166055560112
+Iteration  1654  with batch loss  0.16178566  Av last 100: 0.17285703584551812
+Iteration  1655  with batch loss  0.085730396  Av last 100: 0.17177589900791645
+Iteration  1656  with batch loss  0.21449573  Av last 100: 0.1728817204385996
+Iteration  1657  with batch loss  0.17789558  Av last 100: 0.1712301091104746
+Iteration  1658  with batch loss  0.12907845  Av last 100: 0.16985209174454213
+Iteration  1659  with batch loss  0.22245683  Av last 100: 0.17015093468129636
+Iteration  1660  with batch loss  0.09812163  Av last 100: 0.16931385822594167
+Iteration  1661  with batch loss  0.24129207  Av last 100: 0.17038620971143245
+Iteration  1662  with batch loss  0.26913264  Av last 100: 0.17176167346537113
+Iteration  1663  with batch loss  0.116440445  Av last 100: 0.1701929397135973
+Iteration  1664  with batch loss  0.19877395  Av last 100: 0.17057747043669225
+Iteration  1665  with batch loss  0.22454126  Av last 100: 0.1708563207834959
+Iteration  1666  with batch loss  0.18057618  Av last 100: 0.17085686437785624
+Iteration  1667  with batch loss  0.13095537  Av last 100: 0.16984045259654523
+Iteration  1668  with batch loss  0.18121855  Av last 100: 0.1701060939580202
+Iteration  1669  with batch loss  0.12796316  Av last 100: 0.1693390043824911
+Iteration  1670  with batch loss  0.2838474  Av last 100: 0.16979888908565044
+Iteration  1671  with batch loss  0.25411382  Av last 100: 0.17135712429881095
+Iteration  1672  with batch loss  0.20653239  Av last 100: 0.17125358134508134
+Iteration  1673  with batch loss  0.2109909  Av last 100: 0.17122062042355538
+Iteration  1674  with batch loss  0.06196569  Av last 100: 0.1706994877755642
+Iteration  1675  with batch loss  0.16486931  Av last 100: 0.1692291586101055
+Iteration  1676  with batch loss  0.17590833  Av last 100: 0.1700087946653366
+Iteration  1677  with batch loss  0.36321303  Av last 100: 0.17229363575577736
+Iteration  1678  with batch loss  0.11982444  Av last 100: 0.17205530986189843
+Iteration  1679  with batch loss  0.12043009  Av last 100: 0.171634169742465
+Iteration  1680  with batch loss  0.24055591  Av last 100: 0.1732209286093712
+Iteration  1681  with batch loss  0.18592314  Av last 100: 0.17326619863510132
+Iteration  1682  with batch loss  0.19471025  Av last 100: 0.17333014205098152
+Iteration  1683  with batch loss  0.116163574  Av last 100: 0.17347908101975917
+Iteration  1684  with batch loss  0.19325426  Av last 100: 0.17366527803242207
+Iteration  1685  with batch loss  0.27015364  Av last 100: 0.1754539255052805
+Iteration  1686  with batch loss  0.17785086  Av last 100: 0.17602645613253118
+Iteration  1687  with batch loss  0.21913321  Av last 100: 0.1765000206977129
+Iteration  1688  with batch loss  0.22758257  Av last 100: 0.1769026193767786
+Iteration  1689  with batch loss  0.16104114  Av last 100: 0.1766543137282133
+Iteration  1690  with batch loss  0.24730726  Av last 100: 0.17759051747620105
+Iteration  1691  with batch loss  0.2036045  Av last 100: 0.1784888096153736
+Iteration  1692  with batch loss  0.28232318  Av last 100: 0.1791955102980137
+Iteration  1693  with batch loss  0.16751163  Av last 100: 0.17960965886712074
+Iteration  1694  with batch loss  0.21607305  Av last 100: 0.17949274078011512
+Iteration  1695  with batch loss  0.3693471  Av last 100: 0.18128544151782988
+Iteration  1696  with batch loss  0.17220707  Av last 100: 0.18128661409020425
+Iteration  1697  with batch loss  0.23622803  Av last 100: 0.18196126222610473
+Iteration  1698  with batch loss  0.22362842  Av last 100: 0.18281654343008996
+Iteration  1699  with batch loss  0.1240515  Av last 100: 0.18228514701128007
+Iteration  1700  with batch loss  0.13896511  Av last 100: 0.18246717795729636
+Test loss:  0.13070683004640637
+Iteration  1701  with batch loss  0.12609832  Av last 100: 0.1817816725373268
+Iteration  1702  with batch loss  0.2258389  Av last 100: 0.18261793702840806
+Iteration  1703  with batch loss  0.07128283  Av last 100: 0.18118725873529912
+Iteration  1704  with batch loss  0.13581072  Av last 100: 0.18090525828301907
+Iteration  1705  with batch loss  0.30406764  Av last 100: 0.182349681481719
+Iteration  1706  with batch loss  0.16503753  Av last 100: 0.18300865270197392
+Iteration  1707  with batch loss  0.29628286  Av last 100: 0.18379552744328975
+Iteration  1708  with batch loss  0.14129761  Av last 100: 0.18397453390061855
+Iteration  1709  with batch loss  0.23792581  Av last 100: 0.18484448768198491
+Iteration  1710  with batch loss  0.1468525  Av last 100: 0.18379487313330173
+Iteration  1711  with batch loss  0.18879376  Av last 100: 0.18479548916220664
+Iteration  1712  with batch loss  0.34148675  Av last 100: 0.18622465372085573
+Iteration  1713  with batch loss  0.31575844  Av last 100: 0.18744729831814766
+Iteration  1714  with batch loss  0.18190977  Av last 100: 0.18787675887346267
+Iteration  1715  with batch loss  0.132602  Av last 100: 0.18734054163098335
+Iteration  1716  with batch loss  0.17029104  Av last 100: 0.18768903344869614
+Iteration  1717  with batch loss  0.12329667  Av last 100: 0.18741235055029393
+Iteration  1718  with batch loss  0.15154845  Av last 100: 0.18702720232307912
+Iteration  1719  with batch loss  0.17329052  Av last 100: 0.1880022832751274
+Iteration  1720  with batch loss  0.26329398  Av last 100: 0.1887419916689396
+Iteration  1721  with batch loss  0.09317214  Av last 100: 0.18734209127724172
+Iteration  1722  with batch loss  0.10648132  Av last 100: 0.18690166831016541
+Iteration  1723  with batch loss  0.2773475  Av last 100: 0.18850999385118483
+Iteration  1724  with batch loss  0.13060765  Av last 100: 0.18814428880810738
+Iteration  1725  with batch loss  0.19477685  Av last 100: 0.18838240519165994
+Iteration  1726  with batch loss  0.104421645  Av last 100: 0.18841242536902428
+Iteration  1727  with batch loss  0.27829215  Av last 100: 0.1888003197312355
+Iteration  1728  with batch loss  0.30517522  Av last 100: 0.19078513368964195
+Iteration  1729  with batch loss  0.4117657  Av last 100: 0.19370191887021065
+Iteration  1730  with batch loss  0.15665863  Av last 100: 0.19316276505589486
+Iteration  1731  with batch loss  0.19872096  Av last 100: 0.1929637885093689
+Iteration  1732  with batch loss  0.14799778  Av last 100: 0.19252067744731904
+Iteration  1733  with batch loss  0.15774058  Av last 100: 0.19230973869562148
+Iteration  1734  with batch loss  0.17771752  Av last 100: 0.19159797221422195
+Iteration  1735  with batch loss  0.15914887  Av last 100: 0.19210444793105125
+Iteration  1736  with batch loss  0.22249801  Av last 100: 0.19205727070569992
+Iteration  1737  with batch loss  0.22728758  Av last 100: 0.1934148834645748
+Iteration  1738  with batch loss  0.12796529  Av last 100: 0.19327253311872483
+Iteration  1739  with batch loss  0.2992054  Av last 100: 0.19438721731305122
+Iteration  1740  with batch loss  0.2072372  Av last 100: 0.19486993953585624
+Iteration  1741  with batch loss  0.24775423  Av last 100: 0.1956230555474758
+Iteration  1742  with batch loss  0.13600767  Av last 100: 0.19451927736401559
+Iteration  1743  with batch loss  0.20358661  Av last 100: 0.19516467690467834

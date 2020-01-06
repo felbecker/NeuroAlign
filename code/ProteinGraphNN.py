@@ -64,10 +64,12 @@ def pattern_set_to_input_target_dicts(pattern_set):
             len_seq = pattern_set.anchor_set.len_seqs[int(seq)]
             gap_rel_length.append((pos2 - pos1 - len1)/len_seq) #relative length of the gap between region i-1 and iZ
 
+    gap_rel_length = np.reshape(np.array(gap_rel_length, dtype=np.float32), (-1,1))
+
     sequence_dict = {
         "globals": [np.float32(0)],
         "nodes": seq_g_nodes,
-        "edges": np.zeros((len(seq_g_senders),1), dtype=np.float32), #gap_rel_length,
+        "edges": gap_rel_length,
         "senders": seq_g_senders,
         "receivers": seq_g_receivers
     }
@@ -162,17 +164,6 @@ class MLPGraphNetwork(snt.AbstractModule):
 
     def _build(self, inputs):
         return self._network(inputs)
-
-
-class AnchorPredictor(snt.AbstractModule):
-    def __init__(self, edge_layer_s, name="EdgeUpdater"):
-        super(EdgeUpdater, self).__init__(name=name)
-        with self._enter_variable_scope():
-          self._edge_block = blocks.EdgeBlock(edge_model_fn=make_mlp(edge_layer_s), use_globals=False)
-
-    def _build(self, inputs):
-        return self._edge_block(inputs)
-
 
 
 
@@ -271,7 +262,6 @@ class ProteinGNN(snt.AbstractModule):
 
 
 
-
 class Predictor():
 
     def __init__(self, param, example_seq_input, example_pattern_input, example_target):
@@ -282,20 +272,15 @@ class Predictor():
         self.pattern_input_ph = utils_tf.placeholders_from_data_dicts([example_pattern_input])
         self.target_ph = utils_tf.placeholders_from_data_dicts([example_target])
 
-        self.train_out = self.model(self.seq_input_ph, self.pattern_input_ph, param["train_mp_iterations"])
-        self.test_out = self.model(self.seq_input_ph, self.pattern_input_ph, param["test_mp_iterations"])
-
-        self.anchor_pred = AnchorPredictor(param["anchor_graph_edge_layer_s"])
-
-        #use a copy of htese logits to derive relative positions instead of predicting them directly
+        self.train_logits = self.model(self.seq_input_ph, self.pattern_input_ph, param["train_mp_iterations"])
+        self.test_logits = self.model(self.seq_input_ph, self.pattern_input_ph, param["test_mp_iterations"])
 
         def create_loss(output):
-            loss_op = (tf.losses.sigmoid_cross_entropy(self.target_ph.nodes, output.nodes) +
-                        tf.losses.sigmoid_cross_entropy(self.target_ph.edges, output.edges))
+            loss_op = tf.losses.sigmoid_cross_entropy(self.target_ph.edges, output.edges)
             return loss_op
 
-        self.loss_train = create_loss(self.train_out)
-        self.loss_test = create_loss(self.test_out)
+        self.loss_train = create_loss(self.train_logits)
+        self.loss_test = create_loss(self.test_logits)
 
         optimizer = tf.train.MomentumOptimizer(param["learning_rate"], param["optimizer_momentum"])
         self.step_op = optimizer.minimize(self.loss_train)
@@ -304,9 +289,8 @@ class Predictor():
         self.pattern_input_ph_run = utils_tf.make_runnable_in_session(self.pattern_input_ph)
         self.target_ph_run = utils_tf.make_runnable_in_session(self.target_ph)
 
-        self.train_rp = tf.sigmoid(self.train_out.nodes)
-        self.test_rp = tf.sigmoid(self.test_out.nodes)
-        self.predictions = 1-tf.square(self.test_rp)
+        self.train_out = tf.sigmoid(self.train_logits.edges)
+        self.test_out = tf.sigmoid(self.test_logits.edges)
 
 
     def make_feed_dict(self, seqIn, patternIn, target=None):
@@ -321,10 +305,8 @@ class Predictor():
 
 
     def train(self, session, seqIn, patternIn, target):
-        rp, tar, pat, _, loss = session.run([self.train_rp, self.target_ph, self.pattern_input_ph, self.step_op, self.loss_train], feed_dict = self.make_feed_dict(seqIn, patternIn, target))
-        # print("TARGET:", tar)
-        # print("PATTERN:", pat)
-        # print("RP:", rp)
+        loss, _ = session.run([self.loss_train, self.step_op],
+                feed_dict = self.make_feed_dict(seqIn, patternIn, target))
         return loss
 
 
@@ -337,5 +319,5 @@ class Predictor():
 
 
     def predict(self, session, seqIn, patternIn):
-        rp, predictions = session.run([self.test_rp, self.predictions], feed_dict = self.make_feed_dict([seqIn], [patternIn]))
-        return rp, predictions
+        out = session.run([self.test_out], feed_dict = self.make_feed_dict([seqIn], [patternIn]))
+        return out[0]
