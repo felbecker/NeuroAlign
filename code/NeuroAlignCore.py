@@ -237,8 +237,7 @@ class ProteinGNN(snt.AbstractModule):
     def _build(self,
                 sequence_graph, #graphs tuple with a single graph for the sequence graph
                 pattern_graph, #graphs tuple with a single graph for each pattern
-                num_processing_steps,
-                num_seq_graph_steps):
+                num_processing_steps):
 
         latent_seq_graph = self.sequence_encoder(sequence_graph)
         latent_seq_graph0 = latent_seq_graph
@@ -248,12 +247,11 @@ class ProteinGNN(snt.AbstractModule):
 
         for _ in range(num_processing_steps):
 
-            for __ in range(num_seq_graph_steps):
-                #core input is the concatenation of original input graph and the graph from the last iteration
-                seq_core_input = utils_tf.concat([latent_seq_graph0, latent_seq_graph], axis=1)
+            #core input is the concatenation of original input graph and the graph from the last iteration
+            seq_core_input = utils_tf.concat([latent_seq_graph0, latent_seq_graph], axis=1)
 
-                #the latent representation of the input graph in the current iteration
-                latent_seq_graph = self.sequence_graph_core(seq_core_input)
+            #the latent representation of the input graph in the current iteration
+            latent_seq_graph = self.sequence_graph_core(seq_core_input)
 
             #copy node tensors from the latent sequence graph to the pattern graph
             latent_pattern_graph = latent_pattern_graph.replace(nodes = latent_seq_graph.nodes)
@@ -261,6 +259,7 @@ class ProteinGNN(snt.AbstractModule):
             latent_pattern_graph = self.pattern_graph_core(pattern_core_input)
 
             latent_seq_graph = latent_seq_graph.replace(nodes = latent_pattern_graph.nodes)
+
 
         decoded_op = self.decoder(latent_pattern_graph)
         return self.output_transform(decoded_op)
@@ -278,8 +277,8 @@ class Predictor():
         self.pattern_input_ph = utils_tf.placeholders_from_data_dicts([example_pattern_input])
         self.target_ph = utils_tf.placeholders_from_data_dicts([example_target])
 
-        self.train_logits = self.model(self.seq_input_ph, self.pattern_input_ph, param["train_mp_iterations"], param["train_seq_graph_iterations"])
-        self.test_logits = self.model(self.seq_input_ph, self.pattern_input_ph, param["test_mp_iterations"], param["test_seq_graph_iterations"])
+        self.train_logits = self.model(self.seq_input_ph, self.pattern_input_ph, param["train_mp_iterations"])
+        self.test_logits = self.model(self.seq_input_ph, self.pattern_input_ph, param["test_mp_iterations"])
 
 
         def create_loss():
@@ -320,7 +319,7 @@ class Predictor():
 
 
     def test(self, session, test_seq_graphs, test_pattern_graphs, target_graphs):
-        test_loss_sum = 0latent_seq_graph
+        test_loss_sum = 0
         for seqIn, patternIn, target in zip(test_seq_graphs, test_pattern_graphs, target_graphs):
             test_loss = session.run([self.loss_test], feed_dict = self.make_feed_dict([seqIn], [patternIn], [target]))
             test_loss_sum += test_loss[0]

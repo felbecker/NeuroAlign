@@ -1,8 +1,10 @@
 
 
 param = {
-    "train_mp_iterations" : 40,
-    "test_mp_iterations" : 100,
+    "train_mp_iterations" : 20,
+    "test_mp_iterations" : 50,
+    "train_seq_graph_iterations" : 3,
+    "test_seq_graph_iterations" : 3,
     "learning_rate" : 1e-5,
     "optimizer_momentum": 0.9,
 

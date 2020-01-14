@@ -28,7 +28,7 @@ for i in range(num_alignments):
     av_num_edge_sum = 0
 
     name = "A"+"{0:0=4d}".format(i)
-    instance = AnchorSet.MSAInstance("./data/"+name+".fasta", True)
+    instance = AnchorSet.MSAInstance("../data/data_unaligned/"+name+".fasta", True)
 
     skip = False
     for s in instance.seq:
@@ -53,7 +53,7 @@ for i in range(num_alignments):
     else:
         threshold = args.t
     anchors = AnchorSet.anchor_set_kmer_threshold(instance, scoring, args.r, threshold, NUM_THREAD)
-    AnchorSet.read_solution("./data/"+name+".fasta", anchors)
+    AnchorSet.read_solution("../data/data/"+name+".fasta", anchors)
     rows = AnchorSet.build_alignment_rows(anchors)
     if len(rows) > 0:
         if args.minrow == -1:
@@ -63,7 +63,7 @@ for i in range(num_alignments):
         rows = [r for r in rows if len(r) >= minrow]
         anchors_row_contraction = AnchorSet.row_contraction(instance, anchors, rows, minrow)
         anchors_row_contraction = AnchorSet.kBestAnchors(instance, anchors_row_contraction, args.a)
-        anchors_row_contraction.to_file("anchors_"+str(args.r)+"_"+str(threshold)+"_"+str(args.a)+"/"+name)
+        anchors_row_contraction.to_file("../data/anchors_"+str(args.r)+"_"+str(threshold)+"_"+str(args.a)+"/"+name)
     else:
         print("No fitting rows found: ", name)
 
