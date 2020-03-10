@@ -1,12 +1,10 @@
-HIDDEN_DIM = 20
+HIDDEN_DIM = 50
 LAYER_DIM = 100
 
 #NeuroAlign parameters
 config = {
     "train_mp_iterations" : 10,
-    "test_mp_iterations" : 10,
-    "train_seq_graph_iterations" : 1,
-    "test_seq_graph_iterations" : 1,
+    "test_mp_iterations" : 20,
     "learning_rate" : 1e-5,
     "num_training_iteration": 1000,
     "batch_size": 1,
@@ -28,8 +26,8 @@ config = {
     "seq_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
 
     #layers in the core network for the pattern graph
-    "column_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
-    "column_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    "column_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    "column_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
 
     #layers in the decoding networks
     "seq_dec_node_layer_s" : [HIDDEN_DIM],

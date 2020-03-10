@@ -32,7 +32,7 @@
   [treename modelname 50]            //  which trees and define the length of the
                                        //  sequence generated at the root (100 here).
 
-[EVOLVE] partitionname 200 outputname  //  This will generate 1000 replicate datasets 
+[EVOLVE] partitionname 5000 outputname  //  This will generate 1000 replicate datasets 
                                        //  from the [PARTITIONS] block named above.
 
 // The true alignment will be output in a file named outputname_TRUE.phy

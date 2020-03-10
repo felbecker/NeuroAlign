@@ -6,7 +6,7 @@ import Trainer
 from Config import config
 
 parser = argparse.ArgumentParser(description='Trains and tests a NeuroAlign model for the simple case of exact nucleotide matches.')
-parser.add_argument("-n", type=int, default=200, help="number of training examples")
+parser.add_argument("-n", type=int, default=5000, help="number of training examples")
 parser.add_argument("-dir", type=str, default="./data_50", help="directory with data files")
 args = parser.parse_args()
 
@@ -18,6 +18,7 @@ for i in range(1,args.n+1):
 
 #instantiate the predictor and the trainer
 predictor = Model.NeuroAlignPredictor(config, msa[0])
+predictor.load_latest()
 trainer = Trainer.NeuroAlignTrainer(config, predictor)
 
 for i in range(config["num_training_iteration"]):

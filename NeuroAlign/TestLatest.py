@@ -6,7 +6,7 @@ from Config import config
 
 parser = argparse.ArgumentParser(description='Tests the latest NeuroAlign model.')
 parser.add_argument("-n", type=int, default=200, help="number of testing examples")
-parser.add_argument("-dir", type=str, default="./data_50", help="directory with data files")
+parser.add_argument("-dir", type=str, default="./data_50_test", help="directory with data files")
 args = parser.parse_args()
 
 #load the training dataset

@@ -1,20 +1,20 @@
 ********************************************************************************
-INDELible V1.03 by Will Fletcher : Simulation began at: Tue Jan 28 18:46:15 2020
+INDELible V1.03 by Will Fletcher : Simulation began at: Tue Mar 10 15:22:32 2020
 ********************************************************************************
 
-  Actual Insertion : Deletion Ratio  0.40318 : 0.59682	(Total indel rate = 1)
-  Actual average insertion length    1.66608
-  Actual average deletion length     1.65127
-  Number of insertion events         1141
-  Number of deletion events          1689
+  Actual Insertion : Deletion Ratio  0.401536 : 0.598464	(Total indel rate = 1)
+  Actual average insertion length    1.66845
+  Actual average deletion length     1.66607
+  Number of insertion events         28077
+  Number of deletion events          41847
 
-  * Block 1 was completed in 0.063254 seconds.
+  * Block 1 was completed in 0.541628 seconds.
 
 ********************************************************************************
 
-  * Simulation completed. Whole batch took: 0.06479 seconds.
+  * Simulation completed. Whole batch took: 0.545002 seconds.
 
-INDELible V1.03 Simulations completed at: Tue Jan 28 18:46:15 2020
+INDELible V1.03 Simulations completed at: Tue Mar 10 15:22:32 2020
 
 ********************************************************************************
 
@@ -58,7 +58,7 @@ INDELible V1.03 Simulations completed at: Tue Jan 28 18:46:15 2020
   [treename modelname 50]            //  which trees and define the length of the
                                        //  sequence generated at the root (100 here).
 
-[EVOLVE] partitionname 200 outputname  //  This will generate 1000 replicate datasets 
+[EVOLVE] partitionname 5000 outputname  //  This will generate 1000 replicate datasets 
                                        //  from the [PARTITIONS] block named above.
 
 // The true alignment will be output in a file named outputname_TRUE.phy
