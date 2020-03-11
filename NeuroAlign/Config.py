@@ -5,10 +5,10 @@ LAYER_DIM = 100
 config = {
     "train_mp_iterations" : 10,
     "test_mp_iterations" : 20,
-    "learning_rate" : 1e-5,
+    "learning_rate" : 2e-5,
     "num_training_iteration": 1000,
     "batch_size": 1,
-    "savestate_milestones": 20,
+    "savestate_milestones": 5,
     "l2_regularization" : 0.0001,
 
     #layers in the sequence encoding network
