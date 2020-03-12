@@ -87,27 +87,32 @@ class Instance:
         self.node_rp_targets = np.reshape(self.membership_targets / self.alignment_len, (-1,1))
 
 
-    #computes recall and precision of the edge predictions, if the
-    #correct number of columns was known
+    #computes recall and precision of the edge predictions
+    #over all possible pairs of positions in the sequences
+    # "true positive" = aligned in NR and reference
+    # "true negative" = not aligned in NR and reference
+    # "false positive" = aligned in NR but not in reference
+    # "false negative" = not aligned in NR but in reference
     def recall_prec(self, predictions):
 
         uncertainty_threshold = 0.2
-
+        print(predictions)
         tp, tn, fp, fn = 0,0,0,0
         choices = np.argmax(predictions, axis=1).flatten()
 
-        for i, (tar_n, choice) in enumerate(zip(self.membership_targets, choices)):
-            if tar_n == choice:
-                if predictions[i, choice] > uncertainty_threshold:
-                    tp += 1
+        for i, target_i in enumerate(self.membership_targets):
+            for j, choice_j in zip(range(i, len(self.membership_targets)), choices[i:]):
+                if target_i == choice_j:
+                    if predictions[j, choice_j] > uncertainty_threshold:
+                        tp += 1
+                    else:
+                        fn += 1
                 else:
-                    fn += 1
-            else:
-                if predictions[i, choice] > uncertainty_threshold:
-                    fp += 1
-                else:
-                    tn += 1
-
+                    if predictions[j, choice_j] > uncertainty_threshold:
+                        fp += 1
+                    else:
+                        tn += 1
+        print(tp, tn, fp, fn)
         prec = tp/(tp+fp) if tp+fp > 0 else 1
         rec = tp/(tp+fn) if tp+fn > 0 else 1
 

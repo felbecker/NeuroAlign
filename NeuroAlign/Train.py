@@ -1,13 +1,13 @@
 import argparse
-import random
 import MSA
 import Model
 import Trainer
 from Config import config
+import numpy as np
 
 parser = argparse.ArgumentParser(description='Trains and tests a NeuroAlign model for the simple case of exact nucleotide matches.')
 parser.add_argument("-n", type=int, default=5000, help="number of training examples")
-parser.add_argument("-dir", type=str, default="./data_50", help="directory with data files")
+parser.add_argument("-dir", type=str, default="./data_20", help="directory with data files")
 args = parser.parse_args()
 
 #load the training dataset
@@ -22,17 +22,24 @@ predictor.load_latest()
 trainer = Trainer.NeuroAlignTrainer(config, predictor)
 
 for i in range(config["num_training_iteration"]):
-    random.shuffle(msa)
+    batch = []
+    while len(batch) < config["batch_size"]:
+        batch.append(msa[np.random.randint(len(msa))])
     train_loss_sum = 0
     l_node_rp_sum = 0
-    l_mem_sum = 0
-    for m in msa:
-        n_rp, c_rp, mem, train_loss, l_node_rp, l_col_rp, l_mem = trainer.train(m)
+    l_col_rp_sum = 0
+    score_sum = 0
+    for m in batch:
+        n_rp, c_rp, s_n, s_c, train_loss, l_node_rp, l_col_rp, score = trainer.train(m)
         train_loss_sum += train_loss.numpy()
         l_node_rp_sum += l_node_rp.numpy()
-        l_mem_sum += l_mem.numpy()
+        l_col_rp_sum += l_col_rp.numpy()
+        score_sum += score.numpy()
 
-    print(i, " l=", train_loss_sum/len(msa), "l_n=", l_node_rp_sum/len(msa), "l_mem=", l_mem_sum/len(msa))
+    print(i, " l=", train_loss_sum/config["batch_size"],
+                "l_n=", l_node_rp_sum/config["batch_size"],
+                "c_n=", l_col_rp_sum/config["batch_size"],
+                "av_score=", score_sum/config["batch_size"])
 
     if i % config["savestate_milestones"] == 0 and i > 0:
         predictor.save()

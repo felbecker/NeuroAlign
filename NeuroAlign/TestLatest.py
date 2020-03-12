@@ -6,7 +6,7 @@ from Config import config
 
 parser = argparse.ArgumentParser(description='Tests the latest NeuroAlign model.')
 parser.add_argument("-n", type=int, default=200, help="number of testing examples")
-parser.add_argument("-dir", type=str, default="./data_50_test", help="directory with data files")
+parser.add_argument("-dir", type=str, default="./data_20_test", help="directory with data files")
 args = parser.parse_args()
 
 #load the training dataset
@@ -22,8 +22,8 @@ predictor.load_latest()
 ps = 0
 rs = 0
 for m in msa:
-    _,_,mem = predictor.predict(m, m.alignment_len)
-    p,r = m.recall_prec(mem)
+    _,_,sn,sc = predictor.predict(m, m.alignment_len)
+    p,r = m.recall_prec(sn+sc)
     ps += p
     rs += r
 

@@ -12,17 +12,19 @@ class NeuroAlignTrainer():
         def train_step(sequence_graph, seq_lens, col_priors,
                         target_node_rp, target_col_segment_ids):
             with tf.GradientTape() as tape:
-                n_rp, c_rp, mem = self.predictor.model(sequence_graph, seq_lens, col_priors, config["train_mp_iterations"])
+                n_rp, c_rp, s_n, s_c = self.predictor.model(sequence_graph, seq_lens, col_priors, config["train_mp_iterations"])
                 l_node_rp = tf.compat.v1.losses.mean_squared_error(target_node_rp, n_rp)
                 l_col_rp = tf.compat.v1.losses.mean_squared_error(col_priors.globals, c_rp)
-                l_mem = tf.math.unsorted_segment_prod(mem, target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
-                l_mem = tf.reduce_mean(l_mem)
+                # score_s_n = tf.math.unsorted_segment_prod(s_n, target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
+                # score_s_c = tf.math.unsorted_segment_prod(s_c, target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
+                # score = tf.reduce_mean(score_s_n) + tf.reduce_mean(score_s_c)
+                score = tf.reduce_mean(tf.math.unsorted_segment_prod(tf.sqrt(s_n*s_c), target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors)))
                 regularizer = snt.regularizers.L2(config["l2_regularization"])
-                train_loss = l_node_rp + l_col_rp - l_mem + regularizer(self.predictor.model.trainable_variables)
+                train_loss = l_node_rp + l_col_rp - score + regularizer(self.predictor.model.trainable_variables)
 
                 gradients = tape.gradient(train_loss, self.predictor.model.trainable_variables)
                 optimizer.apply(gradients, self.predictor.model.trainable_variables)
-                return n_rp, c_rp, mem, train_loss, l_node_rp, l_col_rp, l_mem
+                return n_rp, c_rp, s_n, s_c, train_loss, l_node_rp, l_col_rp, score
 
         # Get the input signature for that function by obtaining the specs
         self.input_signature = [
