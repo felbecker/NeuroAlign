@@ -140,30 +140,43 @@ class NeuroAlignDecoder(snt.Module):
                                 global_model_fn=make_mlp_model(config["mem_dec_global_layer_s"]))
 
         self.mem_output_transform = gn.modules.GraphIndependent(node_model_fn = lambda: snt.Linear(1, name="mem_node_output"),
-                                        global_model_fn = lambda: snt.Linear(1, name="mem_global_output"))
+                                        global_model_fn = lambda: snt.Linear(1 + config["len_alphabet"] + 1, name="mem_global_output"))
 
 
-    def __call__(self, latent_seq_graph, seq_lens, latent_mem):
+    def __call__(self, latent_seq_graph, latent_mem):
 
         #decode and convert to 1d outputs
+        #tf.print(latent_mem.nodes, summarize=-1)
         seq_out = self.seq_output_transform(self.seq_decoder(latent_seq_graph))
         mem_out = self.mem_output_transform(self.mem_decoder(latent_mem))
 
         #get predicted relative positions of sequence nodes and columns
         node_relative_positions = seq_out.nodes
-        col_relative_positions = mem_out.globals
+        col_relative_positions = mem_out.globals[:,0:1]
 
-        #predict the distribution of the seq nodes to the columns using
-        #a product of 2 softmaxes
-        mem_per_col = tf.reshape(mem_out.nodes, [latent_seq_graph.n_node[0], -1]) # (num_node, num_pattern)-tensor
-        exp_mem_per_col = tf.exp(mem_per_col)
-        sum_along_cols = tf.reduce_sum(exp_mem_per_col, axis=1, keepdims=True)+1 #+1 to account for softmax uncertainty
-        s_nodes = exp_mem_per_col/sum_along_cols
+        #get (logits of) the predicted relative occurences for each symbol in the alphabet plus the gap symbol
+        rel_occ = mem_out.globals[:,1:]
+        #predict (logits of) the distribution of the seq nodes to the columns using
+        mem_per_col = tf.transpose(tf.reshape(mem_out.nodes, [-1, latent_seq_graph.n_node[0]])) # (num_node, num_pattern)-tensor
 
-        sum_along_seqs = tf.math.segment_sum(exp_mem_per_col, make_seq_ids(seq_lens))+1 #-> (num_segments, num_pattern)-tensor
-        s_cols = exp_mem_per_col/tf.repeat(sum_along_seqs, repeats = seq_lens, axis = 0)
+        return node_relative_positions, col_relative_positions, rel_occ, mem_per_col
 
-        return node_relative_positions, col_relative_positions, s_nodes, s_cols
+
+def n_softmax_mem_per_col(exp_mem_per_col):
+    sum_along_cols = tf.reduce_sum(exp_mem_per_col, axis=1, keepdims=True)+1 #+1 to account for softmax uncertainty
+    s_nodes = exp_mem_per_col/sum_along_cols
+    return s_nodes
+
+
+def c_softmax_mem_per_col(exp_mem_per_col, seq_lens):
+    sum_along_seqs = tf.math.segment_sum(exp_mem_per_col, make_seq_ids(seq_lens))+1 #-> (num_segments, num_pattern)-tensor
+    s_cols = exp_mem_per_col/tf.repeat(sum_along_seqs, repeats = seq_lens, axis = 0)
+    return s_cols
+
+
+def sigmoid_mem_per_col(mem_per_col):
+    return tf.sigmoid(mem_per_col)
+
 
 
 #a module that computes the NeuroAlign prediction
@@ -183,14 +196,14 @@ class NeuroAlignModel(snt.Module):
 
     def __call__(self,
                 sequence_graph, #input graph with position nodes and forward edges describing the sequences
-                seq_lens, #specifies the length of each input sequence, i.e. seq_lens[i] is the length of the ith chain in sequence_graph
+                #seq_lens, #specifies the length of each input sequence, i.e. seq_lens[i] is the length of the ith chain in sequence_graph
                 col_priors, #a graph tuple with a col prior graph for each column
                 num_iterations): #the number of message passing iterations
 
         latent_seq_graph, latent_mem = self.enc(sequence_graph, col_priors)
         for core in self.cores:
             latent_seq_graph, latent_mem = core(latent_seq_graph, latent_mem, num_iterations)
-        return self.dec(latent_seq_graph, seq_lens, latent_mem)
+        return self.dec(latent_seq_graph, latent_mem)
 
 
 
@@ -206,16 +219,20 @@ class NeuroAlignPredictor():
         self.checkpoint_name = "NeuroAlign"
         self.save_prefix = os.path.join(self.checkpoint_root, self.checkpoint_name)
 
-        def inference(sequence_graph, seq_lens, col_priors):
-            return self.model(sequence_graph, seq_lens, col_priors, config["test_mp_iterations"])
+        def inference(sequence_graph, col_priors, len_seqs):
+            node_relative_pos, col_relative_pos, rel_occ, mem_per_col = self.model(sequence_graph, col_priors, config["test_mp_iterations"])
+            #mpc = sigmoid_mem_per_col(mem_per_col)
+            mem_per_col = tf.exp(mem_per_col)
+            mpc = tf.sqrt(n_softmax_mem_per_col(mem_per_col)*c_softmax_mem_per_col(mem_per_col, len_seqs))
+            return node_relative_pos, col_relative_pos, rel_occ, mpc
 
         seq_input_example, col_input_example = self._graphs_from_instance(examle_msa, 1)
 
         # Get the input signature for that function by obtaining the specs
         self.input_signature = [
           gn.utils_tf.specs_from_graphs_tuple(seq_input_example),
-          tf.TensorSpec((None), dtype=tf.dtypes.int32),
-          gn.utils_tf.specs_from_graphs_tuple(col_input_example, dynamic_num_graphs=True)
+          gn.utils_tf.specs_from_graphs_tuple(col_input_example, dynamic_num_graphs=True),
+          tf.TensorSpec((None), dtype=tf.dtypes.int32)
         ]
 
         # Compile the update function using the input signature for speedy code.
@@ -224,8 +241,8 @@ class NeuroAlignPredictor():
     #col_priors is a list of position pairs (s,i) = sequence s at index i
     def predict(self, msa, num_cols):
         seq_g, col_g = self._graphs_from_instance(msa, num_cols)
-        node_relative_pos, col_relative_pos, s_nodes, s_cols = self.inference(seq_g, tf.constant(msa.seq_lens), col_g)
-        return node_relative_pos.numpy(), col_relative_pos.numpy(), s_nodes.numpy(), s_cols.numpy()
+        node_relative_pos, col_relative_pos, rel_occ, mem_per_col = self.inference(seq_g, col_g, tf.constant(msa.seq_lens))
+        return node_relative_pos.numpy(), col_relative_pos.numpy(), tf.nn.softmax(rel_occ).numpy(), mem_per_col.numpy()
 
     def _graphs_from_instance(self, msa, num_cols):
         seq_dict = {"globals" : [np.float32(0)],

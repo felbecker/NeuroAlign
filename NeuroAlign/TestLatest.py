@@ -22,8 +22,8 @@ predictor.load_latest()
 ps = 0
 rs = 0
 for m in msa:
-    _,_,sn,sc = predictor.predict(m, m.alignment_len)
-    p,r = m.recall_prec(sn+sc)
+    _,_,_,mpc = predictor.predict(m, m.alignment_len)
+    p,r = m.recall_prec(mpc)
     ps += p
     rs += r
 

@@ -67,15 +67,6 @@ class Instance:
             self.forward_senders.extend(range(sum_l, sum_l+l-1))
             self.forward_receivers.extend(range(sum_l+1, sum_l+l))
             sum_l += l
-        self.forward_senders.extend(range(self.total_len, self.total_len + self.num_columns-1))
-        self.forward_receivers.extend(range(self.total_len+1, self.total_len + self.num_columns))
-
-        #compute pattern edges
-        self.pattern_senders = []
-        self.pattern_receivers = []
-        for i in range(self.total_len):
-            self.pattern_senders.extend([i]*self.num_columns)
-            self.pattern_receivers.extend(range(self.total_len, self.total_len + self.num_columns))
 
 
 
@@ -85,7 +76,11 @@ class Instance:
         diff = np.diff(np.insert(cumsum, 0, 0.0, axis=1), axis=1) #112223 -> 0112223 -> [[(i+1) - i]] -> 101001
         self.membership_targets = np.concatenate([np.argwhere(diff[i,:]) for i in range(diff.shape[0])]).flatten()
         self.node_rp_targets = np.reshape(self.membership_targets / self.alignment_len, (-1,1))
-
+        #for each symbol in the alphabet, count the relative number of occurences per column
+        self.rel_occ_per_column = np.zeros((self.alignment_len, len(alphabet)+1))
+        for s_id in range(len(alphabet)+1):
+            self.rel_occ_per_column[:,s_id] = np.sum(self.ref_seq == s_id, axis = 0)
+        self.rel_occ_per_column /= self.ref_seq.shape[0]
 
     #computes recall and precision of the edge predictions
     #over all possible pairs of positions in the sequences
@@ -95,8 +90,7 @@ class Instance:
     # "false negative" = not aligned in NR but in reference
     def recall_prec(self, predictions):
 
-        uncertainty_threshold = 0.2
-        print(predictions)
+        uncertainty_threshold = 0.6
         tp, tn, fp, fn = 0,0,0,0
         choices = np.argmax(predictions, axis=1).flatten()
 
@@ -112,7 +106,7 @@ class Instance:
                         fp += 1
                     else:
                         tn += 1
-        print(tp, tn, fp, fn)
+
         prec = tp/(tp+fp) if tp+fp > 0 else 1
         rec = tp/(tp+fn) if tp+fn > 0 else 1
 
