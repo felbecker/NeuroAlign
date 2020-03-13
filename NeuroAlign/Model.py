@@ -112,16 +112,17 @@ class NeuroAlignCore(snt.Module):
 
     def __call__(self, latent_seq_graph, latent_mem, num_iterations):
 
-        latent_mem0 = latent_mem
         tiled_latent_seq_graph0 = tile_like(latent_seq_graph, latent_mem)
+        latent_seq_graphs = [latent_seq_graph]
+        latent_mems = [latent_mem]
         for _ in range(num_iterations):
-            tiled_latent_seq = tile_like(latent_seq_graph, latent_mem)
-            col_input = gn.utils_tf.concat([tiled_latent_seq, latent_mem, latent_mem0], axis=1)
-            latent_mem = self.column_network(col_input)
-            seq_input = gn.utils_tf.concat([tiled_latent_seq_graph0, tiled_latent_seq, latent_mem], axis=1)
+            tiled_latent_seq = tile_like(latent_seq_graphs[-1], latent_mems[-1])
+            col_input = gn.utils_tf.concat([tiled_latent_seq, latent_mems[-1], latent_mems[0]], axis=1)
+            latent_mems.append(self.column_network(col_input))
+            seq_input = gn.utils_tf.concat([tiled_latent_seq_graph0, tiled_latent_seq, latent_mems[-1]], axis=1)
             reduced = reduce_graphs(self.seq_network(seq_input))
-            latent_seq_graph = latent_seq_graph.replace(nodes = reduced.nodes, globals = reduced.globals)
-        return latent_seq_graph, latent_mem
+            latent_seq_graphs.append(latent_seq_graphs[-1].replace(nodes = reduced.nodes, globals = reduced.globals))
+        return latent_seq_graphs, latent_mems
 
 
 
@@ -201,9 +202,13 @@ class NeuroAlignModel(snt.Module):
                 num_iterations): #the number of message passing iterations
 
         latent_seq_graph, latent_mem = self.enc(sequence_graph, col_priors)
+        latent_seq_graphs = [latent_seq_graph]
+        latent_mems = [latent_mem]
         for core in self.cores:
-            latent_seq_graph, latent_mem = core(latent_seq_graph, latent_mem, num_iterations)
-        return self.dec(latent_seq_graph, latent_mem)
+            core_ls, core_mems = core(latent_seq_graphs[-1], latent_mems[-1], num_iterations)
+            latent_seq_graphs.extend(core_ls)
+            latent_mems.extend(core_mems)
+        return [self.dec(latent_seq_graph, latent_mem) for latent_seq_graph, latent_mem in zip(latent_seq_graphs, latent_mems)]
 
 
 
@@ -220,7 +225,8 @@ class NeuroAlignPredictor():
         self.save_prefix = os.path.join(self.checkpoint_root, self.checkpoint_name)
 
         def inference(sequence_graph, col_priors, len_seqs):
-            node_relative_pos, col_relative_pos, rel_occ, mem_per_col = self.model(sequence_graph, col_priors, config["test_mp_iterations"])
+            out = self.model(sequence_graph, col_priors, config["test_mp_iterations"])
+            node_relative_pos, col_relative_pos, rel_occ, mem_per_col = out[-1]
             #mpc = sigmoid_mem_per_col(mem_per_col)
             mem_per_col = tf.exp(mem_per_col)
             mpc = tf.sqrt(n_softmax_mem_per_col(mem_per_col)*c_softmax_mem_per_col(mem_per_col, len_seqs))
