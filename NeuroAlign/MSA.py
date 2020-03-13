@@ -90,19 +90,18 @@ class Instance:
     # "false negative" = not aligned in NR but in reference
     def recall_prec(self, predictions):
 
-        uncertainty_threshold = 0.6
         tp, tn, fp, fn = 0,0,0,0
         choices = np.argmax(predictions, axis=1).flatten()
 
-        for i, target_i in enumerate(self.membership_targets):
-            for j, choice_j in zip(range(i, len(self.membership_targets)), choices[i:]):
-                if target_i == choice_j:
-                    if predictions[j, choice_j] > uncertainty_threshold:
+        for i, (target_i, choice_i) in enumerate(zip(self.membership_targets, choices)):
+            for j, target_j, choice_j in zip(range(i, len(self.membership_targets)), self.membership_targets[i:], choices[i:]):
+                if target_i == target_j:
+                    if choice_i == choice_j:
                         tp += 1
                     else:
                         fn += 1
                 else:
-                    if predictions[j, choice_j] > uncertainty_threshold:
+                    if choice_i == choice_j:
                         fp += 1
                     else:
                         tn += 1
