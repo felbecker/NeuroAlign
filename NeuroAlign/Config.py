@@ -1,5 +1,5 @@
-HIDDEN_DIM = 50
-LAYER_DIM = 100
+HIDDEN_DIM = 100
+LAYER_DIM = 200
 
 #NeuroAlign parameters
 config = {
@@ -8,11 +8,11 @@ config = {
     #number of iterations inside each core network (shared parameters) during training
     "train_mp_iterations" : 10,
     #number of iterations inside each core network (shared parameters) during testing
-    "test_mp_iterations" : 10,
+    "test_mp_iterations" : 40,
 
     #training performance and logging
-    "learning_rate" : 1e-5,
-    "num_training_iteration": 10000,
+    "learning_rate" : 1e-8,
+    "num_training_iteration": 2000,
     "batch_size": 50,
     "savestate_milestones": 10,
     "l2_regularization" : 0,#1e-7,
@@ -38,7 +38,7 @@ config = {
     #layers in the decoding networks
     "seq_dec_node_layer_s" : [HIDDEN_DIM],
     "mem_dec_node_layer_s" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
-    "mem_dec_global_layer_s" : [HIDDEN_DIM],
+    "mem_dec_global_layer_s" : [HIDDEN_DIM, LAYER_DIM, HIDDEN_DIM],
 
     "len_alphabet" : 4
 }

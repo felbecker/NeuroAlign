@@ -27,7 +27,7 @@ class NeuroAlignTrainer():
                     # # score_s_n = tf.math.unsorted_segment_prod(s_n, target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
                     # # score_s_c = tf.math.unsorted_segment_prod(s_c, target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
                     # # score = tf.reduce_mean(score_s_n) + tf.reduce_mean(score_s_c)
-                    # score = tf.reduce_mean(tf.math.unsorted_segment_prod(tf.sqrt(s_n*s_c), target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors)))
+                    # #score = tf.reduce_mean(tf.math.unsorted_segment_prod(tf.sqrt(s_n*s_c), target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors)))
 
                     #l_mem_logs = tf.compat.v1.losses.sigmoid_cross_entropy(tf.one_hot(target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors)), mem_logits)
                     l_mem_logs = tf.compat.v1.losses.log_loss(tf.one_hot(target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors)), tf.sqrt(s_n*s_c))

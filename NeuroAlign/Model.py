@@ -112,17 +112,30 @@ class NeuroAlignCore(snt.Module):
 
     def __call__(self, latent_seq_graph, latent_mem, num_iterations):
 
-        tiled_latent_seq_graph0 = tile_like(latent_seq_graph, latent_mem)
         latent_seq_graphs = [latent_seq_graph]
         latent_mems = [latent_mem]
         for _ in range(num_iterations):
             tiled_latent_seq = tile_like(latent_seq_graphs[-1], latent_mems[-1])
             col_input = gn.utils_tf.concat([tiled_latent_seq, latent_mems[-1], latent_mems[0]], axis=1)
             latent_mems.append(self.column_network(col_input))
-            seq_input = gn.utils_tf.concat([tiled_latent_seq_graph0, tiled_latent_seq, latent_mems[-1]], axis=1)
-            reduced = reduce_graphs(self.seq_network(seq_input))
-            latent_seq_graphs.append(latent_seq_graphs[-1].replace(nodes = reduced.nodes, globals = reduced.globals))
+            reduced_mems = reduce_graphs(latent_mems[-1])
+            reduced_mems = latent_seq_graphs[-1].replace(nodes = reduced_mems.nodes, globals = reduced_mems.globals)
+            seq_input = gn.utils_tf.concat([latent_seq_graphs[0], latent_seq_graphs[-1], reduced_mems], axis=1)
+            latent_seq_graphs.append(self.seq_network(seq_input))
         return latent_seq_graphs, latent_mems
+
+
+        # tiled_latent_seq_graph0 = tile_like(latent_seq_graph, latent_mem)
+        # latent_seq_graphs = [latent_seq_graph]
+        # latent_mems = [latent_mem]
+        # for _ in range(num_iterations):
+        #     tiled_latent_seq = tile_like(latent_seq_graphs[-1], latent_mems[-1])
+        #     col_input = gn.utils_tf.concat([tiled_latent_seq, latent_mems[-1], latent_mems[0]], axis=1)
+        #     latent_mems.append(self.column_network(col_input))
+        #     seq_input = gn.utils_tf.concat([tiled_latent_seq_graph0, tiled_latent_seq, latent_mems[-1]], axis=1)
+        #     reduced = reduce_graphs(self.seq_network(seq_input))
+        #     latent_seq_graphs.append(latent_seq_graphs[-1].replace(nodes = reduced.nodes, globals = reduced.globals))
+        # return latent_seq_graphs, latent_mems
 
 
 
