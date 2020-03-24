@@ -48,25 +48,42 @@ class Instance:
 
 
 
+    # def compute_inputs(self):
+    #     #convert to binary alphabet
+    #     #for each node, we store a one hot encoding of the respective symbol and the relative raw seq position
+    #     self.nodes = np.zeros((self.total_len, len(alphabet)+1), dtype=np.float32)
+    #     node_iter = 0
+    #     for seq in self.raw_seq:
+    #         for i,s in enumerate(seq):
+    #             self.nodes[node_iter, s] = 1 #onehot
+    #             self.nodes[node_iter, len(alphabet)] = i / seq.shape[0] #relative pos
+    #             node_iter += 1
+    #
+    #     #compute forward edges
+    #     self.forward_senders = []
+    #     self.forward_receivers = []
+    #     sum_l = 0
+    #     for l in self.seq_lens:
+    #         self.forward_senders.extend(range(sum_l, sum_l+l-1))
+    #         self.forward_receivers.extend(range(sum_l+1, sum_l+l))
+    #         sum_l += l
+
+
     def compute_inputs(self):
         #convert to binary alphabet
         #for each node, we store a one hot encoding of the respective symbol and the relative raw seq position
-        self.nodes = np.zeros((self.total_len, len(alphabet)+1), dtype=np.float32)
-        node_iter = 0
-        for seq in self.raw_seq:
+        self.nodes = [np.zeros((slen, len(alphabet)+1), dtype=np.float32) for slen in self.seq_lens]
+        for seq, nodes in zip(self.raw_seq, self.nodes):
             for i,s in enumerate(seq):
-                self.nodes[node_iter, s] = 1 #onehot
-                self.nodes[node_iter, len(alphabet)] = i / seq.shape[0] #relative pos
-                node_iter += 1
+                nodes[i, s] = 1 #onehot
+                nodes[i, len(alphabet)] = i / seq.shape[0] #relative pos
 
         #compute forward edges
         self.forward_senders = []
         self.forward_receivers = []
-        sum_l = 0
         for l in self.seq_lens:
-            self.forward_senders.extend(range(sum_l, sum_l+l-1))
-            self.forward_receivers.extend(range(sum_l+1, sum_l+l))
-            sum_l += l
+            self.forward_senders.append(list(range(0, l-1)))
+            self.forward_receivers.append(list(range(1, l)))
 
 
 
