@@ -11,7 +11,7 @@ config = {
     "test_mp_iterations" : 5,
 
     #training performance and logging
-    "learning_rate" : 1e-6,
+    "learning_rate" : 1e-3,
     "num_training_iteration": 2000,
     "batch_size": 50,
     "savestate_milestones": 10,

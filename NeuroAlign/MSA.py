@@ -105,10 +105,9 @@ class Instance:
     # "true negative" = not aligned in NR and reference
     # "false positive" = aligned in NR but not in reference
     # "false negative" = not aligned in NR but in reference
-    def recall_prec(self, predictions):
+    def recall_prec(self, choices):
 
         tp, tn, fp, fn = 0,0,0,0
-        choices = np.argmax(predictions, axis=1).flatten()
 
         for i, (target_i, choice_i) in enumerate(zip(self.membership_targets, choices)):
             for j, target_j, choice_j in zip(range(i, len(self.membership_targets)), self.membership_targets[i:], choices[i:]):

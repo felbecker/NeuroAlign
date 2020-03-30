@@ -23,7 +23,7 @@ ps = 0
 rs = 0
 for m in msa:
     _,_,_,mpc = predictor.predict(m, m.alignment_len)
-    p,r = m.recall_prec(mpc)
+    p,r = m.recall_prec(np.argmax(mpc, axis=1).flatten())
     ps += p
     rs += r
 
