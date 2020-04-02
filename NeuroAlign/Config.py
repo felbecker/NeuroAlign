@@ -44,5 +44,5 @@ config = {
     "mem_dec_node_layer_s" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
     "mem_dec_global_layer_s" : [HIDDEN_DIM, LAYER_DIM, HIDDEN_DIM],
 
-    "len_alphabet" : 4
+    "type" : "nucleotide"  #nucleotide or protein
 }

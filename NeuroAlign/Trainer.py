@@ -35,10 +35,11 @@ class NeuroAlignTrainer():
                 return n_rp, c_rp, rel_occ, mem, train_loss, l_node_rp, l_col_rp, l_rel_occ, l_mem_logs
 
         # Get the input signature for that function by obtaining the specs
+        len_alphabet = 4 if config["type"] == "nucleotide" else 23
         self.input_signature = [
             tf.TensorSpec((None, 1), dtype=tf.dtypes.float32),
             tf.TensorSpec((None), dtype=tf.dtypes.int32),
-            tf.TensorSpec((None, config["len_alphabet"]+1), dtype=tf.dtypes.float32)
+            tf.TensorSpec((None, len_alphabet+1), dtype=tf.dtypes.float32)
         ]
 
         # Compile the update function using the input signature for speedy code.

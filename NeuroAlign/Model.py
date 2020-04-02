@@ -126,8 +126,9 @@ class NeuroAlignDecoder(snt.Module):
         self.mem_decoder = gn.modules.GraphIndependent(node_model_fn=make_mlp_model(config["mem_dec_node_layer_s"]),
                                 global_model_fn=make_mlp_model(config["mem_dec_global_layer_s"]))
 
+        len_alphabet = 4 if config["type"] == "nucleotide" else 23
         self.mem_output_transform = gn.modules.GraphIndependent(node_model_fn = lambda: snt.Linear(1, name="mem_node_output"),
-                                        global_model_fn = lambda: snt.Linear(1 + config["len_alphabet"] + 1, name="mem_global_output"))
+                                        global_model_fn = lambda: snt.Linear(1 + len_alphabet + 1, name="mem_global_output"))
 
 
     def __call__(self, latent_seq_graph, latent_mem, seq_lens):
@@ -193,7 +194,7 @@ class NeuroAlignModel(snt.Module):
             latent_seq_graph, latent_mem = self.core(latent_seq_graph, latent_mem, decoded_outputs[-1][3])
             decoded_outputs.append(self.dec(latent_seq_graph, latent_mem, seq_lens))
         return decoded_outputs[1:]
-        
+
                 #
                 # latent_seq_graph, latent_mem = self.enc(sequence_graph, col_priors)
                 # decoded_outputs = [self.dec(latent_seq_graph, latent_mem, seq_lens)]

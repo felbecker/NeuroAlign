@@ -1,0 +1,45 @@
+/////////////////////////////////////////////////////////////////////////////////////
+//                                                                                 //
+//  INDELible V1.03 control file - basicnucleotide.txt                             //
+//                                                                                 //
+//      A basic introduction to the structure of the INDELible control file.       //
+//                                                                                 //
+/////////////////////////////////////////////////////////////////////////////////////
+
+// It is useful to know that anything on a line after two forward slashes is ignored.
+
+/*
+   Another useful thing to know is that anything after a forward slash and star
+   is ignored until INDELible sees a star followed by a forward slash later on.
+*/     
+
+[TYPE] NUCLEOTIDE 1	//  EVERY control file must begin with a [TYPE] command.
+			//  The number after "NUCLEOTIDE" can be 1 or 2 and chooses the 
+			//  algorithm that INDELible uses (see manuscript). Both give 
+			//  identical results but in some cases one is quicker.
+			//  Other blocks and commands following this statement
+			//  can come in any order you like.
+
+[MODEL]    modelname        //  Evolutionary models are defined in [MODEL] blocks.
+  [submodel]     JC         //  Here the substitution model is simply set as JC69.
+  [indelmodel]   NB  0.4 1  //  Geometric indel length distribution (q=0.4, r=1)
+  [insertrate]   0.08       //  insertion rate = 0.08 relative to substitution rate of 1
+  [deleterate]   0.12       //  deletion rate = 0.12 relative to substitution rate of 1
+  
+[TREE] tree1 (A:0.05,B:0.05);
+[TREE] tree2 (A:0.1,B:0.1);
+[TREE] tree3 (A:0.2,B:0.2);
+[TREE] tree4 (A:0.3,B:0.3);        //  User trees are defined here
+
+[PARTITIONS] partitionname             //  [PARTITIONS] blocks say which models go with
+  	[tree1 modelname 100]            //  which trees and define the length of the
+  	[tree2 modelname 100]           //  sequence generated at the root (100 here).
+	[tree3 modelname 100] 
+	[tree4 modelname 100] 
+
+[EVOLVE] partitionname 1000 outputname  //  This will generate 1000 replicate datasets 
+                                       //  from the [PARTITIONS] block named above.
+
+// The true alignment will be output in a file named outputname_TRUE.phy
+// The unaligned sequences will be output in a file named outputname.fas
+// To learn how to implement more complicated simulations (or different 
