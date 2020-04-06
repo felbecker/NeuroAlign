@@ -13,13 +13,14 @@ config = {
     #training performance and logging
     "learning_rate" : 1e-3,
     "num_training_iteration": 2000,
-    "batch_size": 50,
+    "batch_size": 10,
     "savestate_milestones": 10,
     "l2_regularization" : 0,#1e-7,
     "lambda_node_rp" : 1,
     "lambda_col_rp" : 1,
     "lambda_rel_occ" : 1,
     "lambda_mem" : 1,
+    #"col_batch" : 20, #split col computations into batches instead of one-all to save memory
 
     #layers in the sequence encoding network
     "seq_enc_edge_layer_s" : [HIDDEN_DIM],
@@ -44,5 +45,5 @@ config = {
     "mem_dec_node_layer_s" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
     "mem_dec_global_layer_s" : [HIDDEN_DIM, LAYER_DIM, HIDDEN_DIM],
 
-    "type" : "nucleotide"  #nucleotide or protein
+    "type" : "protein"  #nucleotide or protein
 }
