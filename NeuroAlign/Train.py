@@ -8,12 +8,11 @@ import numpy as np
 parser = argparse.ArgumentParser(description='Trains and tests a NeuroAlign model for the simple case of exact nucleotide matches.')
 parser.add_argument("-n", type=int, default=5000, help="number of training examples")
 parser.add_argument("-dir", type=str, default="./data_20", help="directory with data files")
-parser.add_argument("-type", type=str, default="nucleotide", help="nucleotide or protein")
 args = parser.parse_args()
 
 #load the training dataset
 msa = []
-alphabet = ['A', 'C', 'G', 'T'] if args.type == "nucleotide" else ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X']
+alphabet = ['A', 'C', 'G', 'T'] if config["type"] == "nucleotide" else ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X']
 for i in range(1,args.n+1):
     filepath = args.dir + "/A"+"{0:0=4d}".format(i)+".fa"
     print("Reading ", filepath)

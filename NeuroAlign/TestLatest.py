@@ -1,6 +1,7 @@
 import argparse
 import MSA
 import Model
+import numpy as np
 
 from Config import config
 
@@ -11,9 +12,12 @@ args = parser.parse_args()
 
 #load the training dataset
 msa = []
+alphabet = ['A', 'C', 'G', 'T'] if config["type"] == "nucleotide" else ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X']
 for i in range(1,args.n+1):
     filepath = args.dir + "/A"+"{0:0=4d}".format(i)+".fa"
-    msa.append(MSA.Instance(filepath))
+    inst = MSA.Instance(filepath, alphabet)
+    if inst.valid:
+        msa.append(inst)
 
 #instantiate the predictor
 predictor = Model.NeuroAlignPredictor(config, msa[0])
