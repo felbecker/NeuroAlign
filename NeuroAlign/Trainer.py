@@ -38,7 +38,7 @@ class NeuroAlignTrainer():
         len_alphabet = 4 if config["type"] == "nucleotide" else 23
         self.input_signature = [
             tf.TensorSpec((None, 1), dtype=tf.dtypes.float32),
-            tf.TensorSpec((None), dtype=tf.dtypes.int32),
+            tf.TensorSpec((None,), dtype=tf.dtypes.int32),
             tf.TensorSpec((None, len_alphabet+1), dtype=tf.dtypes.float32)
         ]
 

@@ -227,9 +227,9 @@ class NeuroAlignPredictor():
 
         # Get the input signature for that function by obtaining the specs
         self.input_signature = [
-          gn.utils_tf.specs_from_graphs_tuple(seq_input_example),
+          gn.utils_tf.specs_from_graphs_tuple(seq_input_example, dynamic_num_graphs=True),
           gn.utils_tf.specs_from_graphs_tuple(col_input_example, dynamic_num_graphs=True),
-          tf.TensorSpec((None), dtype=tf.dtypes.int32)
+          tf.TensorSpec((None,), dtype=tf.dtypes.int32)
         ]
 
         # Compile the update function using the input signature for speedy code.
