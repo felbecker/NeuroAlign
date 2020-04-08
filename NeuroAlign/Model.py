@@ -101,7 +101,6 @@ class NeuroAlignCore(snt.Module):
 
         flat_dec_mem = tf.reshape(tf.transpose(decoded_memberships), [-1, 1])
         weighted_nodes = tf.tile(latent_seq_graph.nodes, [gn.utils_tf.get_num_graphs(latent_mem),1])*flat_dec_mem
-        #col_in = latent_mem.replace(nodes = tf.concat([latent_mem.nodes, weighted_nodes], axis=1))
         col_in = latent_mem.replace(nodes = weighted_nodes)
         latent_mem = self.column_network(col_in)
         segments = tf.tile(tf.range(latent_mem.n_node[0]), [gn.utils_tf.get_num_graphs(latent_mem)])
@@ -177,8 +176,8 @@ class NeuroAlignModel(snt.Module):
 
         super(NeuroAlignModel, self).__init__(name=name)
         self.enc = NeuroAlignEncoder(config)
-        #self.cores = [NeuroAlignCore(config) for _ in range(config["num_nr_core"])]
-        self.core = NeuroAlignCore(config)
+        self.cores = [NeuroAlignCore(config) for _ in range(config["num_nr_core"])]
+        #self.core = NeuroAlignCore(config)
         self.dec = NeuroAlignDecoder(config)
 
 
@@ -190,20 +189,11 @@ class NeuroAlignModel(snt.Module):
 
         latent_seq_graph, latent_mem = self.enc(sequence_graph, col_priors)
         decoded_outputs = [self.dec(latent_seq_graph, latent_mem, seq_lens)]
-        for _ in range(num_iterations):
-            latent_seq_graph, latent_mem = self.core(latent_seq_graph, latent_mem, decoded_outputs[-1][3])
-            decoded_outputs.append(self.dec(latent_seq_graph, latent_mem, seq_lens))
+        for core in self.cores:
+            for _ in range(num_iterations):
+                latent_seq_graph, latent_mem = core(latent_seq_graph, latent_mem, decoded_outputs[-1][3])
+                decoded_outputs.append(self.dec(latent_seq_graph, latent_mem, seq_lens))
         return decoded_outputs[1:]
-
-                #
-                # latent_seq_graph, latent_mem = self.enc(sequence_graph, col_priors)
-                # decoded_outputs = [self.dec(latent_seq_graph, latent_mem, seq_lens)]
-                # for core in self.cores: #cores with unique parameters
-                #     for _ in range(num_iterations): #iterations on the same core with shared parameters
-                #         latent_seq_graph, latent_mem = core(latent_seq_graph, latent_mem, decoded_outputs[-1][3])
-                #         decoded_outputs.append(self.dec(latent_seq_graph, latent_mem, seq_lens))
-                # return decoded_ou
-
 
 
 
@@ -241,25 +231,28 @@ class NeuroAlignPredictor():
         node_relative_pos, col_relative_pos, rel_occ, mem_per_col = self.inference(seq_g, col_g, tf.constant(msa.seq_lens))
         return node_relative_pos.numpy(), col_relative_pos.numpy(), tf.nn.softmax(rel_occ).numpy(), mem_per_col.numpy()
 
-    # def _graphs_from_instance(self, msa, num_cols):
-    #     seq_dict = {"globals" : [np.float32(0)],
-    #                     "nodes" : msa.nodes,
-    #                     "edges" : np.zeros((len(msa.forward_senders), 1), dtype=np.float32),
-    #                     "senders" : msa.forward_senders,
-    #                     "receivers" : msa.forward_receivers }
+
+    #constucts graphs that can be forwarded as input to the predictor
+    #from a msa instance. Requires an approximation of the alignment length
+    #and a center column.
+    # def _graphs_from_instance(self, msa, alignment_len, center_col):
+    #     seq_dicts = [{"globals" : [np.float32(0)],
+    #                     "nodes" : nodes,
+    #                     "edges" : np.zeros((len(forward_senders), 1), dtype=np.float32),
+    #                     "senders" : forward_senders,
+    #                     "receivers" : forward_receivers }
+    #                     for nodes, forward_senders, forward_receivers
+    #                     in zip(msa.nodes, msa.forward_senders, msa.forward_receivers)]
     #     col_dicts = []
-    #     for i in range(num_cols):
-    #         # col_nodes = np.zeros((msa.nodes.shape[0],1), dtype=np.float32)
-    #         # col_nodes[sum(msa.seq_lens[:s]) + i] = 1
-    #         col_dicts.append({"globals" : [np.float32(i/num_cols)],
-    #         "nodes" : msa.nodes,
+    #     for i in range(max(0, center_col-config["adjacent_column_radius"]), min(alignment_len, center_col+config["adjacent_column_radius"]+1)):
+    #         col_dicts.append({"globals" : [np.float32(i/alignment_len)],
+    #         "nodes" : np.concatenate(msa.nodes, axis = 0),
     #         "senders" : [],
     #         "receivers" : [] })
-    #     seq_g = gn.utils_tf.data_dicts_to_graphs_tuple([seq_dict])
+    #     seq_g = gn.utils_tf.data_dicts_to_graphs_tuple(seq_dicts)
     #     col_g = gn.utils_tf.data_dicts_to_graphs_tuple(col_dicts)
     #     col_g = gn.utils_tf.set_zero_edge_features(col_g, 0)
     #     return seq_g, col_g
-
 
 
     def _graphs_from_instance(self, msa, num_cols):

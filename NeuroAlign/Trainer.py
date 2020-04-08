@@ -45,7 +45,9 @@ class NeuroAlignTrainer():
         # Compile the update function using the input signature for speedy code.
         self.step_op = tf.function(train_step, input_signature=predictor.input_signature + self.input_signature)
 
-    #use a given reference alignment for training
+    #supervised training using reference alignment
+    #randomly select a center columns with a window of adjacent columns within
+    #a certain radius (if existing)
     def train(self, msa):
         seq_g, col_g = self.predictor._graphs_from_instance(msa, msa.alignment_len)
         return self.step_op(seq_g, col_g, tf.constant(msa.seq_lens), msa.node_rp_targets, msa.membership_targets, msa.rel_occ_per_column)
