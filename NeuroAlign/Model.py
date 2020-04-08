@@ -202,6 +202,7 @@ class NeuroAlignPredictor():
 
     def __init__(self, config, examle_msa):
 
+        self.config = config
         self.model = NeuroAlignModel(config)
         self.checkpoint = tf.train.Checkpoint(module=self.model)
         self.checkpoint_root = "./checkpoints"
@@ -235,24 +236,24 @@ class NeuroAlignPredictor():
     #constucts graphs that can be forwarded as input to the predictor
     #from a msa instance. Requires an approximation of the alignment length
     #and a center column.
-    # def _graphs_from_instance(self, msa, alignment_len, center_col):
-    #     seq_dicts = [{"globals" : [np.float32(0)],
-    #                     "nodes" : nodes,
-    #                     "edges" : np.zeros((len(forward_senders), 1), dtype=np.float32),
-    #                     "senders" : forward_senders,
-    #                     "receivers" : forward_receivers }
-    #                     for nodes, forward_senders, forward_receivers
-    #                     in zip(msa.nodes, msa.forward_senders, msa.forward_receivers)]
-    #     col_dicts = []
-    #     for i in range(max(0, center_col-config["adjacent_column_radius"]), min(alignment_len, center_col+config["adjacent_column_radius"]+1)):
-    #         col_dicts.append({"globals" : [np.float32(i/alignment_len)],
-    #         "nodes" : np.concatenate(msa.nodes, axis = 0),
-    #         "senders" : [],
-    #         "receivers" : [] })
-    #     seq_g = gn.utils_tf.data_dicts_to_graphs_tuple(seq_dicts)
-    #     col_g = gn.utils_tf.data_dicts_to_graphs_tuple(col_dicts)
-    #     col_g = gn.utils_tf.set_zero_edge_features(col_g, 0)
-    #     return seq_g, col_g
+    def _graphs_from_instance_window(self, msa, alignment_len, center_col):
+        seq_dicts = [{"globals" : [np.float32(0)],
+                        "nodes" : nodes,
+                        "edges" : np.zeros((len(forward_senders), 1), dtype=np.float32),
+                        "senders" : forward_senders,
+                        "receivers" : forward_receivers }
+                        for nodes, forward_senders, forward_receivers
+                        in zip(msa.nodes, msa.forward_senders, msa.forward_receivers)]
+        col_dicts = []
+        for i in range(max(0, center_col-self.config["adjacent_column_radius"]), min(alignment_len, center_col+self.config["adjacent_column_radius"]+1)):
+            col_dicts.append({"globals" : [np.float32(i/alignment_len)],
+            "nodes" : np.concatenate(msa.nodes, axis = 0),
+            "senders" : [],
+            "receivers" : [] })
+        seq_g = gn.utils_tf.data_dicts_to_graphs_tuple(seq_dicts)
+        col_g = gn.utils_tf.data_dicts_to_graphs_tuple(col_dicts)
+        col_g = gn.utils_tf.set_zero_edge_features(col_g, 0)
+        return seq_g, col_g
 
 
     def _graphs_from_instance(self, msa, num_cols):
