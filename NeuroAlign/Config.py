@@ -24,7 +24,7 @@ config = {
     "lambda_col_rp" : 1,
     "lambda_rel_occ" : 1,
     "lambda_mem" : 1,
-    "adjacent_column_radius" : 20,
+    "adjacent_column_radius" : 7,
 
     #layers in the sequence encoding network
     "seq_enc_edge_layer_s" : [HIDDEN_DIM],

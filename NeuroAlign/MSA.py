@@ -60,7 +60,7 @@ class Instance:
         for seq, nodes in zip(self.raw_seq, self.nodes):
             for i,s in enumerate(seq):
                 nodes[i, s] = 1 #onehot
-                nodes[i, len(self.alphabet)] = i / seq.shape[0] #relative pos
+                nodes[i, len(self.alphabet)] = i 
 
         #compute forward edges
         self.forward_senders = []
