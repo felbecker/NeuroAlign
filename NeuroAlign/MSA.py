@@ -53,27 +53,6 @@ class Instance:
 
 
 
-    # def compute_inputs(self):
-    #     #convert to binary alphabet
-    #     #for each node, we store a one hot encoding of the respective symbol and the relative raw seq position
-    #     self.nodes = np.zeros((self.total_len, len(alphabet)+1), dtype=np.float32)
-    #     node_iter = 0
-    #     for seq in self.raw_seq:
-    #         for i,s in enumerate(seq):
-    #             self.nodes[node_iter, s] = 1 #onehot
-    #             self.nodes[node_iter, len(alphabet)] = i / seq.shape[0] #relative pos
-    #             node_iter += 1
-    #
-    #     #compute forward edges
-    #     self.forward_senders = []
-    #     self.forward_receivers = []
-    #     sum_l = 0
-    #     for l in self.seq_lens:
-    #         self.forward_senders.extend(range(sum_l, sum_l+l-1))
-    #         self.forward_receivers.extend(range(sum_l+1, sum_l+l))
-    #         sum_l += l
-
-
     def compute_inputs(self):
         #convert to binary alphabet
         #for each node, we store a one hot encoding of the respective symbol and the relative raw seq position
@@ -97,12 +76,17 @@ class Instance:
         cumsum = np.cumsum(self.ref_seq != len(self.alphabet), axis=1) #A-B--C -> 112223
         diff = np.diff(np.insert(cumsum, 0, 0.0, axis=1), axis=1) #112223 -> 0112223 -> [[(i+1) - i]] -> 101001
         self.membership_targets = np.concatenate([np.argwhere(diff[i,:]) for i in range(diff.shape[0])]).flatten()
-        self.node_rp_targets = np.reshape(self.membership_targets / self.alignment_len, (-1,1))
+
+        #also compute a mapping for each sequence from alignment column to the last occuring index
+        #self.col_to_seq[i-1] == self.col_to_seq[i]  <->  gap at i
+        self.col_to_seq = cumsum - 1
+
         #for each symbol in the alphabet, count the relative number of occurences per column
         self.rel_occ_per_column = np.zeros((self.alignment_len, len(self.alphabet)+1))
         for s_id in range(len(self.alphabet)+1):
             self.rel_occ_per_column[:,s_id] = np.sum(self.ref_seq == s_id, axis = 0)
         self.rel_occ_per_column /= self.ref_seq.shape[0]
+
 
     #computes recall and precision of the edge predictions
     #over all possible pairs of positions in the sequences

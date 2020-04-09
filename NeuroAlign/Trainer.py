@@ -16,9 +16,9 @@ class NeuroAlignTrainer():
         def train_step(sequence_graph, col_priors, len_seqs,
                         target_node_rp, target_mems, rel_occ_per_col):
             with tf.GradientTape() as tape:
-                out = self.predictor.model(sequence_graph, len_seqs, col_priors, config["train_mp_iterations"])
+                out = self.predictor.model(sequence_graph, len_seqs, col_priors, config["train_mp_iterations"], config["train_mp_seqg_iterations"])
                 train_loss = 0
-                for n_rp, c_rp, rel_occ, mem in out[-1:]:
+                for n_rp, c_rp, rel_occ, mem in out: #out[-1:]
                     l_node_rp = tf.compat.v1.losses.mean_squared_error(target_node_rp, n_rp)
                     l_col_rp = tf.compat.v1.losses.mean_squared_error(col_priors.globals, c_rp)
                     l_rel_occ = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels = rel_occ_per_col, logits = rel_occ))
@@ -29,7 +29,7 @@ class NeuroAlignTrainer():
                     l_rel_occ = l_rel_occ*config["lambda_rel_occ"]
                     l_mem_logs = l_mem_logs*config["lambda_mem"]
                     train_loss += l_node_rp + l_col_rp + l_rel_occ + l_mem_logs
-                #train_loss /= config["num_nr_core"]*config["train_mp_iterations"]
+                train_loss /= config["num_nr_core"]*config["train_mp_iterations"]
                 regularizer = snt.regularizers.L2(config["l2_regularization"])
                 train_loss += regularizer(self.predictor.model.trainable_variables)
                 gradients = tape.gradient(train_loss, self.predictor.model.trainable_variables)
@@ -52,13 +52,7 @@ class NeuroAlignTrainer():
     #a certain radius (if existing)
     def train(self, msa):
         c = np.random.randint(msa.alignment_len)
-        seq_g, col_g = self.predictor._graphs_from_instance_window(msa, msa.alignment_len, c)
-        r = self.config["adjacent_column_radius"]
-        lb = max(0,c-r)
-        ub = min(msa.alignment_len, c+r+1)
-        rocc = msa.rel_occ_per_column[lb:ub,:]
-        mem_one_hot = np.zeros((sum(msa.seq_lens), ub-lb))
-        for i,tar in enumerate(msa.membership_targets):
-            if tar >= lb and tar < ub:
-                mem_one_hot[i, tar-lb] = 1
-        return self.step_op(seq_g, col_g, tf.constant(msa.seq_lens), msa.node_rp_targets, mem_one_hot, rocc)
+        lb = max(0, c - self.config["adjacent_column_radius"])
+        ub = min(msa.alignment_len-1, c + self.config["adjacent_column_radius"])
+        seq_g, col_g, sl, mem, rocc = self.predictor.get_window_sample(msa, msa.alignment_len, lb, ub)
+        return self.step_op(seq_g, col_g, tf.constant(sl), np.reshape(mem/(ub-lb+1), (-1,1)), np.eye(ub-lb+1)[mem], rocc)

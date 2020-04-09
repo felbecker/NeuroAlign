@@ -97,7 +97,7 @@ class NeuroAlignCore(snt.Module):
                                     global_model_fn=make_mlp_model(config["seq_net_global_layers"]),
                                     reducer = tf.math.unsorted_segment_sum)
 
-    def __call__(self, latent_seq_graph, latent_mem, decoded_memberships):
+    def __call__(self, latent_seq_graph, latent_mem, decoded_memberships, num_seqg_iterations):
 
         flat_dec_mem = tf.reshape(tf.transpose(decoded_memberships), [-1, 1])
         weighted_nodes = tf.tile(latent_seq_graph.nodes, [gn.utils_tf.get_num_graphs(latent_mem),1])*flat_dec_mem
@@ -105,7 +105,9 @@ class NeuroAlignCore(snt.Module):
         latent_mem = self.column_network(col_in)
         segments = tf.tile(tf.range(latent_mem.n_node[0]), [gn.utils_tf.get_num_graphs(latent_mem)])
         reduced_nodes = tf.math.unsorted_segment_sum(weighted_nodes, segments, latent_mem.n_node[0])
-        latent_seq_graph = self.seq_network(latent_seq_graph.replace(nodes = reduced_nodes))
+        latent_seq_graph = latent_seq_graph.replace(nodes = reduced_nodes)
+        for _ in range(num_seqg_iterations):
+            latent_seq_graph = self.seq_network(latent_seq_graph)
 
         return latent_seq_graph, latent_mem
 
@@ -185,15 +187,16 @@ class NeuroAlignModel(snt.Module):
                 sequence_graph, #input graph with position nodes and forward edges describing the sequences
                 seq_lens, #specifies the length of each input sequence, i.e. seq_lens[i] is the length of the ith chain in sequence_graph
                 col_priors, #a graph tuple with a col prior graph for each column
-                num_iterations): #the number of message passing iterations
+                num_iterations,
+                num_seqg_iterations):
 
         latent_seq_graph, latent_mem = self.enc(sequence_graph, col_priors)
         decoded_outputs = [self.dec(latent_seq_graph, latent_mem, seq_lens)]
         for core in self.cores:
             for _ in range(num_iterations):
-                latent_seq_graph, latent_mem = core(latent_seq_graph, latent_mem, decoded_outputs[-1][3])
+                latent_seq_graph, latent_mem = core(latent_seq_graph, latent_mem, decoded_outputs[-1][3], num_seqg_iterations)
                 decoded_outputs.append(self.dec(latent_seq_graph, latent_mem, seq_lens))
-        return decoded_outputs[1:]
+        return decoded_outputs #or decoded_outputs[1:] to drop output from initial encoding
 
 
 
@@ -202,7 +205,6 @@ class NeuroAlignPredictor():
 
     def __init__(self, config, examle_msa):
 
-        self.config = config
         self.model = NeuroAlignModel(config)
         self.checkpoint = tf.train.Checkpoint(module=self.model)
         self.checkpoint_root = "./checkpoints"
@@ -210,11 +212,11 @@ class NeuroAlignPredictor():
         self.save_prefix = os.path.join(self.checkpoint_root, self.checkpoint_name)
 
         def inference(sequence_graph, col_priors, len_seqs):
-            out = self.model(sequence_graph, len_seqs, col_priors, config["test_mp_iterations"])
+            out = self.model(sequence_graph, len_seqs, col_priors, config["test_mp_iterations"], config["test_mp_seqg_iterations"])
             node_relative_pos, col_relative_pos, rel_occ, mem_per_col = out[-1]
             return node_relative_pos, col_relative_pos, rel_occ, mem_per_col
 
-        seq_input_example, col_input_example = self._graphs_from_instance(examle_msa, 1)
+        seq_input_example, col_input_example = self.get_complete_sample(examle_msa, 1)
 
         # Get the input signature for that function by obtaining the specs
         self.input_signature = [
@@ -228,42 +230,73 @@ class NeuroAlignPredictor():
 
     #col_priors is a list of position pairs (s,i) = sequence s at index i
     def predict(self, msa, num_cols):
-        seq_g, col_g = self._graphs_from_instance(msa, num_cols)
+        seq_g, col_g = self.get_complete_sample(msa, num_cols)
         node_relative_pos, col_relative_pos, rel_occ, mem_per_col = self.inference(seq_g, col_g, tf.constant(msa.seq_lens))
         return node_relative_pos.numpy(), col_relative_pos.numpy(), tf.nn.softmax(rel_occ).numpy(), mem_per_col.numpy()
 
 
     #constucts graphs that can be forwarded as input to the predictor
     #from a msa instance. Requires an approximation of the alignment length
-    #and a center column.
-    def _graphs_from_instance_window(self, msa, alignment_len, center_col):
+    #and an lower- as well as upper-bound for the requested window
+    # [[for training]]
+    def get_window_sample(self, msa, alignment_len, lb, ub):
+
+        # construct a subset of the sequences and targets according to that subset,
+        # such that alignment column lb is column 0 in the new sample
+
+        nodes_subset = []
+        mem = []
+        for seqid, nodes in enumerate(msa.nodes):
+            l = msa.col_to_seq[seqid, lb]
+            r = msa.col_to_seq[seqid, ub]
+            if r-l>0 or not msa.ref_seq[seqid, lb] == len(msa.alphabet):
+                if msa.ref_seq[seqid, lb] == len(msa.alphabet):
+                    l += 1
+                nodes_subset.append(nodes[l:(r+1)])
+                lsum = sum(msa.seq_lens[:seqid])
+                mem.append(msa.membership_targets[(lsum+l):(lsum+r+1)])
+
+        mem = np.concatenate(mem, axis=0) - lb
+
+        sl = [nodes.shape[0] for nodes in nodes_subset]
+
         seq_dicts = [{"globals" : [np.float32(0)],
                         "nodes" : nodes,
-                        "edges" : np.zeros((len(forward_senders), 1), dtype=np.float32),
-                        "senders" : forward_senders,
-                        "receivers" : forward_receivers }
-                        for nodes, forward_senders, forward_receivers
-                        in zip(msa.nodes, msa.forward_senders, msa.forward_receivers)]
+                        "edges" : np.zeros((nodes.shape[0]-1, 1), dtype=np.float32),
+                        "senders" : list(range(0, nodes.shape[0]-1)),
+                        "receivers" : list(range(1, nodes.shape[0])) }
+                        for seqid, nodes in enumerate(nodes_subset)]
+
         col_dicts = []
-        for i in range(max(0, center_col-self.config["adjacent_column_radius"]), min(alignment_len, center_col+self.config["adjacent_column_radius"]+1)):
-            col_dicts.append({"globals" : [np.float32(i/alignment_len)],
-            "nodes" : np.concatenate(msa.nodes, axis = 0),
+        col_nodes = np.concatenate(nodes_subset, axis = 0)
+        for i in range(ub-lb+1):
+            col_dicts.append({"globals" : [np.float32(i/(ub-lb+1))],
+            "nodes" : col_nodes,
             "senders" : [],
             "receivers" : [] })
         seq_g = gn.utils_tf.data_dicts_to_graphs_tuple(seq_dicts)
         col_g = gn.utils_tf.data_dicts_to_graphs_tuple(col_dicts)
         col_g = gn.utils_tf.set_zero_edge_features(col_g, 0)
-        return seq_g, col_g
+
+        rocc = msa.rel_occ_per_column[lb:(ub+1),:]
+
+        # print(lb, ub)
+        # print(msa.ref_seq)
+        # print(mem)
+
+        return seq_g, col_g, sl, mem, rocc
 
 
-    def _graphs_from_instance(self, msa, num_cols):
+    #constucts graphs that can be forwarded as input to the predictor
+    #does not subset the sequences, just takes everthing
+    # [[for prediction]]
+    def get_complete_sample(self, msa, num_cols):
         seq_dicts = [{"globals" : [np.float32(0)],
                         "nodes" : nodes,
-                        "edges" : np.zeros((len(forward_senders), 1), dtype=np.float32),
-                        "senders" : forward_senders,
-                        "receivers" : forward_receivers }
-                        for nodes, forward_senders, forward_receivers
-                        in zip(msa.nodes, msa.forward_senders, msa.forward_receivers)]
+                        "edges" : np.zeros((nodes.shape[0]-1, 1), dtype=np.float32),
+                        "senders" : list(range(0, nodes.shape[0]-1)),
+                        "receivers" : list(range(1, nodes.shape[0])) }
+                        for nodes in msa.nodes]
         col_dicts = []
         for i in range(num_cols):
             # col_nodes = np.zeros((msa.nodes.shape[0],1), dtype=np.float32)
