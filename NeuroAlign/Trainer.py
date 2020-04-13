@@ -24,20 +24,21 @@ class NeuroAlignTrainer():
                     l_rel_occ = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels = rel_occ_per_col, logits = rel_occ))
 
                     #l_mem_logs = tf.compat.v1.losses.sigmoid_cross_entropy(tf.one_hot(target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors)), mem_logits)
-                    #l_mem_logs = tf.compat.v1.losses.log_loss(target_mems, mem)   #tf.one_hot(target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
+                    l_mem_logs = tf.compat.v1.losses.log_loss(tf.one_hot(target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors)), mem)   #tf.one_hot(target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
 
-                    l_mem_logs = -tf.reduce_sum(tf.math.unsorted_segment_prod(mem, target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors)))
+                    #l_mem_logs = -tf.reduce_sum(tf.math.unsorted_segment_prod(mem, target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))) / tf.cast(gn.utils_tf.get_num_graphs(col_priors), tf.float32)
 
                     l_node_rp = l_node_rp*config["lambda_node_rp"]
                     l_col_rp = l_col_rp*config["lambda_col_rp"]
                     l_rel_occ = l_rel_occ*config["lambda_rel_occ"]
                     l_mem_logs = l_mem_logs*config["lambda_mem"]
                     train_loss += l_node_rp + l_col_rp + l_rel_occ + l_mem_logs
-                train_loss /= config["num_nr_core"]*config["train_mp_iterations"]
+                train_loss /= (config["num_nr_core"]*config["train_mp_iterations"]+1)
                 regularizer = snt.regularizers.L2(config["l2_regularization"])
                 train_loss += regularizer(self.predictor.model.trainable_variables)
                 gradients = tape.gradient(train_loss, self.predictor.model.trainable_variables)
                 optimizer.apply(gradients, self.predictor.model.trainable_variables)
+                #tf.print(mem, summarize=-1)
                 return n_rp, c_rp, rel_occ, mem, train_loss, l_node_rp, l_col_rp, l_rel_occ, l_mem_logs
 
         # Get the input signature for that function by obtaining the specs
@@ -59,4 +60,6 @@ class NeuroAlignTrainer():
         lb = max(0, c - self.config["adjacent_column_radius"])
         ub = min(msa.alignment_len-1, c + self.config["adjacent_column_radius"])
         seq_g, col_g, sl, mem, rocc = self.predictor.get_window_sample(msa, msa.alignment_len, lb, ub)
-        return self.step_op(seq_g, col_g, tf.constant(sl), np.reshape(mem/(ub-lb+1), (-1,1)), mem, rocc)
+        #print("_______________________________________________________")
+        #print(seq_g.nodes, sl, mem, rocc)
+        return self.step_op(seq_g, col_g, tf.constant(sl), np.reshape((mem+1)/(ub-lb+1), (-1,1)), mem, rocc)

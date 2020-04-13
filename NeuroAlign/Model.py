@@ -91,6 +91,12 @@ class NeuroAlignCore(snt.Module):
                                     global_model_fn=make_mlp_model(config["column_net_global_layers"]),
                                     reducer = tf.math.unsorted_segment_sum)
 
+        self.seq_network_en = gn.modules.GraphNetwork(
+                                    edge_model_fn=make_mlp_model(config["seq_net_edge_layers"]),
+                                    node_model_fn=make_mlp_model(config["seq_net_node_layers"]),
+                                    global_model_fn=make_mlp_model(config["seq_net_global_layers"]),
+                                    reducer = tf.math.unsorted_segment_sum)
+
         self.seq_network = gn.modules.GraphNetwork(
                                     edge_model_fn=make_mlp_model(config["seq_net_edge_layers"]),
                                     node_model_fn=make_mlp_model(config["seq_net_node_layers"]),
@@ -105,7 +111,7 @@ class NeuroAlignCore(snt.Module):
         latent_mem = self.column_network(col_in)
         segments = tf.tile(tf.range(latent_mem.n_node[0]), [gn.utils_tf.get_num_graphs(latent_mem)])
         reduced_nodes = tf.math.unsorted_segment_sum(weighted_nodes, segments, latent_mem.n_node[0])
-        latent_seq_graph = latent_seq_graph.replace(nodes = reduced_nodes)
+        latent_seq_graph = self.seq_network_en(latent_seq_graph.replace(nodes = reduced_nodes))
         for _ in range(num_seqg_iterations):
             latent_seq_graph = self.seq_network(latent_seq_graph)
 
@@ -253,7 +259,7 @@ class NeuroAlignPredictor():
                 if msa.ref_seq[seqid, lb] == len(msa.alphabet):
                     l += 1
                 nodes_subset.append(np.copy(nodes[l:(r+1)]))
-                nodes_subset[-1][:,len(msa.alphabet)] -= l
+                nodes_subset[-1][:,len(msa.alphabet)] -= (l-1)
                 lsum = sum(msa.seq_lens[:seqid])
                 mem.append(msa.membership_targets[(lsum+l):(lsum+r+1)])
 
@@ -273,7 +279,7 @@ class NeuroAlignPredictor():
 
         col_dicts = []
         col_nodes = np.concatenate(nodes_subset, axis = 0)
-        for i in range(ub-lb+1):
+        for i in range(1,ub-lb+2):
             col_dicts.append({"globals" : [np.float32(i/(ub-lb+1))],
             "nodes" : col_nodes,
             "senders" : [],
@@ -295,7 +301,7 @@ class NeuroAlignPredictor():
     #does not subset the sequences, just takes everthing
     # [[for prediction]]
     def get_complete_sample(self, msa, num_cols):
-        rp_nodes = [np.copy(nodes) for nodes in msa.nodes]
+        rp_nodes = [np.copy(nodes)+1 for nodes in msa.nodes]
         for nodes in rp_nodes:
             nodes[:,len(msa.alphabet)] /= nodes.shape[0]
         seq_dicts = [{"globals" : [np.float32(0)],
@@ -305,7 +311,7 @@ class NeuroAlignPredictor():
                         "receivers" : list(range(1, nodes.shape[0])) }
                         for nodes in rp_nodes]
         col_dicts = []
-        for i in range(num_cols):
+        for i in range(1,num_cols+1):
             col_dicts.append({"globals" : [np.float32(i/num_cols)],
             "nodes" : np.concatenate(rp_nodes, axis = 0),
             "senders" : [],

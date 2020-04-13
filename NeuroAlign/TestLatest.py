@@ -2,6 +2,8 @@ import argparse
 import MSA
 import Model
 import numpy as np
+import sys
+np.set_printoptions(threshold=sys.maxsize)
 
 from Config import config
 
@@ -27,7 +29,9 @@ ps = 0
 rs = 0
 for m in msa:
     _,_,_,mpc = predictor.predict(m, m.alignment_len)
-    p,r = m.recall_prec(np.argmax(mpc, axis=1).flatten())
+    am = np.argmax(mpc, axis=1)
+    print(am)
+    p,r = m.recall_prec(am.flatten())
     ps += p
     rs += r
 
