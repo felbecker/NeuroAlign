@@ -299,7 +299,7 @@ class NeuroAlignPredictor():
         for nodes in rp_nodes:
             nodes[:,len(msa.alphabet)] /= nodes.shape[0]
         seq_dicts = [{"globals" : [np.float32(0)],
-                        "nodes" : nodes/nodes.shape[0],
+                        "nodes" : nodes,
                         "edges" : np.zeros((nodes.shape[0]-1, 1), dtype=np.float32),
                         "senders" : list(range(0, nodes.shape[0]-1)),
                         "receivers" : list(range(1, nodes.shape[0])) }
