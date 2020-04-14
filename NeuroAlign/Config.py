@@ -6,9 +6,9 @@ config = {
     #number of sequentially applied core networks (each with unique parameters)
     "num_nr_core" : 1,
     #number of iterations inside each core network (shared parameters) during training
-    "train_mp_iterations" : 1,
+    "train_mp_iterations" : 5,
     #number of iterations inside each core network (shared parameters) during testing
-    "test_mp_iterations" : 1,
+    "test_mp_iterations" : 5,
     #number of iterations on the sequence graph for each iteration and each core
     "train_mp_seqg_iterations" : 1,
     #number of iterations on the sequence graph for each iteration and each core during testing

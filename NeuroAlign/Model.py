@@ -331,6 +331,25 @@ class NeuroAlignPredictor():
         return seq_g, col_g, inter_seq_g, sl, mem, rocc
 
 
+    #generates priors for the column graphs such that
+    #for each column j, all sequence positions in [c-r, c+r] with c = floor( j*l/L ) are
+    #weighted 1/(2r+1) and other positions are weighted 0
+    def make_window_uniform_priors(self, nodes, num_col, r):
+        col_prior_dicts = []
+        for j in range(1,num_col+1):
+            col_nodes = [np.zeros((n.shape[0], 1)) for n in nodes]
+            for cn in col_nodes:
+                c = np.floor(j*cn.shape[0]/num_col)
+                left = max(0, c-r)
+                right = min(cn.shape[0], c+r+1)
+                cn[left:right,:] = 1 /(right-left)
+            col_nodes = np.concatenate(col_nodes, axis = 0)
+            col_dicts.append({"globals" : [np.float32(j/num_col)],
+            "nodes" : col_nodes,
+            "senders" : [],
+            "receivers" : [] })
+        return col_prior_dicts
+
 
     def load_latest(self):
         latest = tf.train.latest_checkpoint(self.checkpoint_root)

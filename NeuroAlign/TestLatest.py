@@ -28,9 +28,12 @@ predictor.load_latest()
 ps = 0
 rs = 0
 for m in msa:
-    _,_,_,mpc = predictor.predict(m, m.alignment_len)
+    #print("___________________________")
+    #print(m.ref_seq)
+    nrp,crp,rocc,mpc = predictor.predict(m, m.alignment_len)
     am = np.argmax(mpc, axis=1)
-    #print(mpc)
+    #print(m.membership_targets)
+    #print(am)
     p,r = m.recall_prec(am.flatten())
     ps += p
     rs += r
