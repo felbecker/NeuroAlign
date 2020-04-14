@@ -13,10 +13,10 @@ class NeuroAlignTrainer():
         self.config = config
         self.predictor = predictor
         optimizer = snt.optimizers.Adam(config["learning_rate"])
-        def train_step(sequence_graph, col_priors, len_seqs,
+        def train_step(sequence_graph, col_priors, inter_seq, len_seqs,
                         target_node_rp, target_col_segment_ids, rel_occ_per_col):
             with tf.GradientTape() as tape:
-                out = self.predictor.model(sequence_graph, len_seqs, col_priors, config["train_mp_iterations"], config["train_mp_seqg_iterations"], config["inter_seq_latent_dim"])
+                out = self.predictor.model(sequence_graph, len_seqs, col_priors, inter_seq, config["train_mp_iterations"], config["train_mp_seqg_iterations"])
                 train_loss = 0
                 for n_rp, c_rp, rel_occ, mem in out: #out[-1:]
                     l_node_rp = tf.compat.v1.losses.mean_squared_error(target_node_rp, n_rp)
@@ -59,7 +59,7 @@ class NeuroAlignTrainer():
         c = np.random.randint(msa.alignment_len)
         lb = max(0, c - self.config["adjacent_column_radius"])
         ub = min(msa.alignment_len-1, c + self.config["adjacent_column_radius"])
-        seq_g, col_g, sl, mem, rocc = self.predictor.get_window_sample(msa, msa.alignment_len, lb, ub)
+        seq_g, col_g, inter_seq_g, sl, mem, rocc = self.predictor.get_window_sample(msa, msa.alignment_len, lb, ub)
         #print("_______________________________________________________")
         #print(seq_g.nodes, sl, mem, rocc)
-        return self.step_op(seq_g, col_g, tf.constant(sl), np.reshape((mem+1)/(ub-lb+1), (-1,1)), mem, rocc)
+        return self.step_op(seq_g, col_g, inter_seq_g, tf.constant(sl), np.reshape((mem+1)/(ub-lb+1), (-1,1)), mem, rocc)

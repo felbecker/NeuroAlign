@@ -69,13 +69,19 @@ class NeuroAlignEncoder(snt.Module):
                             node_model_fn=make_mlp_model(config["mem_enc_node_layer_s"]),
                             global_model_fn=make_mlp_model(config["mem_enc_globals_layer_s"]))
 
+        self.inter_seq_encoder = gn.modules.GraphIndependent(
+                            node_model_fn=make_mlp_model(config["mem_enc_node_layer_s"]),
+                            global_model_fn=make_mlp_model(config["mem_enc_globals_layer_s"]))
+
     def __call__(self,
                 sequence_graph, #input graph with position nodes and forward edges describing the sequences
-                col_priors): #a graph tuple with a col prior graph for each column
+                col_priors,
+                inter_seq): #a graph tuple with a col prior graph for each column
 
         latent_seq_graph = self.seq_encoder(sequence_graph)
         latent_mem = self.mem_encoder(col_priors)
-        return latent_seq_graph, latent_mem
+        latent_inter_seq = self.inter_seq_encoder(inter_seq)
+        return latent_seq_graph, latent_mem, latent_inter_seq
 
 
 #core module that computes the NeuroAlign prediction
@@ -120,18 +126,18 @@ class NeuroAlignCore(snt.Module):
         col_in = latent_mem.replace(nodes = tf.concat([latent_mem.nodes, weighted_nodes], axis=1))
         latent_mem = self.column_network(col_in)
 
+        #inter sequence update
+        inter_seq_in = latent_inter_seq.replace(nodes = tf.concat([latent_inter_seq.nodes, latent_seq_graph.globals], axis=1))
+        latent_inter_seq = self.inter_seq_network(inter_seq_in)
+
         #intra sequence update
         segments = tf.tile(tf.range(latent_mem.n_node[0]), [gn.utils_tf.get_num_graphs(latent_mem)])
         reduced_nodes = tf.math.unsorted_segment_sum(weighted_nodes, segments, latent_mem.n_node[0])
-        seq_in = latent_seq_graph.replace(nodes = tf.concat([latent_seq_graph.nodes, reduced_nodes], axis=1))
+        seq_in = latent_seq_graph.replace(nodes = tf.concat([latent_seq_graph.nodes, reduced_nodes], axis=1),
+                                            globals = tf.concat([latent_seq_graph.globals, latent_inter_seq.nodes], axis=1))
         latent_seq_graph = self.seq_network_en(seq_in)
         for _ in range(num_seqg_iterations):
             latent_seq_graph = self.seq_network(latent_seq_graph)
-
-        #inter sequence update
-        inter_seq_in = latent_seq_graph.replace(nodes = tf.concat([latent_inter_seq.nodes, latent_seq_graph.globals], axis=1))
-        latent_inter_seq = self.inter_seq_network(inter_seq_in)
-        latent_seq_graph = latent_seq_graph.replace(globals=latent_inter_seq.nodes)
 
 
         return latent_seq_graph, latent_mem, latent_inter_seq
@@ -212,13 +218,12 @@ class NeuroAlignModel(snt.Module):
                 sequence_graph, #input graph with position nodes and forward edges describing the sequences
                 seq_lens, #specifies the length of each input sequence, i.e. seq_lens[i] is the length of the ith chain in sequence_graph
                 col_priors, #a graph tuple with a col prior graph for each column
+                inter_seq,
                 num_iterations,
-                num_seqg_iterations,
-                inter_seq_latent_dim):
+                num_seqg_iterations):
 
-        latent_seq_graph, latent_mem = self.enc(sequence_graph, col_priors)
+        latent_seq_graph, latent_mem, latent_inter_seq = self.enc(sequence_graph, col_priors, inter_seq)
         decoded_outputs = [self.dec(latent_seq_graph, latent_mem, seq_lens)]
-        latent_inter_seq = gn.utils_tf.get_graph(col_priors, 0).replace(nodes = tf.zeros_like(latent_seq_graph.globals), globals = tf.zeros((1, inter_seq_latent_dim)))
         for core in self.cores:
             for _ in range(num_iterations):
                 latent_seq_graph, latent_mem, latent_inter_seq = core(latent_seq_graph, latent_mem, latent_inter_seq, decoded_outputs[-1][3], num_seqg_iterations)
@@ -238,17 +243,18 @@ class NeuroAlignPredictor():
         self.checkpoint_name = "NeuroAlign"
         self.save_prefix = os.path.join(self.checkpoint_root, self.checkpoint_name)
 
-        def inference(sequence_graph, col_priors, len_seqs):
-            out = self.model(sequence_graph, len_seqs, col_priors, config["test_mp_iterations"], config["test_mp_seqg_iterations"], config["inter_seq_latent_dim"])
+        def inference(sequence_graph, col_priors, inter_seq, len_seqs):
+            out = self.model(sequence_graph, len_seqs, col_priors, inter_seq, config["test_mp_iterations"], config["test_mp_seqg_iterations"])
             node_relative_pos, col_relative_pos, rel_occ, mem_per_col = out[-1]
             return node_relative_pos, col_relative_pos, rel_occ, mem_per_col
 
-        seq_input_example, col_input_example = self.get_complete_sample(examle_msa, 1)
+        seq_input_example, col_input_example, inter_seq_input_example,_,_,_ = self.get_window_sample(examle_msa, 1, 0, 1)
 
         # Get the input signature for that function by obtaining the specs
         self.input_signature = [
           gn.utils_tf.specs_from_graphs_tuple(seq_input_example, dynamic_num_graphs=True),
           gn.utils_tf.specs_from_graphs_tuple(col_input_example, dynamic_num_graphs=True),
+          gn.utils_tf.specs_from_graphs_tuple(inter_seq_input_example, dynamic_num_graphs=True),
           tf.TensorSpec((None,), dtype=tf.dtypes.int32)
         ]
 
@@ -257,8 +263,8 @@ class NeuroAlignPredictor():
 
     #col_priors is a list of position pairs (s,i) = sequence s at index i
     def predict(self, msa, num_cols):
-        seq_g, col_g = self.get_complete_sample(msa, num_cols)
-        node_relative_pos, col_relative_pos, rel_occ, mem_per_col = self.inference(seq_g, col_g, tf.constant(msa.seq_lens))
+        seq_g, col_g, inter_seq_g,_,_,_ = self.get_window_sample(msa, num_cols, 0, msa.alignment_len-1)
+        node_relative_pos, col_relative_pos, rel_occ, mem_per_col = self.inference(seq_g, col_g, inter_seq_g, tf.constant(msa.seq_lens))
         return node_relative_pos.numpy(), col_relative_pos.numpy(), tf.nn.softmax(rel_occ).numpy(), mem_per_col.numpy()
 
 
@@ -293,7 +299,7 @@ class NeuroAlignPredictor():
 
         seq_dicts = [{"globals" : [nodes.shape[0] / (ub-lb+1)],  #[np.float32(0)],
                         "nodes" : nodes,
-                        "edges" : np.reshape(np.diff(nodes[:,len(msa.alphabet)]), (-1, 1)),  #np.zeros((nodes.shape[0]-1, 1), dtype=np.float32),
+                        "edges" : np.zeros((nodes.shape[0]-1, 1), dtype=np.float32),
                         "senders" : list(range(0, nodes.shape[0]-1)),
                         "receivers" : list(range(1, nodes.shape[0])) }
                         for seqid, nodes in enumerate(nodes_subset)]
@@ -315,32 +321,15 @@ class NeuroAlignPredictor():
         # print(msa.ref_seq)
         # print(mem)
 
-        return seq_g, col_g, sl, mem, rocc
+        inter_seq_dict = {"nodes" : np.zeros((len(nodes_subset) ,1), dtype=np.float32),
+                          "globals" : [np.float32(0)],
+                          "senders" : [],
+                          "receivers" : []}
+        inter_seq_g = gn.utils_tf.data_dicts_to_graphs_tuple([inter_seq_dict])
+        inter_seq_g = gn.utils_tf.set_zero_edge_features(inter_seq_g, 0)
 
+        return seq_g, col_g, inter_seq_g, sl, mem, rocc
 
-    #constucts graphs that can be forwarded as input to the predictor
-    #does not subset the sequences, just takes everthing
-    # [[for prediction]]
-    def get_complete_sample(self, msa, num_cols):
-        rp_nodes = [np.copy(nodes)+1 for nodes in msa.nodes]
-        for nodes in rp_nodes:
-            nodes[:,len(msa.alphabet)] /= nodes.shape[0]
-        seq_dicts = [{"globals" : [nodes.shape[0] / num_cols],  #[np.float32(0)],
-                        "nodes" : nodes,
-                        "edges" : np.reshape(np.diff(nodes[:,len(msa.alphabet)]), (-1, 1)),  #np.zeros((nodes.shape[0]-1, 1), dtype=np.float32),
-                        "senders" : list(range(0, nodes.shape[0]-1)),
-                        "receivers" : list(range(1, nodes.shape[0])) }
-                        for nodes in rp_nodes]
-        col_dicts = []
-        for i in range(1,num_cols+1):
-            col_dicts.append({"globals" : [np.float32(i/num_cols)],
-            "nodes" : np.concatenate(rp_nodes, axis = 0),
-            "senders" : [],
-            "receivers" : [] })
-        seq_g = gn.utils_tf.data_dicts_to_graphs_tuple(seq_dicts)
-        col_g = gn.utils_tf.data_dicts_to_graphs_tuple(col_dicts)
-        col_g = gn.utils_tf.set_zero_edge_features(col_g, 0)
-        return seq_g, col_g
 
 
     def load_latest(self):
