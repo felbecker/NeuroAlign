@@ -4,18 +4,18 @@ LAYER_DIM = 200
 #NeuroAlign parameters
 config = {
     #number of sequentially applied core networks (each with unique parameters)
-    "num_nr_core" : 1,
+    "num_nr_core" : 2,
     #number of iterations inside each core network (shared parameters) during training
-    "train_mp_iterations" : 1,
+    "train_mp_iterations" : 10,
     #number of iterations inside each core network (shared parameters) during testing
-    "test_mp_iterations" : 1,
+    "test_mp_iterations" : 10,
     #number of iterations on the sequence graph for each iteration and each core
-    "train_mp_seqg_iterations" : 1,
+    "train_mp_seqg_iterations" : 5,
     #number of iterations on the sequence graph for each iteration and each core during testing
-    "test_mp_seqg_iterations" : 1,
+    "test_mp_seqg_iterations" : 5,
 
     #training performance and logging
-    "learning_rate" : 1e-4,
+    "learning_rate" : 1e-3,
     "num_training_iteration": 2000,
     "batch_size": 50,
     "savestate_milestones": 10,
@@ -24,7 +24,7 @@ config = {
     "lambda_col_rp" : 1,
     "lambda_rel_occ" : 1,
     "lambda_mem" : 1,
-    "adjacent_column_radius" : 20,
+    "adjacent_column_radius" : 100,
 
     #layers in the sequence encoding network
     "seq_enc_edge_layer_s" : [HIDDEN_DIM],
@@ -44,10 +44,16 @@ config = {
     "column_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
     "column_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
 
+    #layers in the inter sequence network
+    "inter_seq_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    "inter_seq_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+
     #layers in the decoding networks
     "seq_dec_node_layer_s" : [HIDDEN_DIM],
     "mem_dec_node_layer_s" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
     "mem_dec_global_layer_s" : [HIDDEN_DIM, LAYER_DIM, HIDDEN_DIM],
+
+    "inter_seq_latent_dim" : 3*HIDDEN_DIM,
 
     "type" : "protein"  #nucleotide or protein
 }
