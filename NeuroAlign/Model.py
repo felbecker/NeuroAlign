@@ -102,12 +102,12 @@ class NeuroAlignCore(snt.Module):
                                     node_model_fn=make_mlp_model(config["seq_net_node_layers"]),
                                     global_model_fn=make_mlp_model(config["seq_net_global_layers"]),
                                     reducer = tf.math.unsorted_segment_sum)
-
-        self.seq_network = gn.modules.GraphNetwork(
-                                    edge_model_fn=make_mlp_model(config["seq_net_edge_layers"]),
-                                    node_model_fn=make_mlp_model(config["seq_net_node_layers"]),
-                                    global_model_fn=make_mlp_model(config["seq_net_global_layers"]),
-                                    reducer = tf.math.unsorted_segment_sum)
+        #
+        # self.seq_network = gn.modules.GraphNetwork(
+        #                             edge_model_fn=make_mlp_model(config["seq_net_edge_layers"]),
+        #                             node_model_fn=make_mlp_model(config["seq_net_node_layers"]),
+        #                             global_model_fn=make_mlp_model(config["seq_net_global_layers"]),
+        #                             reducer = tf.math.unsorted_segment_sum)
 
         self.inter_seq_network = DeepSet(
                                     node_model_fn=make_mlp_model(config["inter_seq_net_node_layers"]),
@@ -121,8 +121,6 @@ class NeuroAlignCore(snt.Module):
         weighted_nodes = tf.tile(latent_seq_graph.nodes, [gn.utils_tf.get_num_graphs(latent_mem),1])*flat_dec_mem
 
         #update columns based on their current latent state and the weighted contributing (and updated) sequence positions
-        flat_dec_mem = tf.reshape(tf.transpose(decoded_memberships), [-1, 1])
-        weighted_nodes = tf.tile(latent_seq_graph.nodes, [gn.utils_tf.get_num_graphs(latent_mem),1])*flat_dec_mem
         col_in = latent_mem.replace(nodes = tf.concat([latent_mem.nodes, weighted_nodes], axis=1))
         latent_mem = self.column_network(col_in)
 
@@ -136,8 +134,8 @@ class NeuroAlignCore(snt.Module):
         seq_in = latent_seq_graph.replace(nodes = tf.concat([latent_seq_graph.nodes, reduced_nodes], axis=1),
                                             globals = tf.concat([latent_seq_graph.globals, latent_inter_seq.nodes], axis=1))
         latent_seq_graph = self.seq_network_en(seq_in)
-        for _ in range(num_seqg_iterations):
-            latent_seq_graph = self.seq_network(latent_seq_graph)
+        # for _ in range(num_seqg_iterations):
+        #     latent_seq_graph = self.seq_network(latent_seq_graph)
 
 
         return latent_seq_graph, latent_mem, latent_inter_seq
@@ -223,12 +221,12 @@ class NeuroAlignModel(snt.Module):
                 num_seqg_iterations):
 
         latent_seq_graph, latent_mem, latent_inter_seq = self.enc(sequence_graph, col_priors, inter_seq)
-        decoded_outputs = [self.dec(latent_seq_graph, latent_mem, seq_lens)]
+        decoded_outputs = [(None, None, None, tf.transpose(tf.reshape(col_priors.nodes, [-1, col_priors.n_node[0]])))]
         for core in self.cores:
             for _ in range(num_iterations):
                 latent_seq_graph, latent_mem, latent_inter_seq = core(latent_seq_graph, latent_mem, latent_inter_seq, decoded_outputs[-1][3], num_seqg_iterations)
                 decoded_outputs.append(self.dec(latent_seq_graph, latent_mem, seq_lens))
-        return decoded_outputs #or decoded_outputs[1:] to drop output from initial encoding
+        return decoded_outputs[1:]
 
 
 
@@ -237,6 +235,7 @@ class NeuroAlignPredictor():
 
     def __init__(self, config, examle_msa):
 
+        self.config = config
         self.model = NeuroAlignModel(config)
         self.checkpoint = tf.train.Checkpoint(module=self.model)
         self.checkpoint_root = "./checkpoints"
@@ -304,13 +303,16 @@ class NeuroAlignPredictor():
                         "receivers" : list(range(1, nodes.shape[0])) }
                         for seqid, nodes in enumerate(nodes_subset)]
 
-        col_dicts = []
-        col_nodes = np.concatenate(nodes_subset, axis = 0)
-        for i in range(1,ub-lb+2):
-            col_dicts.append({"globals" : [np.float32(i/(ub-lb+1))],
-            "nodes" : col_nodes,
-            "senders" : [],
-            "receivers" : [] })
+        # col_dicts = []
+        # col_nodes = np.concatenate(nodes_subset, axis = 0)
+        # for i in range(1,ub-lb+2):
+        #     col_dicts.append({"globals" : [np.float32(i/(ub-lb+1))],
+        #     "nodes" : col_nodes,
+        #     "senders" : [],
+        #     "receivers" : [] })
+
+        col_dicts = self.make_window_uniform_priors(nodes_subset, ub-lb+1)
+
         seq_g = gn.utils_tf.data_dicts_to_graphs_tuple(seq_dicts)
         col_g = gn.utils_tf.data_dicts_to_graphs_tuple(col_dicts)
         col_g = gn.utils_tf.set_zero_edge_features(col_g, 0)
@@ -334,17 +336,18 @@ class NeuroAlignPredictor():
     #generates priors for the column graphs such that
     #for each column j, all sequence positions in [c-r, c+r] with c = floor( j*l/L ) are
     #weighted 1/(2r+1) and other positions are weighted 0
-    def make_window_uniform_priors(self, nodes, num_col, r):
+    def make_window_uniform_priors(self, nodes, num_col):
+        r = self.config["window_uniform_radius"]
         col_prior_dicts = []
         for j in range(1,num_col+1):
-            col_nodes = [np.zeros((n.shape[0], 1)) for n in nodes]
+            col_nodes = [np.zeros((n.shape[0], 1), dtype=np.float32) for n in nodes]
             for cn in col_nodes:
                 c = np.floor(j*cn.shape[0]/num_col)
-                left = max(0, c-r)
-                right = min(cn.shape[0], c+r+1)
+                left = int(max(0, c-r))
+                right = int(min(cn.shape[0], c+r+1))
                 cn[left:right,:] = 1 /(right-left)
             col_nodes = np.concatenate(col_nodes, axis = 0)
-            col_dicts.append({"globals" : [np.float32(j/num_col)],
+            col_prior_dicts.append({"globals" : [np.float32(j/num_col)],
             "nodes" : col_nodes,
             "senders" : [],
             "receivers" : [] })

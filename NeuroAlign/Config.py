@@ -4,15 +4,15 @@ LAYER_DIM = 100
 #NeuroAlign parameters
 config = {
     #number of sequentially applied core networks (each with unique parameters)
-    "num_nr_core" : 1,
+    "num_nr_core" : 2,
     #number of iterations inside each core network (shared parameters) during training
     "train_mp_iterations" : 5,
     #number of iterations inside each core network (shared parameters) during testing
     "test_mp_iterations" : 5,
     #number of iterations on the sequence graph for each iteration and each core
-    "train_mp_seqg_iterations" : 1,
+    "train_mp_seqg_iterations" : 0,
     #number of iterations on the sequence graph for each iteration and each core during testing
-    "test_mp_seqg_iterations" : 1,
+    "test_mp_seqg_iterations" : 0,
 
     #training performance and logging
     "learning_rate" : 1e-3,
@@ -25,6 +25,7 @@ config = {
     "lambda_rel_occ" : 1,
     "lambda_mem" : 1,
     "adjacent_column_radius" : 20,
+    "window_uniform_radius" : 8,
 
     #layers in the sequence encoding network
     "seq_enc_edge_layer_s" : [HIDDEN_DIM],
