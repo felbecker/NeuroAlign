@@ -4,18 +4,14 @@ LAYER_DIM = 100
 #NeuroAlign parameters
 config = {
     #number of sequentially applied core networks (each with unique parameters)
-    "num_nr_core" : 2,
+    "num_nr_core" : 1,
     #number of iterations inside each core network (shared parameters) during training
-    "train_mp_iterations" : 5,
+    "train_mp_iterations" : 2,
     #number of iterations inside each core network (shared parameters) during testing
-    "test_mp_iterations" : 5,
-    #number of iterations on the sequence graph for each iteration and each core
-    "train_mp_seqg_iterations" : 0,
-    #number of iterations on the sequence graph for each iteration and each core during testing
-    "test_mp_seqg_iterations" : 0,
+    "test_mp_iterations" : 2,
 
     #training performance and logging
-    "learning_rate" : 1e-3,
+    "learning_rate" : 1e-4,
     "num_training_iteration": 2000,
     "batch_size": 50,
     "savestate_milestones": 10,
@@ -24,8 +20,9 @@ config = {
     "lambda_col_rp" : 1,
     "lambda_rel_occ" : 1,
     "lambda_mem" : 1,
-    "adjacent_column_radius" : 20,
-    "window_uniform_radius" : 8,
+    "adjacent_column_radius" : 30,
+    "window_uniform_radius" : 10,
+    "membership_decay" : 0.5,
 
     #layers in the sequence encoding network
     "seq_enc_edge_layer_s" : [HIDDEN_DIM],
@@ -37,22 +34,25 @@ config = {
     "mem_enc_globals_layer_s" : [HIDDEN_DIM],
 
     #layers in the core network for the sequence graph
-    "seq_net_edge_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
-    "seq_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
-    "seq_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    "seq_net_edge_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    "seq_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    "seq_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
 
     #layers in the core network for the pattern graph
-    "column_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
-    "column_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    "column_net_node_layers" : [HIDDEN_DIM, HIDDEN_DIM],
+    "column_net_global_layers" : [HIDDEN_DIM, HIDDEN_DIM],
 
-    #layers in the inter sequence network
-    "inter_seq_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
-    "inter_seq_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    #layers in the consensus sequence network
+    "consensus_seq_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    "consensus_seq_net_edge_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    "consensus_seq_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
 
     #layers in the decoding networks
-    "seq_dec_node_layer_s" : [HIDDEN_DIM],
-    "mem_dec_node_layer_s" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
-    "mem_dec_global_layer_s" : [HIDDEN_DIM, LAYER_DIM, HIDDEN_DIM],
+    "seq_dec_node_layer_s" : [HIDDEN_DIM, HIDDEN_DIM],
+    "mem_dec_node_layer_s" : [HIDDEN_DIM, HIDDEN_DIM],#[HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    "mem_dec_global_layer_s" : [HIDDEN_DIM, HIDDEN_DIM],#[HIDDEN_DIM, LAYER_DIM, HIDDEN_DIM],
 
-    "type" : "nucleotide"  #nucleotide or protein
+    "type" : "protein",  #nucleotide or protein
+
+    "hidden_dim" : HIDDEN_DIM
 }

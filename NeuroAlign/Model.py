@@ -69,19 +69,13 @@ class NeuroAlignEncoder(snt.Module):
                             node_model_fn=make_mlp_model(config["mem_enc_node_layer_s"]),
                             global_model_fn=make_mlp_model(config["mem_enc_globals_layer_s"]))
 
-        self.inter_seq_encoder = gn.modules.GraphIndependent(
-                            node_model_fn=make_mlp_model(config["mem_enc_node_layer_s"]),
-                            global_model_fn=make_mlp_model(config["mem_enc_globals_layer_s"]))
-
     def __call__(self,
                 sequence_graph, #input graph with position nodes and forward edges describing the sequences
-                col_priors,
-                inter_seq): #a graph tuple with a col prior graph for each column
+                col_priors): #a graph tuple with a col prior graph for each column
 
         latent_seq_graph = self.seq_encoder(sequence_graph)
         latent_mem = self.mem_encoder(col_priors)
-        latent_inter_seq = self.inter_seq_encoder(inter_seq)
-        return latent_seq_graph, latent_mem, latent_inter_seq
+        return latent_seq_graph, latent_mem
 
 
 #core module that computes the NeuroAlign prediction
@@ -102,43 +96,35 @@ class NeuroAlignCore(snt.Module):
                                     node_model_fn=make_mlp_model(config["seq_net_node_layers"]),
                                     global_model_fn=make_mlp_model(config["seq_net_global_layers"]),
                                     reducer = tf.math.unsorted_segment_sum)
-        #
-        # self.seq_network = gn.modules.GraphNetwork(
-        #                             edge_model_fn=make_mlp_model(config["seq_net_edge_layers"]),
-        #                             node_model_fn=make_mlp_model(config["seq_net_node_layers"]),
-        #                             global_model_fn=make_mlp_model(config["seq_net_global_layers"]),
-        #                             reducer = tf.math.unsorted_segment_sum)
 
-        self.inter_seq_network = DeepSet(
-                                    node_model_fn=make_mlp_model(config["inter_seq_net_node_layers"]),
-                                    global_model_fn=make_mlp_model(config["inter_seq_net_global_layers"]),
+        self.consensus_seq_network = gn.modules.GraphNetwork(
+                                    edge_model_fn=make_mlp_model(config["consensus_seq_net_edge_layers"]),
+                                    node_model_fn=make_mlp_model(config["consensus_seq_net_node_layers"]),
+                                    global_model_fn=make_mlp_model(config["consensus_seq_net_global_layers"]),
                                     reducer = tf.math.unsorted_segment_sum)
 
-    def __call__(self, latent_seq_graph, latent_mem, latent_inter_seq, decoded_memberships, num_seqg_iterations):
+    def __call__(self, latent_seq_graph, latent_mem, latent_consensus_seq, decoded_memberships):
 
-        #weight nodes based on predicted memberships from last iteration
+        #a vector containing membership estimates of the last iteration
         flat_dec_mem = tf.reshape(tf.transpose(decoded_memberships), [-1, 1])
-        weighted_nodes = tf.tile(latent_seq_graph.nodes, [gn.utils_tf.get_num_graphs(latent_mem),1])*flat_dec_mem
-
-        #update columns based on their current latent state and the weighted contributing (and updated) sequence positions
-        col_in = latent_mem.replace(nodes = tf.concat([latent_mem.nodes, weighted_nodes], axis=1))
-        latent_mem = self.column_network(col_in)
-
-        #inter sequence update
-        inter_seq_in = latent_inter_seq.replace(nodes = tf.concat([latent_inter_seq.nodes, latent_seq_graph.globals], axis=1))
-        latent_inter_seq = self.inter_seq_network(inter_seq_in)
 
         #intra sequence update
         segments = tf.tile(tf.range(latent_mem.n_node[0]), [gn.utils_tf.get_num_graphs(latent_mem)])
-        reduced_nodes = tf.math.unsorted_segment_sum(weighted_nodes, segments, latent_mem.n_node[0])
-        seq_in = latent_seq_graph.replace(nodes = tf.concat([latent_seq_graph.nodes, reduced_nodes], axis=1),
-                                            globals = tf.concat([latent_seq_graph.globals, latent_inter_seq.nodes], axis=1))
+        reduced_mem = tf.math.unsorted_segment_sum(latent_mem.nodes*flat_dec_mem, segments, latent_mem.n_node[0])
+        seq_in = latent_seq_graph.replace(nodes = tf.concat([latent_seq_graph.nodes, reduced_mem], axis=1))
         latent_seq_graph = self.seq_network_en(seq_in)
-        # for _ in range(num_seqg_iterations):
-        #     latent_seq_graph = self.seq_network(latent_seq_graph)
 
+        #consensus sequence update
+        consensus_seq_in = latent_consensus_seq.replace(nodes = tf.concat([latent_consensus_seq.nodes, latent_mem.globals], axis=1))
+        latent_consensus_seq = self.consensus_seq_network(consensus_seq_in)
 
-        return latent_seq_graph, latent_mem, latent_inter_seq
+        #update columns based on their current latent state and the weighted contributing sequence positions
+        weighted_nodes = tf.tile(latent_seq_graph.nodes, [gn.utils_tf.get_num_graphs(latent_mem),1])*flat_dec_mem
+        col_in = latent_mem.replace(nodes = tf.concat([latent_mem.nodes, weighted_nodes], axis=1),
+                                    globals = tf.concat([latent_mem.globals, latent_consensus_seq.nodes], axis=1))
+        latent_mem = self.column_network(col_in)
+
+        return latent_seq_graph, latent_mem, latent_consensus_seq
 
 
 
@@ -212,24 +198,40 @@ class NeuroAlignModel(snt.Module):
         self.dec = NeuroAlignDecoder(config)
 
 
+    # def __call__(self,
+    #             sequence_graph, #input graph with position nodes and forward edges describing the sequences
+    #             seq_lens, #specifies the length of each input sequence, i.e. seq_lens[i] is the length of the ith chain in sequence_graph
+    #             col_priors, #a graph tuple with a col prior graph for each column
+    #             latent_consensus_seq,
+    #             num_iterations):
+    #
+    #     latent_seq_graph, latent_mem = self.enc(sequence_graph, col_priors)
+    #     decoded_outputs = [(None, None, None, tf.transpose(tf.reshape(col_priors.nodes, [-1, col_priors.n_node[0]])))]
+    #     for core in self.cores:
+    #         for _ in range(num_iterations):
+    #             latent_seq_graph, latent_mem, latent_consensus_seq = core(latent_seq_graph, latent_mem, latent_consensus_seq, decoded_outputs[-1][3])
+    #             decoded_outputs.append(self.dec(latent_seq_graph, latent_mem, seq_lens))
+    #     return decoded_outputs[1:]
+
+
+
     def __call__(self,
                 sequence_graph, #input graph with position nodes and forward edges describing the sequences
                 seq_lens, #specifies the length of each input sequence, i.e. seq_lens[i] is the length of the ith chain in sequence_graph
                 col_priors, #a graph tuple with a col prior graph for each column
-                inter_seq,
+                latent_consensus_seq,
                 num_iterations,
-                num_seqg_iterations):
+                membership_decay):
 
-        latent_seq_graph, latent_mem, latent_inter_seq = self.enc(sequence_graph, col_priors, inter_seq)
-        decoded_outputs = [(None, None, None, tf.transpose(tf.reshape(col_priors.nodes, [-1, col_priors.n_node[0]])))]
+        latent_seq_graph, latent_mem = self.enc(sequence_graph, col_priors)
+        running_memberships = tf.transpose(tf.reshape(col_priors.nodes, [-1, col_priors.n_node[0]]))
+        decoded_outputs = []
         for core in self.cores:
             for _ in range(num_iterations):
-                latent_seq_graph, latent_mem, latent_inter_seq = core(latent_seq_graph, latent_mem, latent_inter_seq, decoded_outputs[-1][3], num_seqg_iterations)
+                latent_seq_graph, latent_mem, latent_consensus_seq = core(latent_seq_graph, latent_mem, latent_consensus_seq, running_memberships)
                 decoded_outputs.append(self.dec(latent_seq_graph, latent_mem, seq_lens))
-        return decoded_outputs[1:]
-
-
-
+                running_memberships = membership_decay*running_memberships + (1-membership_decay)*decoded_outputs[-1][3]
+        return decoded_outputs
 
 class NeuroAlignPredictor():
 
@@ -243,17 +245,17 @@ class NeuroAlignPredictor():
         self.save_prefix = os.path.join(self.checkpoint_root, self.checkpoint_name)
 
         def inference(sequence_graph, col_priors, inter_seq, len_seqs):
-            out = self.model(sequence_graph, len_seqs, col_priors, inter_seq, config["test_mp_iterations"], config["test_mp_seqg_iterations"])
+            out = self.model(sequence_graph, len_seqs, col_priors, inter_seq, config["test_mp_iterations"], config["membership_decay"])
             node_relative_pos, col_relative_pos, rel_occ, mem_per_col = out[-1]
             return node_relative_pos, col_relative_pos, rel_occ, mem_per_col
 
-        seq_input_example, col_input_example, inter_seq_input_example,_,_,_ = self.get_window_sample(examle_msa, 1, 0, 1)
+        seq_input_example, col_input_example, consensus_seq_input_example,_,_,_ = self.get_window_sample(examle_msa, 1, 0, 1)
 
         # Get the input signature for that function by obtaining the specs
         self.input_signature = [
           gn.utils_tf.specs_from_graphs_tuple(seq_input_example, dynamic_num_graphs=True),
           gn.utils_tf.specs_from_graphs_tuple(col_input_example, dynamic_num_graphs=True),
-          gn.utils_tf.specs_from_graphs_tuple(inter_seq_input_example, dynamic_num_graphs=True),
+          gn.utils_tf.specs_from_graphs_tuple(consensus_seq_input_example),
           tf.TensorSpec((None,), dtype=tf.dtypes.int32)
         ]
 
@@ -262,8 +264,8 @@ class NeuroAlignPredictor():
 
     #col_priors is a list of position pairs (s,i) = sequence s at index i
     def predict(self, msa, num_cols):
-        seq_g, col_g, inter_seq_g,_,_,_ = self.get_window_sample(msa, num_cols, 0, msa.alignment_len-1)
-        node_relative_pos, col_relative_pos, rel_occ, mem_per_col = self.inference(seq_g, col_g, inter_seq_g, tf.constant(msa.seq_lens))
+        seq_g, col_g, consensus_seq_g,_,_,_ = self.get_window_sample(msa, num_cols, 0, msa.alignment_len-1)
+        node_relative_pos, col_relative_pos, rel_occ, mem_per_col = self.inference(seq_g, col_g, consensus_seq_g, tf.constant(msa.seq_lens))
         return node_relative_pos.numpy(), col_relative_pos.numpy(), tf.nn.softmax(rel_occ).numpy(), mem_per_col.numpy()
 
 
@@ -303,14 +305,6 @@ class NeuroAlignPredictor():
                         "receivers" : list(range(1, nodes.shape[0])) }
                         for seqid, nodes in enumerate(nodes_subset)]
 
-        # col_dicts = []
-        # col_nodes = np.concatenate(nodes_subset, axis = 0)
-        # for i in range(1,ub-lb+2):
-        #     col_dicts.append({"globals" : [np.float32(i/(ub-lb+1))],
-        #     "nodes" : col_nodes,
-        #     "senders" : [],
-        #     "receivers" : [] })
-
         col_dicts = self.make_window_uniform_priors(nodes_subset, ub-lb+1)
 
         seq_g = gn.utils_tf.data_dicts_to_graphs_tuple(seq_dicts)
@@ -323,14 +317,14 @@ class NeuroAlignPredictor():
         # print(msa.ref_seq)
         # print(mem)
 
-        inter_seq_dict = {"nodes" : np.zeros((len(nodes_subset) ,1), dtype=np.float32),
-                          "globals" : [np.float32(0)],
-                          "senders" : [],
-                          "receivers" : []}
-        inter_seq_g = gn.utils_tf.data_dicts_to_graphs_tuple([inter_seq_dict])
-        inter_seq_g = gn.utils_tf.set_zero_edge_features(inter_seq_g, 0)
+        consensus_seq_dict = {"nodes" : np.zeros((ub-lb+1 ,self.config["hidden_dim"]), dtype=np.float32),
+                          "globals" : np.zeros((self.config["hidden_dim"]), dtype=np.float32),
+                          "edges" : np.zeros((ub-lb ,self.config["hidden_dim"]), dtype=np.float32),
+                          "senders" : list(range(0, ub-lb)),
+                          "receivers" : list(range(1, ub-lb+1))}
+        consensus_seq_g = gn.utils_tf.data_dicts_to_graphs_tuple([consensus_seq_dict])
 
-        return seq_g, col_g, inter_seq_g, sl, mem, rocc
+        return seq_g, col_g, consensus_seq_g, sl, mem, rocc
 
 
     #generates priors for the column graphs such that
@@ -342,7 +336,7 @@ class NeuroAlignPredictor():
         for j in range(1,num_col+1):
             col_nodes = [np.zeros((n.shape[0], 1), dtype=np.float32) for n in nodes]
             for cn in col_nodes:
-                c = np.floor(j*cn.shape[0]/num_col)
+                c = np.floor(j*cn.shape[0]/num_col)-1
                 left = int(max(0, c-r))
                 right = int(min(cn.shape[0], c+r+1))
                 cn[left:right,:] = 1 /(right-left)
