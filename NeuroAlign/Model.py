@@ -110,7 +110,7 @@ class NeuroAlignCore(snt.Module):
 
         #intra sequence update
         segments = tf.tile(tf.range(latent_mem.n_node[0]), [gn.utils_tf.get_num_graphs(latent_mem)])
-        reduced_mem = tf.math.unsorted_segment_sum(latent_mem.nodes*flat_dec_mem, segments, latent_mem.n_node[0])
+        reduced_mem = tf.math.unsorted_segment_sum(latent_mem.nodes, segments, latent_mem.n_node[0])
         seq_in = latent_seq_graph.replace(nodes = tf.concat([latent_seq_graph.nodes, reduced_mem], axis=1))
         latent_seq_graph = self.seq_network_en(seq_in)
 
@@ -119,7 +119,7 @@ class NeuroAlignCore(snt.Module):
         latent_consensus_seq = self.consensus_seq_network(consensus_seq_in)
 
         #update columns based on their current latent state and the weighted contributing sequence positions
-        weighted_nodes = tf.tile(latent_seq_graph.nodes, [gn.utils_tf.get_num_graphs(latent_mem),1])*flat_dec_mem
+        weighted_nodes = tf.tile(latent_seq_graph.nodes, [gn.utils_tf.get_num_graphs(latent_mem),1])
         col_in = latent_mem.replace(nodes = tf.concat([latent_mem.nodes, weighted_nodes], axis=1),
                                     globals = tf.concat([latent_mem.globals, latent_consensus_seq.nodes], axis=1))
         latent_mem = self.column_network(col_in)
@@ -162,8 +162,9 @@ class NeuroAlignDecoder(snt.Module):
         rel_occ = mem_out.globals[:,1:]
         #predict (logits of) the distribution of the seq nodes to the columns using
         mem_per_col = tf.transpose(tf.reshape(mem_out.nodes, [-1, latent_mem.n_node[0]])) # (num_node, num_pattern)-tensor
-        exp_mem_per_col = tf.exp(mem_per_col)
-        mpc_dist = tf.sqrt(n_softmax_mem_per_col(exp_mem_per_col)*c_softmax_mem_per_col(exp_mem_per_col, seq_lens))
+        mpc_dist = tf.sigmoid(mem_per_col)
+        #exp_mem_per_col = tf.exp(mem_per_col)
+        #mpc_dist = tf.sqrt(n_softmax_mem_per_col(exp_mem_per_col)*c_softmax_mem_per_col(exp_mem_per_col, seq_lens))
 
         return node_relative_positions, col_relative_positions, rel_occ, mpc_dist
 
