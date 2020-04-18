@@ -26,10 +26,15 @@ class NeuroAlignTrainer():
                     #l_mem_logs = tf.compat.v1.losses.sigmoid_cross_entropy(tf.one_hot(target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors)), mem_logits)
                     #l_mem_logs = tf.compat.v1.losses.log_loss(tf.one_hot(target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors)), mem)   #tf.one_hot(target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
 
-                    col_products = tf.math.unsorted_segment_prod(mem, target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
-                    invers_mem = 1-mem
-                    col_complement_products = tf.math.reduce_prod(invers_mem, axis=0, keepdims=True) / tf.math.unsorted_segment_prod(invers_mem, target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
-                    l_mem_logs = -tf.reduce_sum(col_products*col_complement_products) / tf.cast(gn.utils_tf.get_num_graphs(col_priors), tf.float32)
+                    #col_products = tf.math.unsorted_segment_prod(mem, target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
+                    #invers_mem = 1-mem
+                    #col_complement_products = tf.math.reduce_prod(invers_mem, axis=0, keepdims=True) / tf.math.unsorted_segment_prod(invers_mem, target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
+                    #l_mem_logs = -tf.reduce_sum(col_products*col_complement_products) / tf.cast(gn.utils_tf.get_num_graphs(col_priors), tf.float32)
+
+                    mem_tar = tf.one_hot(target_col_segment_ids, gn.utils_tf.get_num_graphs(col_priors))
+                    mem_tar = tf.matmul(mem_tar, mem_tar, transpose_b = True)
+                    mem_pred = tf.matmul(mem, mem, transpose_b = True)
+                    l_mem_logs = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels = mem_tar, logits = mem_pred))
 
                     l_node_rp = l_node_rp*config["lambda_node_rp"]
                     l_col_rp = l_col_rp*config["lambda_col_rp"]
@@ -37,7 +42,7 @@ class NeuroAlignTrainer():
                     l_mem_logs = l_mem_logs*config["lambda_mem"]
                     train_loss += l_node_rp + l_col_rp + l_rel_occ + l_mem_logs
                     #train_loss += l_mem_logs
-                train_loss /= (config["num_nr_core"]*config["train_mp_iterations"]+1)
+                train_loss /= config["num_nr_core"]*config["train_mp_iterations"]
                 regularizer = snt.regularizers.L2(config["l2_regularization"])
                 train_loss += regularizer(self.predictor.model.trainable_variables)
                 gradients = tape.gradient(train_loss, self.predictor.model.trainable_variables)

@@ -162,9 +162,13 @@ class NeuroAlignDecoder(snt.Module):
         rel_occ = mem_out.globals[:,1:]
         #predict (logits of) the distribution of the seq nodes to the columns using
         mem_per_col = tf.transpose(tf.reshape(mem_out.nodes, [-1, latent_mem.n_node[0]])) # (num_node, num_pattern)-tensor
-        mpc_dist = tf.sigmoid(mem_per_col)
+
+        #mpc_dist = tf.sigmoid(mem_per_col)
+
         #exp_mem_per_col = tf.exp(mem_per_col)
         #mpc_dist = tf.sqrt(n_softmax_mem_per_col(exp_mem_per_col)*c_softmax_mem_per_col(exp_mem_per_col, seq_lens))
+
+        mpc_dist = mem_per_col
 
         return node_relative_positions, col_relative_positions, rel_occ, mpc_dist
 
@@ -248,7 +252,7 @@ class NeuroAlignPredictor():
         def inference(sequence_graph, col_priors, inter_seq, len_seqs):
             out = self.model(sequence_graph, len_seqs, col_priors, inter_seq, config["test_mp_iterations"], config["membership_decay"])
             node_relative_pos, col_relative_pos, rel_occ, mem_per_col = out[-1]
-            return node_relative_pos, col_relative_pos, rel_occ, mem_per_col
+            return node_relative_pos, col_relative_pos, rel_occ, tf.sigmoid(mem_per_col)
 
         seq_input_example, col_input_example, consensus_seq_input_example,_,_,_ = self.get_window_sample(examle_msa, 1, 0, 1)
 
