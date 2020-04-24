@@ -34,6 +34,7 @@ for m in msa:
     am = np.argmax(mpc, axis=1)
     print(m.membership_targets)
     print(am)
+    print(mpc.shape)
     p,r = m.recall_prec(am.flatten())
     ps += p
     rs += r

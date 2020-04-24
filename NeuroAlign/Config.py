@@ -6,23 +6,23 @@ config = {
     #number of sequentially applied core networks (each with unique parameters)
     "num_nr_core" : 1,
     #number of iterations inside each core network (shared parameters) during training
-    "train_mp_iterations" : 1,
+    "train_mp_iterations" : 2,
     #number of iterations inside each core network (shared parameters) during testing
-    "test_mp_iterations" : 1,
+    "test_mp_iterations" : 5,
 
     #training performance and logging
-    "learning_rate" : 1e-3,
+    "learning_rate" : 1e-4,
     "num_training_iteration": 2000,
     "batch_size": 50,
     "savestate_milestones": 10,
-    "l2_regularization" : 0,#1e-8,
-    "lambda_node_rp" : 1,
-    "lambda_col_rp" : 1,
-    "lambda_rel_occ" : 1,
+    "l2_regularization" : 0,#1e-5,
+    "lambda_node_rp" : 0,
+    "lambda_col_rp" : 0,
+    "lambda_rel_occ" : 0,
     "lambda_mem" : 1,
-    "adjacent_column_radius" : 40,
+    "adjacent_column_radius" : 3000,
     "window_uniform_radius" : 8,
-    "membership_decay" : 0.1,
+    #"target_columns" : 120,
 
     #layers in the sequence encoding network
     "seq_enc_edge_layer_s" : [HIDDEN_DIM],
@@ -52,7 +52,7 @@ config = {
     "mem_dec_node_layer_s" : [HIDDEN_DIM, HIDDEN_DIM],
     "mem_dec_global_layer_s" : [HIDDEN_DIM, HIDDEN_DIM],
 
-    "type" : "nucleotide",  #nucleotide or protein
+    "type" : "protein",  #nucleotide or protein
 
     "hidden_dim" : HIDDEN_DIM
 }
