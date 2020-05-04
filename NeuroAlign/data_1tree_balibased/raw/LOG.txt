@@ -1,0 +1,61 @@
+********************************************************************************
+INDELible V1.03 by Will Fletcher : Simulation began at: Mon May  4 13:15:39 2020
+********************************************************************************
+
+  Actual Insertion : Deletion Ratio  0.483056 : 0.516944	(Total indel rate = 1)
+  Actual Indel : Substitution Ratio  0.0394273 : 0.960573	(Total event rate = 1)
+  Actual average insertion length    8.85212
+  Actual average deletion length     9.39622
+  Number of insertion events         12943
+  Number of deletion events          13851
+  Number of substitution events      652786
+
+  * Block 1 was completed in 0.821171 seconds.
+
+********************************************************************************
+
+  * Simulation completed. Whole batch took: 0.822568 seconds.
+
+INDELible V1.03 Simulations completed at: Mon May  4 13:15:40 2020
+
+********************************************************************************
+
+
+ Original Control File 
+
+-----------------------
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+//                                                                                 //
+//  INDELible V1.03 control file - basicnucleotide.txt                             //
+//                                                                                 //
+//      A basic introduction to the structure of the INDELible control file.       //
+//                                                                                 //
+/////////////////////////////////////////////////////////////////////////////////////
+
+// It is useful to know that anything on a line after two forward slashes is ignored.
+
+/*
+   Another useful thing to know is that anything after a forward slash and star
+   is ignored until INDELible sees a star followed by a forward slash later on.
+*/     
+
+[TYPE] AMINOACID 2
+
+[MODEL]    model         
+  [submodel] WAG   
+  [indelmodel]  POW  1.7 500 
+  [indelrate]   0.02            
+
+  
+[TREE] tree1 ((1k99_A:1.15245072458323916109,(1j46_A:0.86957641375727756650,2lef_A:1.34364548728585453397):1.10116560520300521553,1aab_:1.66384863274700212088):0.0);
+[TREE] tree2 (((1t5d_X:1.70935840658072879528,(1amu_A:2.40596882219078667120,1pg3_A:2.16345062861084480588):0.24779794113601297245):0.33310100381033236339,(1md9_A:1.58475490688953790652,1ult_A:1.83633838960290818321):0.13877683566893084244,1lci_:2.14814733933197032911):0.0);
+[TREE] tree3 ((((1al2_ab:2.30842105190817292737,(1bbt_aa:1.46045096876724911361,1mec_aa:3.63686804466618918141):0.72022068751817780452):2.66738218962896178610,((1al2_ac:2.54262109386601053984,1bbt_ab:2.22123038765457714305):2.17708472779793726914,1b35_C:2.75639616455108260595):0.68086236872414029886):1.81638149682453287070,1al2_ad:1.50819332540207939886,1bbt_ac:2.34525347603055811518):0.0);
+
+[PARTITIONS] 	p1 [tree1 model 100] 
+[PARTITIONS] 	p2 [tree2 model 100]          
+[PARTITIONS] 	p3 [tree3 model 100] 
+
+[EVOLVE] p1 1000 t1 
+
