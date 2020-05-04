@@ -1,58 +1,58 @@
-HIDDEN_DIM = 100
-LAYER_DIM = 100
-
-#NeuroAlign parameters
+#NeuroAlign parameter configuration
 config = {
+
+    "type" : "nucleotide",  #currently supports nucleotide or protein
+
+    "num_col" : 30,
+
     #number of sequentially applied core networks (each with unique parameters)
-    "num_nr_core" : 1,
+    "num_col_kernel" : 1,
+
     #number of iterations inside each core network (shared parameters) during training
-    "train_mp_iterations" : 2,
+    "train_mp_iterations" : 10,
     #number of iterations inside each core network (shared parameters) during testing
-    "test_mp_iterations" : 5,
+    "test_mp_iterations" : 10,
 
     #training performance and logging
-    "learning_rate" : 1e-4,
-    "num_training_iteration": 2000,
+    "learning_rate" : 1e-3,
+    "num_training_iteration" : 2000,
     "batch_size": 50,
     "savestate_milestones": 10,
     "l2_regularization" : 0,#1e-5,
-    "lambda_node_rp" : 0,
-    "lambda_col_rp" : 0,
-    "lambda_rel_occ" : 0,
-    "lambda_mem" : 1,
     "adjacent_column_radius" : 3000,
     "window_uniform_radius" : 8,
-    #"target_columns" : 120,
 
-    #layers in the sequence encoding network
-    "seq_enc_edge_layer_s" : [HIDDEN_DIM],
-    "seq_enc_node_layer_s" : [HIDDEN_DIM],
-    "seq_enc_globals_layer_s" : [HIDDEN_DIM],
+    #hidden dimension for the latent representations for each alphabet symbol
+    #for simplicity also used for the representations of their interactions (edges) and their global representation
+    "alphabet_latent_dim" : 32,
 
-    #layers in the pattern encoding network
-    "mem_enc_node_layer_s" : [HIDDEN_DIM],
-    "mem_enc_globals_layer_s" : [HIDDEN_DIM],
+    "alphabet_net_node_layers" : [32, 32],
+    "alphabet_net_edge_layers" : [32, 32],
+    "alphabet_net_global_layers" : [32],
 
-    #layers in the core network for the sequence graph
-    "seq_net_edge_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
-    "seq_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
-    "seq_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    "alphabet_to_sequence_layers" : [32],
+    "alphabet_to_column_layers" : [32],
 
-    #layers in the core network for the pattern graph
-    "column_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
-    "column_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, LAYER_DIM, LAYER_DIM, HIDDEN_DIM],
+    #hidden dimension for the latent representations for each sequence position
+    #for simplicity also used for the representations of the forward edges the along sequences and
+    #the global representation for each sequence
+    "seq_latent_dim" : 32,
 
-    #layers in the consensus sequence network
-    "consensus_seq_net_node_layers" : [HIDDEN_DIM, LAYER_DIM, HIDDEN_DIM],
-    "consensus_seq_net_edge_layers" : [HIDDEN_DIM, LAYER_DIM, HIDDEN_DIM],
-    "consensus_seq_net_global_layers" : [HIDDEN_DIM, LAYER_DIM, HIDDEN_DIM],
+    "seq_net_node_layers" : [32, 32],
+    "seq_net_edge_layers" : [32, 32],
+    "seq_net_global_layers" : [32, 32],
 
-    #layers in the decoding networks
-    "seq_dec_node_layer_s" :[HIDDEN_DIM, HIDDEN_DIM],
-    "mem_dec_node_layer_s" : [HIDDEN_DIM, HIDDEN_DIM],
-    "mem_dec_global_layer_s" : [HIDDEN_DIM, HIDDEN_DIM],
+    "sequence_to_column_layers" : [32],
+    "sequence_to_alphabet_layers" : [32],
 
-    "type" : "protein",  #nucleotide or protein
+    #hidden dimension for the latent representation of the global property of each column
+    "col_latent_dim" : 32,
 
-    "hidden_dim" : HIDDEN_DIM
+    "column_net_node_layers" : [32, 32],
+    "column_net_global_layers" : [32, 32],
+    "column_encode_node_layers" : [32],
+    "column_decode_node_layers" : [32, 32, 32, 32],
+
+    "column_to_sequence_layers" : [32],
+    "column_to_alphabet_layers" : [32]
 }

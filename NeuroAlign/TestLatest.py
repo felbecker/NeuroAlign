@@ -30,11 +30,10 @@ rs = 0
 for m in msa:
     print("___________________________")
     print(m.ref_seq)
-    nrp,crp,rocc,mpc = predictor.predict(m, m.alignment_len)
-    am = np.argmax(mpc, axis=1)
+    mem = predictor.predict(m)
+    am = np.argmax(mem, axis=1)
     print(m.membership_targets)
     print(am)
-    print(mpc.shape)
     p,r = m.recall_prec(am.flatten())
     ps += p
     rs += r
