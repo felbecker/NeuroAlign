@@ -17,6 +17,7 @@ with open(sys.argv[1]+"_TRUE.phy", "r") as file:
             if not skipped_header:
                 skipped_header = True
             else:
-                out.write(">" + splitln[0] + "\n")
-                out.write(splitln[1] + "\n")
+                if len(splitln[1].replace("-","")) > 0:
+                    out.write(">" + splitln[0] + "\n")
+                    out.write(splitln[1] + "\n")
     out.close()

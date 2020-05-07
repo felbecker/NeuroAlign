@@ -1,17 +1,17 @@
 #NeuroAlign parameter configuration
 config = {
 
-    "type" : "nucleotide",  #currently supports nucleotide or protein
+    "type" : "protein",  #currently supports nucleotide or protein
 
-    "num_col" : 30,
+    "num_col" : 20,
 
     #number of sequentially applied core networks (each with unique parameters)
     "num_col_kernel" : 1,
 
     #number of iterations inside each core network (shared parameters) during training
-    "train_mp_iterations" : 10,
+    "train_mp_iterations" : 20,
     #number of iterations inside each core network (shared parameters) during testing
-    "test_mp_iterations" : 10,
+    "test_mp_iterations" : 20,
 
     #training performance and logging
     "learning_rate" : 1e-3,
@@ -20,7 +20,7 @@ config = {
     "savestate_milestones": 10,
     "l2_regularization" : 0,#1e-5,
     "adjacent_column_radius" : 3000,
-    "window_uniform_radius" : 8,
+    "window_uniform_radius" : 50,
 
     #hidden dimension for the latent representations for each alphabet symbol
     #for simplicity also used for the representations of their interactions (edges) and their global representation
