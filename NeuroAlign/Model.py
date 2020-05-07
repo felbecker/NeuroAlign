@@ -430,11 +430,11 @@ class NeuroAlignPredictor():
         col_prior_dicts = []
         for j in range(1,num_col+1):
             col_nodes = [np.zeros((n.shape[0],1), dtype=np.float32) for n in nodes]
-            for cn in col_nodes:
-                c = np.floor(j*cn.shape[0]/num_col)
-                left = int(max(0, c-r))
-                right = int(min(cn.shape[0], c+r+1))
-                cn[left:right,:] = 1
+            # for cn in col_nodes:
+            #     c = np.floor(j*cn.shape[0]/num_col)
+            #     left = int(max(0, c-r))
+            #     right = int(min(cn.shape[0], c+r+1))
+            #     cn[left:right,:] = 1
             col_nodes = np.concatenate(col_nodes, axis = 0)
             col_prior_dicts.append({ "nodes" : col_nodes , "senders" : [], "receivers" : []})
         return col_prior_dicts
