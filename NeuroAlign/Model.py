@@ -136,7 +136,7 @@ class ColumnKernel(snt.Module):
         self.column_network = gn.modules.DeepSets(
                                     node_model_fn=make_mlp_model(config["column_net_node_layers"]+[2*config["col_latent_dim"]]),
                                     global_model_fn=make_mlp_model(config["column_net_global_layers"]+[config["col_latent_dim"]]),
-                                    reducer = tf.math.unsorted_segment_mean)
+                                    reducer = tf.math.unsorted_segment_sum)
 
         self.col_global_param = tf.Variable(
                                     tf.zeros([1, config["col_latent_dim"]]),
@@ -167,7 +167,15 @@ class ColumnKernel(snt.Module):
         messages_from_alphabet = tf.matmul(tf.one_hot(seq_indices, self.lenA), messages_from_alphabet)
         messages_concat = tf.tile(tf.concat([messages_from_seq, messages_from_alphabet], axis = 1), [n_g, 1])
 
-        cur_column_graph = cur_column_graph.replace(nodes = tf.concat([cur_column_graph.nodes, messages_concat], axis=1))
+        #for better indel prediction, we concatenate with the states of adjacent columns
+        null_state = tf.zeros_like(cur_column_graph.nodes[:n_n,:], dtype=tf.float32)
+        prev_cols = tf.concat([null_state, cur_column_graph.nodes[:-n_n,:]] ,axis=0)
+        nxt_cols = tf.concat([cur_column_graph.nodes[n_n:,:], null_state] ,axis=0)
+        null_global = tf.zeros_like(cur_column_graph.globals[0:1,:], dtype=tf.float32)
+        prev_globals = tf.concat([null_global, cur_column_graph.globals[:-1,:]], axis=0)
+        nxt_globals = tf.concat([cur_column_graph.globals[1:,:], null_global], axis=0)
+        cur_column_graph = cur_column_graph.replace(nodes = tf.concat([prev_cols, cur_column_graph.nodes, nxt_cols, messages_concat], axis=1),
+                                                    globals = tf.concat([prev_globals, cur_column_graph.globals, nxt_globals], axis=1))
 
         #concatenate with the initial encoding for stability
         cur_column_graph = gn.utils_tf.concat([cur_column_graph, initial_column_graph], axis = 1)
