@@ -1,0 +1,2 @@
+model_checkpoint_path: "NeuroAlign-63"
+all_model_checkpoint_paths: "NeuroAlign-63"
