@@ -310,7 +310,7 @@ class NeuroAlignModel(snt.Module):
                                         trainable=True, name="initial_message_col_2_seq")
 
 
-    def __call__(self, init_seq, col_priors, num_iterations):
+    def __call__(self, init_seq, col_priors, col_iterations, alpha_iterations, seq_iterations):
 
         n_pos = col_priors.n_node[0]
         n_col = gn.utils_tf.get_num_graphs(col_priors)
@@ -330,15 +330,16 @@ class NeuroAlignModel(snt.Module):
             column_graph = column_kernel.encode(column_graph)
             init_column_graph = column_graph
 
-            for _ in range(num_iterations):
+            for _ in range(col_iterations):
+                for __ in range(alpha_iterations):
+                    alphabet_graph, message_alpha_2_seq, message_alpha_2_col = self.alphabet_kernel(
+                                                    alphabet_graph, message_seq_2_alpha, message_col_2_alpha,
+                                                    seq_indices, gn.utils_tf.get_num_graphs(col_priors), n_pos)
 
-                alphabet_graph, message_alpha_2_seq, message_alpha_2_col = self.alphabet_kernel(
-                                                alphabet_graph, message_seq_2_alpha, message_col_2_alpha,
-                                                seq_indices, gn.utils_tf.get_num_graphs(col_priors), n_pos)
-
-                sequence_graph, message_seq_2_alpha, message_seq_2_col = self.sequence_kernel(
-                                                init_sequence_graph, sequence_graph, message_alpha_2_seq, message_col_2_seq,
-                                                seq_indices, gn.utils_tf.get_num_graphs(col_priors), n_pos)
+                for __ in range(seq_iterations):
+                    sequence_graph, message_seq_2_alpha, message_seq_2_col = self.sequence_kernel(
+                                                    init_sequence_graph, sequence_graph, message_alpha_2_seq, message_col_2_seq,
+                                                    seq_indices, gn.utils_tf.get_num_graphs(col_priors), n_pos)
 
                 column_graph, message_col_2_alpha, message_col_2_seq = column_kernel(init_column_graph, column_graph, message_alpha_2_col, message_seq_2_col, seq_indices)
 
@@ -362,7 +363,7 @@ class NeuroAlignPredictor():
         self.save_prefix = os.path.join(self.checkpoint_root, self.checkpoint_name)
 
         def inference(init_seq, col_priors):
-            out = self.model(init_seq, col_priors, config["test_mp_iterations"])
+            out = self.model(init_seq, col_priors, config["test_col_iterations"], config["test_alpha_iterations_per_col"], config["test_seq_iterations_per_col"])
             return out[-1]
 
         example_seq_g, example_col_g, example_mem = self.get_window_sample(examle_msa, 0, 1, config["num_col"])

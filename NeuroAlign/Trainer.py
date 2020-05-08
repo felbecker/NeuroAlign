@@ -14,7 +14,7 @@ class NeuroAlignTrainer():
         optimizer = snt.optimizers.Adam(config["learning_rate"])
         def train_step(sequence_graph, col_priors, target_col_ids):
             with tf.GradientTape() as tape:
-                out = self.predictor.model(sequence_graph, col_priors, config["train_mp_iterations"])
+                out = self.predictor.model(sequence_graph, col_priors, config["train_col_iterations"], config["train_alpha_iterations_per_col"], config["train_seq_iterations_per_col"])
                 train_loss = 0
                 mem_tar = tf.one_hot(target_col_ids, gn.utils_tf.get_num_graphs(col_priors))
                 mem_tar_sqr = tf.matmul(mem_tar, mem_tar, transpose_b = True)
