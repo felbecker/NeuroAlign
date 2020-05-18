@@ -44,7 +44,7 @@ class NeuroAlignTrainer():
         c = np.random.randint(msa.alignment_len)
         lb = max(0, c - self.config["adjacent_column_radius"])
         ub = min(msa.alignment_len-1, c + self.config["adjacent_column_radius"])
-        seq_g, col_g, target_col_ids = self.predictor.get_window_sample(msa, lb, ub, self.config["num_col"])
+        seq_g, col_g, target_col_ids = self.predictor.get_window_sample(msa, lb, ub, ub -lb +1)#self.config["num_col"])
         return self.step_op(seq_g, col_g, target_col_ids)
 
 

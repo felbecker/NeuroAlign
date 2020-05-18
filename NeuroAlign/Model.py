@@ -366,7 +366,7 @@ class NeuroAlignPredictor():
             out = self.model(init_seq, col_priors, config["test_col_iterations"], config["test_alpha_iterations_per_col"], config["test_seq_iterations_per_col"])
             return out[-1]
 
-        example_seq_g, example_col_g, example_mem = self.get_window_sample(examle_msa, 0, 1, config["num_col"])
+        example_seq_g, example_col_g, example_mem = self.get_window_sample(examle_msa, 0, 1, 1)
 
         # Get the input signature for that function by obtaining the specs
         self.input_signature = [
@@ -379,7 +379,7 @@ class NeuroAlignPredictor():
 
     #col_priors is a list of position pairs (s,i) = sequence s at index i
     def predict(self, msa):
-        seq_g, col_g, _ = self.get_window_sample(msa, 0, msa.alignment_len-1, self.config["num_col"])
+        seq_g, col_g, _ = self.get_window_sample(msa, 0, msa.alignment_len-1, msa.alignment_len)#self.config["num_col"])
         mem = self.inference(seq_g, col_g)
         return mem.numpy()
 
