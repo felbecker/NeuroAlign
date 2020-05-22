@@ -10,14 +10,14 @@ config = {
 
     #iteration counts for the different components
     "train_col_iterations" : 5,
-    "train_alpha_iterations_per_col" : 2,
+    "train_alpha_iterations_per_col" : 1,
     "train_seq_iterations_per_col" : 5,
     "test_col_iterations" : 5,
-    "test_alpha_iterations_per_col" : 2,
+    "test_alpha_iterations_per_col" : 1,
     "test_seq_iterations_per_col" : 5,
 
     #training performance and logging
-    "learning_rate" : 1e-3,
+    "learning_rate" : 1e-4,
     "num_training_iteration" : 2000,
     "batch_size": 50,
     "savestate_milestones": 50,
