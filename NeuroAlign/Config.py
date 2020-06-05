@@ -41,9 +41,9 @@ config = {
     #the global representation for each sequence
     "seq_latent_dim" : 100,
 
-    "seq_net_node_layers" : [100],
-    "seq_net_edge_layers" : [100],
-    "seq_net_global_layers" : [100],
+    "seq_net_node_layers" : [100,100],
+    "seq_net_edge_layers" : [100,100],
+    "seq_net_global_layers" : [100,100],
 
     "sequence_to_column_layers" : [],
     "sequence_to_alphabet_layers" : [],

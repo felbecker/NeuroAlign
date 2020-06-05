@@ -163,7 +163,7 @@ class ColumnKernel(snt.Module):
 
 
 
-    def __call__(self, col_priors, initial_column_graph, cur_column_graph, messages_from_alphabet, messages_from_seq, seq_indices):
+    def __call__(self, memberships, initial_column_graph, cur_column_graph, messages_from_alphabet, messages_from_seq, seq_indices):
 
         n_g = gn.utils_tf.get_num_graphs(cur_column_graph)
         n_n = cur_column_graph.n_node[0]
@@ -184,7 +184,7 @@ class ColumnKernel(snt.Module):
 
         #concatenate with the initial encoding for stability
         #cur_column_graph = gn.utils_tf.concat([cur_column_graph, initial_column_graph], axis = 1)
-        cur_column_graph = cur_column_graph.replace(nodes = cur_column_graph.nodes*col_priors.nodes)
+        cur_column_graph = cur_column_graph.replace(nodes = cur_column_graph.nodes*memberships)
 
         #update
         cur_column_graph = self.column_network(cur_column_graph)
@@ -330,7 +330,7 @@ class NeuroAlignModel(snt.Module):
         message_col_2_alpha = tf.tile(self.initial_message_col_2_alpha, [n_pos*n_col, 1])
         message_col_2_seq = tf.tile(self.initial_message_col_2_seq, [n_pos*n_col, 1])
         column_graph = self.column_kernels[0].encode(col_priors)
-        outputs = []
+        memberships = col_priors.nodes
 
         for column_kernel in self.column_kernels:
 
@@ -347,9 +347,11 @@ class NeuroAlignModel(snt.Module):
                                                     init_sequence_graph, sequence_graph, message_alpha_2_seq, message_col_2_seq,
                                                     seq_indices, gn.utils_tf.get_num_graphs(col_priors), n_pos)
 
-                column_graph, message_col_2_alpha, message_col_2_seq = column_kernel(col_priors, init_column_graph, column_graph, message_alpha_2_col, message_seq_2_col, seq_indices)
+                column_graph, message_col_2_alpha, message_col_2_seq = column_kernel(memberships, init_column_graph, column_graph, message_alpha_2_col, message_seq_2_col, seq_indices)
 
-        return column_kernel.decode(column_graph)
+                memberships = column_kernel.decode(column_graph)
+
+        return memberships
 
 
 
