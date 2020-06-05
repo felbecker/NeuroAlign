@@ -343,9 +343,7 @@ class NeuroAlignModel(snt.Module):
 
                 column_graph, message_col_2_alpha, message_col_2_seq = column_kernel(init_column_graph, column_graph, message_alpha_2_col, message_seq_2_col, seq_indices)
 
-                outputs.append(column_kernel.decode(column_graph))
-
-        return outputs
+        return column_kernel.decode(column_graph)
 
 
 
@@ -364,7 +362,7 @@ class NeuroAlignPredictor():
 
         def inference(init_seq, col_priors):
             out = self.model(init_seq, col_priors, config["test_col_iterations"], config["test_alpha_iterations_per_col"], config["test_seq_iterations_per_col"])
-            return out[-1]
+            return out
 
         example_seq_g, example_col_g, example_mem = self.get_window_sample(examle_msa, 0, 1, 1)
 

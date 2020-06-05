@@ -9,10 +9,10 @@ config = {
     "num_col_kernel" : 1,
 
     #iteration counts for the different components
-    "train_col_iterations" : 20,
+    "train_col_iterations" : 3,
     "train_alpha_iterations_per_col" : 1,
     "train_seq_iterations_per_col" : 1,
-    "test_col_iterations" : 20,
+    "test_col_iterations" : 3,
     "test_alpha_iterations_per_col" : 1,
     "test_seq_iterations_per_col" : 1,
 
