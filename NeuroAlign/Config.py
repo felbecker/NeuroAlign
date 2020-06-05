@@ -9,15 +9,15 @@ config = {
     "num_col_kernel" : 1,
 
     #iteration counts for the different components
-    "train_col_iterations" : 3,
+    "train_col_iterations" : 5,
     "train_alpha_iterations_per_col" : 1,
-    "train_seq_iterations_per_col" : 1,
-    "test_col_iterations" : 3,
+    "train_seq_iterations_per_col" : 2,
+    "test_col_iterations" : 5,
     "test_alpha_iterations_per_col" : 1,
-    "test_seq_iterations_per_col" : 1,
+    "test_seq_iterations_per_col" : 2,
 
     #training performance and logging
-    "learning_rate" : 1e-4,
+    "learning_rate" : 1e-3,
     "num_training_iteration" : 2000,
     "batch_size": 50,
     "savestate_milestones": 50,

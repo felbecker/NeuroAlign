@@ -241,6 +241,7 @@ class SequenceKernel(snt.Module):
                                     edge_model_fn=make_mlp_model(config["seq_net_edge_layers"]+[config["seq_latent_dim"]]),
                                     node_model_fn=make_mlp_model(config["seq_net_node_layers"]+[2*config["seq_latent_dim"]]),
                                     global_model_fn=make_mlp_model(config["seq_net_global_layers"]+[config["seq_latent_dim"]]),
+                                    node_block_opt={use_sent_edges = True},
                                     reducer = tf.math.unsorted_segment_sum)
 
         self.alphabet_messenger = make_mlp_model(config["alphabet_to_column_layers"]+[config["alphabet_latent_dim"]])()
