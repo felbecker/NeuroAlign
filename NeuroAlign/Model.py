@@ -142,10 +142,14 @@ class ColumnKernel(snt.Module):
                                     tf.zeros([1, config["col_latent_dim"]]),
                                         trainable=True, name="col_global_param")
 
+        self.col_node_param = tf.Variable(
+                                    tf.zeros([1, config["col_latent_dim"]]),
+                                        trainable=True, name="col_node_param")
+
         self.sequence_messenger = make_mlp_model(config["alphabet_to_sequence_layers"]+[config["seq_latent_dim"]])()
         self.alphabet_messenger = make_mlp_model(config["alphabet_to_column_layers"]+[config["alphabet_latent_dim"]])()
 
-        self.column_encoder = gn.modules.GraphIndependent(node_model_fn = make_mlp_model(config["column_encode_node_layers"] + [config["col_latent_dim"]]))
+        #self.column_encoder = gn.modules.GraphIndependent(node_model_fn = make_mlp_model(config["column_encode_node_layers"] + [config["col_latent_dim"]]))
 
         self.column_decoder = gn.modules.GraphIndependent(node_model_fn=make_mlp_model(config["column_decode_node_layers"] + [config["col_latent_dim"]]))
         self.column_out_transform = gn.modules.GraphIndependent(node_model_fn = lambda: snt.Linear(1, name="column_out_transform"))
@@ -153,12 +157,13 @@ class ColumnKernel(snt.Module):
 
 
     def encode(self, col_priors):
-        cur_column_graph = self.column_encoder(col_priors)
-        return cur_column_graph.replace(globals = tf.tile(self.col_global_param, [gn.utils_tf.get_num_graphs(col_priors),1]))
+        #cur_column_graph = self.column_encoder(col_priors)
+        return col_priors.replace(nodes = tf.tile(self.col_node_param, [gn.utils_tf.get_num_graphs(col_priors)*col_priors.n_node[0],1]),
+                                globals = tf.tile(self.col_global_param, [gn.utils_tf.get_num_graphs(col_priors),1]))
 
 
 
-    def __call__(self, initial_column_graph, cur_column_graph, messages_from_alphabet, messages_from_seq, seq_indices):
+    def __call__(self, col_priors, initial_column_graph, cur_column_graph, messages_from_alphabet, messages_from_seq, seq_indices):
 
         n_g = gn.utils_tf.get_num_graphs(cur_column_graph)
         n_n = cur_column_graph.n_node[0]
@@ -179,6 +184,7 @@ class ColumnKernel(snt.Module):
 
         #concatenate with the initial encoding for stability
         cur_column_graph = gn.utils_tf.concat([cur_column_graph, initial_column_graph], axis = 1)
+        cur_column_graph = cur_column_graph.replace(nodes = cur_column_graph.nodes*col_priors.nodes)
 
         #update
         cur_column_graph = self.column_network(cur_column_graph)
@@ -323,12 +329,11 @@ class NeuroAlignModel(snt.Module):
         message_seq_2_alpha = tf.tile(self.initial_message_seq_2_alpha, [n_pos, 1])
         message_col_2_alpha = tf.tile(self.initial_message_col_2_alpha, [n_pos*n_col, 1])
         message_col_2_seq = tf.tile(self.initial_message_col_2_seq, [n_pos*n_col, 1])
-        column_graph = col_priors
+        column_graph = self.column_kernels[0].encode(col_priors)
         outputs = []
 
         for column_kernel in self.column_kernels:
 
-            column_graph = column_kernel.encode(column_graph)
             init_column_graph = column_graph
 
             for _ in range(col_iterations):
@@ -342,7 +347,7 @@ class NeuroAlignModel(snt.Module):
                                                     init_sequence_graph, sequence_graph, message_alpha_2_seq, message_col_2_seq,
                                                     seq_indices, gn.utils_tf.get_num_graphs(col_priors), n_pos)
 
-                column_graph, message_col_2_alpha, message_col_2_seq = column_kernel(init_column_graph, column_graph, message_alpha_2_col, message_seq_2_col, seq_indices)
+                column_graph, message_col_2_alpha, message_col_2_seq = column_kernel(col_priors, init_column_graph, column_graph, message_alpha_2_col, message_seq_2_col, seq_indices)
 
         return column_kernel.decode(column_graph)
 

@@ -33,8 +33,8 @@ config = {
     "alphabet_net_edge_layers" : [100,100],
     "alphabet_net_global_layers" : [100,100],
 
-    "alphabet_to_sequence_layers" : [100],
-    "alphabet_to_column_layers" : [100],
+    "alphabet_to_sequence_layers" : [],
+    "alphabet_to_column_layers" : [],
 
     #hidden dimension for the latent representations for each sequence position
     #for simplicity also used for the representations of the forward edges the along sequences and
@@ -45,17 +45,17 @@ config = {
     "seq_net_edge_layers" : [100,100],
     "seq_net_global_layers" : [100,100],
 
-    "sequence_to_column_layers" : [100],
-    "sequence_to_alphabet_layers" : [100],
+    "sequence_to_column_layers" : [],
+    "sequence_to_alphabet_layers" : [],
 
     #hidden dimension for the latent representation of the global property of each column
-    "col_latent_dim" : 150,
+    "col_latent_dim" : 100,
 
-    "column_net_node_layers" : [150,150],
-    "column_net_global_layers" : [150,150],
-    "column_encode_node_layers" : [150],
-    "column_decode_node_layers" : [150],
+    "column_net_node_layers" : [100,100],
+    "column_net_global_layers" : [100,100],
+    "column_encode_node_layers" : [100],
+    "column_decode_node_layers" : [100],
 
-    "column_to_sequence_layers" : [150],
-    "column_to_alphabet_layers" : [150]
+    "column_to_sequence_layers" : [],
+    "column_to_alphabet_layers" : []
 }
