@@ -11,27 +11,27 @@ config = {
     #iteration counts for the different components
     "train_col_iterations" : 5,
     "train_alpha_iterations_per_col" : 1,
-    "train_seq_iterations_per_col" : 2,
+    "train_seq_iterations_per_col" : 5,
     "test_col_iterations" : 5,
     "test_alpha_iterations_per_col" : 1,
-    "test_seq_iterations_per_col" : 2,
+    "test_seq_iterations_per_col" : 5,
 
     #training performance and logging
-    "learning_rate" : 1e-3,
+    "learning_rate" : 1e-4,
     "num_training_iteration" : 2000,
     "batch_size": 50,
     "savestate_milestones": 50,
     "l2_regularization" : 0,#1e-8,
     "adjacent_column_radius" : 3000,
-    "window_uniform_radius" : 20,
+    "window_uniform_radius" : 40,
 
     #hidden dimension for the latent representations for each alphabet symbol
     #for simplicity also used for the representations of their interactions (edges) and their global representation
     "alphabet_latent_dim" : 100,
 
-    "alphabet_net_node_layers" : [100,100],
-    "alphabet_net_edge_layers" : [100,100],
-    "alphabet_net_global_layers" : [100,100],
+    "alphabet_net_node_layers" : [100],
+    "alphabet_net_edge_layers" : [100],
+    "alphabet_net_global_layers" : [100],
 
     "alphabet_to_sequence_layers" : [],
     "alphabet_to_column_layers" : [],
@@ -41,9 +41,9 @@ config = {
     #the global representation for each sequence
     "seq_latent_dim" : 100,
 
-    "seq_net_node_layers" : [100,100],
-    "seq_net_edge_layers" : [100,100],
-    "seq_net_global_layers" : [100,100],
+    "seq_net_node_layers" : [100],
+    "seq_net_edge_layers" : [100],
+    "seq_net_global_layers" : [100],
 
     "sequence_to_column_layers" : [],
     "sequence_to_alphabet_layers" : [],

@@ -183,7 +183,7 @@ class ColumnKernel(snt.Module):
                                                     globals = tf.concat([prev_globals, cur_column_graph.globals, nxt_globals], axis=1))
 
         #concatenate with the initial encoding for stability
-        cur_column_graph = gn.utils_tf.concat([cur_column_graph, initial_column_graph], axis = 1)
+        #cur_column_graph = gn.utils_tf.concat([cur_column_graph, initial_column_graph], axis = 1)
         cur_column_graph = cur_column_graph.replace(nodes = cur_column_graph.nodes*col_priors.nodes)
 
         #update
@@ -271,7 +271,7 @@ class SequenceKernel(snt.Module):
 
         #prepare inputs
         cur_seq_graph = cur_seq_graph.replace(nodes = tf.concat([cur_seq_graph.nodes, messages_from_alphabet, messages_from_columns], axis=1))
-        cur_seq_graph = gn.utils_tf.concat([cur_seq_graph, initial_seq_graph], axis = 1)
+        #cur_seq_graph = gn.utils_tf.concat([cur_seq_graph, initial_seq_graph], axis = 1)
 
         #update
         cur_seq_graph = self.seq_network(cur_seq_graph)
