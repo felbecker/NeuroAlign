@@ -204,7 +204,7 @@ class ColumnKernel(snt.Module):
         output_graph = self.column_out_transform(self.column_decoder(cur_column_graph))
         dist_logits = tf.transpose(tf.reshape(output_graph.nodes, [-1, cur_column_graph.n_node[0]]))
         predicted_distribution = tf.nn.softmax(dist_logits)
-        return predicted_distribution
+        return output_graph.nodes, predicted_distribution
 
 
 
@@ -349,9 +349,9 @@ class NeuroAlignModel(snt.Module):
 
                 column_graph, message_col_2_alpha, message_col_2_seq = column_kernel(memberships, init_column_graph, column_graph, message_alpha_2_col, message_seq_2_col, seq_indices)
 
-                memberships = column_kernel.decode(column_graph)
+                memberships,reshaped_memberships = column_kernel.decode(column_graph)
 
-        return memberships
+        return reshaped_memberships
 
 
 
