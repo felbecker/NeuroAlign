@@ -20,7 +20,7 @@ def get_len_alphabet(config):
     return 4 if config["type"] == "nucleotide" else 23
 
 def init_weights(shape):
-    return np.random.normal(0, 0.2, shape).astype(dtype=np.float32)
+    return np.random.normal(0, 1, shape).astype(dtype=np.float32)
 
 #
 # a module that learns a representation for each symbol in the underlying alphabet (e.g. proteins)
@@ -441,7 +441,7 @@ class NeuroAlignPredictor():
                 c = np.floor(j*cn.shape[0]/num_col)
                 left = int(max(0, c-r))
                 right = int(min(cn.shape[0], c+r+1))
-                cn[left:right,:] = 1
+                cn[left:right,:] = 1/(right-left) #uniform probability over sequences
             col_nodes = np.concatenate(col_nodes, axis = 0)
             col_prior_dicts.append({ "nodes" : col_nodes , "senders" : [], "receivers" : []})
         return col_prior_dicts
