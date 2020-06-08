@@ -18,7 +18,7 @@ class NeuroAlignTrainer():
                 train_loss = 0
                 mem_tar = tf.one_hot(target_col_ids, gn.utils_tf.get_num_graphs(col_priors))
                 mem_tar_sqr = tf.matmul(mem_tar, mem_tar, transpose_b = True)
-                mem_sqr = tf.matmul(mem, mem, transpose_b = True)
+                mem_sqr = tf.sqrt(tf.matmul(mem, mem, transpose_b = True))
                 l_mem = tf.compat.v1.losses.log_loss(labels=mem_tar_sqr, predictions=mem_sqr)
                 train_loss += l_mem
                 regularizer = snt.regularizers.L2(config["l2_regularization"])

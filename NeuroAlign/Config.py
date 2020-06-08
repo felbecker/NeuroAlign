@@ -9,21 +9,21 @@ config = {
     "num_col_kernel" : 1,
 
     #iteration counts for the different components
-    "train_col_iterations" : 5,
+    "train_col_iterations" : 3,
     "train_alpha_iterations_per_col" : 1,
-    "train_seq_iterations_per_col" : 5,
-    "test_col_iterations" : 5,
+    "train_seq_iterations_per_col" : 1,
+    "test_col_iterations" : 3,
     "test_alpha_iterations_per_col" : 1,
-    "test_seq_iterations_per_col" : 5,
+    "test_seq_iterations_per_col" : 1,
 
     #training performance and logging
-    "learning_rate" : 1e-4,
+    "learning_rate" : 1e-3,
     "num_training_iteration" : 2000,
     "batch_size": 50,
-    "savestate_milestones": 50,
+    "savestate_milestones": 10,
     "l2_regularization" : 0,#1e-8,
     "adjacent_column_radius" : 3000,
-    "window_uniform_radius" : 40,
+    "window_uniform_radius" : 20,
 
     #hidden dimension for the latent representations for each alphabet symbol
     #for simplicity also used for the representations of their interactions (edges) and their global representation
