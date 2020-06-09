@@ -20,7 +20,7 @@ def get_len_alphabet(config):
     return 4 if config["type"] == "nucleotide" else 23
 
 def init_weights(shape):
-    return np.random.normal(0, 1, shape).astype(dtype=np.float32)
+    return np.random.normal(0, 0.01, shape).astype(dtype=np.float32)
 
 #
 # a module that learns a representation for each symbol in the underlying alphabet (e.g. proteins)
@@ -435,13 +435,20 @@ class NeuroAlignPredictor():
     def make_window_uniform_priors(self, nodes, num_col):
         r = self.config["window_uniform_radius"]
         col_prior_dicts = []
+        occ_cnt = [np.zeros((n.shape[0], 1), dtype=np.float32) for n in nodes]
+        for j in range(1,num_col+1):
+            for occ in occ_cnt:
+                c = np.floor(j*occ.shape[0]/num_col)
+                left = int(max(0, c-r))
+                right = int(min(occ.shape[0], c+r+1))
+                occ[left:right,:] += 1
         for j in range(1,num_col+1):
             col_nodes = [np.zeros((n.shape[0],1), dtype=np.float32) for n in nodes]
-            for cn in col_nodes:
+            for cn, occ in zip(col_nodes, occ_cnt):
                 c = np.floor(j*cn.shape[0]/num_col)
                 left = int(max(0, c-r))
                 right = int(min(cn.shape[0], c+r+1))
-                cn[left:right,:] = 1/(right-left) #uniform probability over sequences
+                cn[left:right, :] = 1/occ[left:right,:]
             col_nodes = np.concatenate(col_nodes, axis = 0)
             col_prior_dicts.append({ "nodes" : col_nodes , "senders" : [], "receivers" : []})
         return col_prior_dicts

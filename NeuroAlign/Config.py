@@ -17,11 +17,11 @@ config = {
     "test_seq_iterations_per_col" : 1,
 
     #training performance and logging
-    "learning_rate" : 1e-3,
+    "learning_rate" : 1e-4,
     "num_training_iteration" : 2000,
     "batch_size": 10,
     "savestate_milestones": 10,
-    "l2_regularization" : 1e-6,
+    "l2_regularization" : 1e-10,
     "adjacent_column_radius" : 3000,
     "window_uniform_radius" : 15,
 
