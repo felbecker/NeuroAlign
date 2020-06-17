@@ -41,7 +41,7 @@ class Instance:
         self.raw_seq = copy.deepcopy(self.ref_seq)
         self.ref_seq = [s.replace('-',str(len(self.alphabet))+' ') for s in self.ref_seq]
         self.raw_seq = [s.replace('-','') for s in self.raw_seq]
-        #can store this as matrix since seq + gaps have uniform length
+        #can store sequences with gaps as matrix
         self.ref_seq = np.reshape(np.fromstring("".join(self.ref_seq), dtype=int, sep=' '), (len(self.ref_seq), alen))
         self.raw_seq = [np.fromstring(s, dtype=int, sep=' ') for s in self.raw_seq]
 
@@ -60,7 +60,7 @@ class Instance:
         for seq, nodes in zip(self.raw_seq, self.nodes):
             for i,s in enumerate(seq):
                 nodes[i, s] = 1 #onehot
-                nodes[i, len(self.alphabet)] = i 
+                nodes[i, len(self.alphabet)] = i
 
         #compute forward edges
         self.forward_senders = []

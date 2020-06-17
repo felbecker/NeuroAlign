@@ -31,6 +31,7 @@ for m in msa:
     print("___________________________")
     print(m.ref_seq)
     mem = predictor.predict(m)
+    print(mem)
     am = np.argmax(mem, axis=1)
     print(m.membership_targets)
     print(am)

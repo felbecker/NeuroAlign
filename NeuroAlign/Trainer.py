@@ -12,15 +12,17 @@ class NeuroAlignTrainer():
         self.config = config
         self.predictor = predictor
         optimizer = snt.optimizers.Adam(config["learning_rate"])
-        def train_step(sequence_graph, col_priors, target_col_ids):
+        def train_step(sequence_graph, col_graph, priors, target_col_ids):
             with tf.GradientTape() as tape:
-                mem = self.predictor.model(sequence_graph, col_priors, config["train_col_iterations"], config["train_alpha_iterations_per_col"], config["train_seq_iterations_per_col"])
+                memberships = self.predictor.model(sequence_graph, col_graph, priors, config["train_iterations"])
                 train_loss = 0
-                mem_tar = tf.one_hot(target_col_ids, gn.utils_tf.get_num_graphs(col_priors))
+                mem_tar = tf.one_hot(target_col_ids, col_graph.n_node[0])
                 mem_tar_sqr = tf.matmul(mem_tar, mem_tar, transpose_b = True)
-                mem_sqr = tf.matmul(mem, mem, transpose_b = True)
-                l_mem = tf.compat.v1.losses.log_loss(labels=mem_tar_sqr, predictions=mem_sqr)
-                train_loss += l_mem
+                for mem in memberships:
+                    mem_sqr = tf.matmul(mem, mem, transpose_b = True)
+                    l_mem = tf.compat.v1.losses.log_loss(labels=mem_tar_sqr, predictions=mem_sqr)
+                    train_loss += l_mem
+                train_loss /= config["train_iterations"]
                 regularizer = snt.regularizers.L2(config["l2_regularization"])
                 train_loss += regularizer(self.predictor.model.trainable_variables)
                 gradients = tape.gradient(train_loss, self.predictor.model.trainable_variables)
@@ -42,8 +44,8 @@ class NeuroAlignTrainer():
         c = np.random.randint(msa.alignment_len)
         lb = max(0, c - self.config["adjacent_column_radius"])
         ub = min(msa.alignment_len-1, c + self.config["adjacent_column_radius"])
-        seq_g, col_g, target_col_ids = self.predictor.get_window_sample(msa, lb, ub, ub -lb +1)#self.config["num_col"])
-        return self.step_op(seq_g, col_g, target_col_ids)
+        seq_g, col_g, priors, target_col_ids = self.predictor.get_window_sample(msa, lb, ub, ub -lb +1)#self.config["num_col"])
+        return self.step_op(seq_g, col_g, priors, target_col_ids)
 
 
 
