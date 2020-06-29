@@ -19,7 +19,7 @@ config = {
     "savestate_milestones": 100,
     "l2_regularization" : 1e-12,
     "adjacent_column_radius" : 3000,
-    "window_uniform_radius" : 10,
+    "window_uniform_radius" : 40,
 
     #hidden dimension for the latent representations for each alphabet symbol
     #for simplicity also used for the representations of their interactions (edges) and their global representation
@@ -45,7 +45,11 @@ config = {
 
     "column_net_node_layers" : [100,100],
     "column_net_global_layers" : [100,100],
+<<<<<<< HEAD
     "column_decode_node_layers" : [100],
+=======
+    "column_decode_node_layers" : [100,100],
+>>>>>>> 419fff7cc7c01ebeab98f4b6fc767dc707f44b43
 
     "sequence_to_columns_layers" : [100]
 }
