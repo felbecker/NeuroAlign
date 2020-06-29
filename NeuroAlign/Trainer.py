@@ -22,7 +22,7 @@ class NeuroAlignTrainer():
                     mem_sqr = tf.matmul(mem, mem, transpose_b = True)
                     l_mem = tf.compat.v1.losses.log_loss(labels=mem_tar_sqr, predictions=mem_sqr)
                     train_loss += l_mem
-                train_loss /= config["train_iterations"]
+                train_loss /= len(memberships)
                 regularizer = snt.regularizers.L2(config["l2_regularization"])
                 train_loss += regularizer(self.predictor.model.trainable_variables)
                 gradients = tape.gradient(train_loss, self.predictor.model.trainable_variables)

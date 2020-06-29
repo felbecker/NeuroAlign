@@ -20,7 +20,7 @@ def get_len_alphabet(config):
     return 4 if config["type"] == "nucleotide" else 23
 
 def init_weights(shape):
-    return np.random.normal(0, 2, shape).astype(dtype=np.float32)
+    return np.random.normal(0, 1, shape).astype(dtype=np.float32)
 
 
 #
@@ -89,11 +89,9 @@ class SequenceKernel(snt.Module):
     def __call__(self, init_nodes, sequence_graph, column_graph, memberships, alphabet):
 
         #compute incoming messages from alphabet and columns
-        messages_from_columns = self.column_messenger(column_graph.nodes)
+        messages_from_columns = tf.matmul(memberships, column_graph.nodes)
+        messages_from_columns = self.column_messenger(messages_from_columns)
         messages_from_column_global = self.column_global_messenger(column_graph.globals)
-
-        #tile alphabet messages and reduce column messages
-        messages_from_columns = tf.matmul(memberships, messages_from_columns)
 
         tiled_col_global = tf.tile(messages_from_column_global, [gn.utils_tf.get_num_graphs(sequence_graph), 1])
         tiled_alphabet = tf.tile(alphabet, [gn.utils_tf.get_num_graphs(sequence_graph), 1])
@@ -117,7 +115,7 @@ class SequenceKernel(snt.Module):
 # on messages from each sequence position, a column specific latent tensor for each sequence
 # position and a global tensor for each sequence position.
 #
-# Columns are initialized as follows:
+# Columns are initialized as follows:100
 # The column specific states for each sequence position must be initialized by a prior that states
 # a probability of participation to the column for each sequence position.
 # The global representation for each column is initialized by a shared parameter vector similar to the parameterization
@@ -172,8 +170,8 @@ class ColumnKernel(snt.Module):
     def __call__(self, column_graph, sequence_graph, alignment_global, memberships, alphabet):
 
         #compute incoming messages from alphabet and columns
-        messages_from_seq = self.sequence_messenger(sequence_graph.nodes)
-        messages_from_seq = tf.matmul(memberships, messages_from_seq, transpose_a = True)
+        messages_from_seq = tf.matmul(memberships, sequence_graph.nodes, transpose_a = True)
+        messages_from_seq = self.sequence_messenger(messages_from_seq)
 
         in_column_graph = column_graph.replace(nodes = tf.concat([column_graph.nodes, messages_from_seq], axis=1),
                                                     globals = tf.concat([column_graph.globals, alignment_global, alphabet], axis=1))
@@ -185,15 +183,14 @@ class ColumnKernel(snt.Module):
 
 
 #
-# The model wraps an alphabet kernel, a sequence kernel
-# and one or more column kernels (for staged distribution) and handles message passing between them.
+# The model updates sequence and column states iteratively by passing messages between sites and columns and between subsequent sites.
 #
 # Input: init_seq - a graph indicating the topology of the sequences (number of seq, number of nodes, forward edges) and no attributes but
 #                   the index of the respective symbol of the alphabet (as integer, not one hot!) per sequence position
 #        col_prior - contains a prior probability of membership for each position and column, different columns are required to have different priors
 #        iterations - number of message passing iterations to perform
 #
-# Output: n x R matrix where each line is a probability distribution D_i : P(i in r) for r=1:R
+# Output: n x R matrix where each line is a probability distribution D_i : P4(i in r) for r=1:R
 #
 class NeuroAlignModel(snt.Module):
 
@@ -218,10 +215,14 @@ class NeuroAlignModel(snt.Module):
         column_graph = self.column_kernel.parameterize_col_priors(init_cols)
         memberships = [membership_priors]
         for _ in range(iterations):
-            sequence_graph, alignment_global = self.sequence_kernel(init_nodes, sequence_graph, column_graph, membership_priors, alphabet)
-            column_graph = self.column_kernel(column_graph, sequence_graph, alignment_global, membership_priors, alphabet)
+            sequence_graph, alignment_global = self.sequence_kernel(init_nodes, sequence_graph, column_graph, memberships[-1], alphabet)
+            column_graph = self.column_kernel(column_graph, sequence_graph, alignment_global,  memberships[-1], alphabet)
             memberships.append(self.decode(column_graph, sequence_graph))
-        return memberships[1:]
+        #tf.print(memberships[0][0], summarize=-1)
+        #tf.print(memberships[1][0], summarize=-1)
+        #tf.print(memberships[-1][0], summarize=-1)
+        #tf.print("----------------------------------------------------------")
+        return [memberships[-1]]
 
 
 
