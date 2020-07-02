@@ -30,8 +30,8 @@ rs = 0
 for m in msa:
     print("___________________________")
     print(m.ref_seq)
-    mem = predictor.predict(m)
-    print(mem)
+    mem, rp = predictor.predict(m)
+    print(rp)
     am = np.argmax(mem, axis=1)
     print(m.membership_targets)
     print(am)

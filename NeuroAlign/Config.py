@@ -9,47 +9,39 @@ config = {
     "num_kernel" : 1,
 
     #iteration counts for the different components
-    "train_iterations" : 10,
-    "test_iterations" : 50,
+    "train_iterations" : 2,
+    "test_iterations" : 2,
 
     #training performance and logging
-    "learning_rate" : 1e-5,
+    "learning_rate" : 1e-3,
     "num_training_iteration" : 2000,
     "batch_size": 10,
     "savestate_milestones": 100,
-    "l2_regularization" : 1e-12,
-    "adjacent_column_radius" : 3000,
+    "l2_regularization" : 0,#1e-10,
+    "adjacent_column_radius" : 1000,
     "window_uniform_radius" : 40,
-
-    #hidden dimension for the latent representations for each alphabet symbol
-    #for simplicity also used for the representations of their interactions (edges) and their global representation
-    "alphabet_network_layers" : [100],
 
     #hidden dimension for the latent representations for each sequence position
     #for simplicity also used for the representations of the forward edges the along sequences and
     #the global representation for each sequence
-    "seq_latent_dim" : 100,
+    "seq_latent_dim" : 32,
 
-    "seq_global_dim" : 100,
+    "seq_global_dim" : 32,
 
-    "seq_net_node_layers" : [100,100],
-    "seq_net_edge_layers" : [100,100],
-    "seq_net_global_per_seq_layers" : [100,100],
-    "seq_global_layers" : [100,100],
+    "seq_net_node_layers" : [64,64],
+    "seq_net_edge_layers" : [64,64],
+    "seq_net_global_per_seq_layers" : [64,64],
+    "seq_global_layers" : [64,64],
 
-    "alphabet_to_sequence_layers" : [100],
-    "columns_to_sequence_layers" : [100],
+    "alphabet_to_sequence_layers" : [64],
+    "columns_to_sequence_layers" : [64],
 
     #hidden dimension for the latent representation of the global property of each column
-    "col_latent_dim" : 100,
+    "col_latent_dim" : 32,
 
-    "column_net_node_layers" : [100,100],
-    "column_net_global_layers" : [100,100],
-<<<<<<< HEAD
-    "column_decode_node_layers" : [100],
-=======
-    "column_decode_node_layers" : [100,100],
->>>>>>> 419fff7cc7c01ebeab98f4b6fc767dc707f44b43
+    "column_net_node_layers" : [64,64],
+    "column_net_global_layers" : [64,64],
+    "column_decode_node_layers" : [64, 64],
 
-    "sequence_to_columns_layers" : [100]
+    "sequence_to_columns_layers" : [64]
 }

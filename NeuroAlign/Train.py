@@ -27,19 +27,30 @@ predictor.load_latest()
 trainer = Trainer.NeuroAlignTrainer(config, predictor)
 
 train_losses = []
+mem_losses = []
+rp_losses = []
 
 for i in range(config["num_training_iteration"]):
     batch = []
     while len(batch) < config["batch_size"]:
         batch.append(msa[np.random.randint(len(msa))])
     train_loss_sum = 0
+    mem_loss_sum = 0
+    rp_loss_sum = 0
     for m in batch:
-        mem, train_loss, l_mem = trainer.train(m)
+        mem, train_loss, l_mem, l_rp = trainer.train(m)
         train_loss_sum += train_loss.numpy()
+        mem_loss_sum += l_mem.numpy()
+        rp_loss_sum += l_rp.numpy()
 
     train_losses.append(train_loss_sum/config["batch_size"])
+    mem_losses.append(mem_loss_sum/config["batch_size"])
+    rp_losses.append(rp_loss_sum/config["batch_size"])
 
-    print(i, " l=", sum(train_losses[-100:])/len(train_losses[-100:]))
+    print(i,
+            " l=", sum(train_losses[-100:])/len(train_losses[-100:]),
+            " mem=", sum(mem_losses[-100:])/len(mem_losses[-100:]),
+            " rp=", sum(rp_losses[-100:])/len(rp_losses[-100:]))
 
     if i % config["savestate_milestones"] == 0 and i > 0:
         predictor.save()

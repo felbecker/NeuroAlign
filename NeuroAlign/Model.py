@@ -77,28 +77,32 @@ class SequenceKernel(snt.Module):
 
         self.global_update = make_mlp_model(config["seq_global_layers"]+[config["seq_global_dim"]])()
 
+        self.node_encoder = snt.Linear(config["seq_latent_dim"])
+
 
     #given a topology init_seq for the sequences with forward edges, returns
     #a fully parameterized graph with the same topology
     def parameterize_init_seq(self, init_seq):
-        return init_seq.replace(nodes = tf.matmul(tf.one_hot(init_seq.nodes, self.lenA), self.node_param),
+        symbol_embeddings = tf.matmul(tf.one_hot(tf.cast(init_seq.nodes[:,0], tf.int32), self.lenA), self.node_param)
+        rp = init_seq.nodes[:,1:2]
+        nodes = self.node_encoder(tf.concat([symbol_embeddings, rp], axis=1))
+        return init_seq.replace(nodes = nodes,
                                 edges = tf.tile(self.edge_param, [tf.reduce_sum(init_seq.n_edge),1]),
                                 globals = tf.tile(self.sequence_param, [gn.utils_tf.get_num_graphs(init_seq),1])), self.seq_global_param
 
 
-    def __call__(self, init_nodes, sequence_graph, column_graph, memberships, alphabet):
+    def __call__(self, init_nodes, sequence_graph, column_graph, memberships):
 
-        #compute incoming messages from alphabet and columns
+        #compute incoming messages from columns
         messages_from_columns = tf.matmul(memberships, column_graph.nodes)
         messages_from_columns = self.column_messenger(messages_from_columns)
         messages_from_column_global = self.column_global_messenger(column_graph.globals)
 
         tiled_col_global = tf.tile(messages_from_column_global, [gn.utils_tf.get_num_graphs(sequence_graph), 1])
-        tiled_alphabet = tf.tile(alphabet, [gn.utils_tf.get_num_graphs(sequence_graph), 1])
 
         #concat and update
         in_sequence_graph = sequence_graph.replace(nodes = tf.concat([init_nodes, sequence_graph.nodes, messages_from_columns], axis=1),
-                                                    globals = tf.concat([sequence_graph.globals, tiled_col_global, tiled_alphabet], axis=1))
+                                                    globals = tf.concat([sequence_graph.globals, tiled_col_global], axis=1))
         out_sequence_graph = self.seq_network(in_sequence_graph)
 
         out_globals = self.global_update(tf.reduce_sum(out_sequence_graph.globals, axis=0, keepdims=True))
@@ -151,30 +155,32 @@ class ColumnKernel(snt.Module):
                                     tf.zeros([1, config["col_latent_dim"]]),
                                         trainable=True, name="col_edge_param")
 
-        self.col_node_param = tf.Variable(
-                                    tf.zeros([1, config["col_latent_dim"]]),
-                                        trainable=True, name="col_node_param")
+        # self.col_node_param = tf.Variable(
+        #                             tf.zeros([1, config["col_latent_dim"]]),
+        #                                 trainable=True, name="col_node_param")
 
         self.sequence_messenger = make_mlp_model(config["sequence_to_columns_layers"]+[config["seq_latent_dim"]])()
         self.alignment_global_messenger = make_mlp_model(config["sequence_to_columns_layers"]+[config["seq_latent_dim"]])()
 
+        self.col_encoder = make_mlp_model([config["col_latent_dim"]])()
+
 
 
     def parameterize_col_priors(self, col_graph):
-        return col_graph.replace(nodes = tf.tile(self.col_node_param, [col_graph.n_node[0],1]),
+        return col_graph.replace(nodes = self.col_encoder(col_graph.nodes),
                                 edges = tf.tile(self.col_edge_param, [col_graph.n_edge[0],1]),
                                 globals = self.col_global_param)
 
 
 
-    def __call__(self, column_graph, sequence_graph, alignment_global, memberships, alphabet):
+    def __call__(self, column_graph, sequence_graph, alignment_global, memberships):
 
-        #compute incoming messages from alphabet and columns
+        #compute incoming messages from sequences
         messages_from_seq = tf.matmul(memberships, sequence_graph.nodes, transpose_a = True)
         messages_from_seq = self.sequence_messenger(messages_from_seq)
 
         in_column_graph = column_graph.replace(nodes = tf.concat([column_graph.nodes, messages_from_seq], axis=1),
-                                                    globals = tf.concat([column_graph.globals, alignment_global, alphabet], axis=1))
+                                                    globals = tf.concat([column_graph.globals, alignment_global], axis=1))
 
         out_column_graph = self.column_network(in_column_graph)
 
@@ -198,31 +204,29 @@ class NeuroAlignModel(snt.Module):
 
         super(NeuroAlignModel, self).__init__(name=name)
         self.config = config
-        self.alphabet_kernel = make_mlp_model(config["alphabet_network_layers"]+[config["seq_latent_dim"]])()
         self.sequence_kernel = SequenceKernel(config)
         self.column_kernel = ColumnKernel(config)
 
         self.membership_decoder = make_mlp_model(config["column_decode_node_layers"] + [config["col_latent_dim"]])()
         self.membership_out_transform = snt.Linear(1, name="column_out_transform")
 
+        self.rp_decoder = make_mlp_model([config["col_latent_dim"]])()
+        self.rp_out = snt.Linear(1, name="rp_out_transform")
 
 
     def __call__(self, init_seq, init_cols, membership_priors, iterations):
 
-        alphabet = self.alphabet_kernel(tf.reshape(self.sequence_kernel.node_param, [1,-1]))
         sequence_graph, alignment_global = self.sequence_kernel.parameterize_init_seq(init_seq)
         init_nodes = sequence_graph.nodes
         column_graph = self.column_kernel.parameterize_col_priors(init_cols)
-        memberships = [membership_priors]
+        memberships = []
+        relative_positions = []
         for _ in range(iterations):
-            sequence_graph, alignment_global = self.sequence_kernel(init_nodes, sequence_graph, column_graph, memberships[-1], alphabet)
-            column_graph = self.column_kernel(column_graph, sequence_graph, alignment_global,  memberships[-1], alphabet)
+            sequence_graph, alignment_global = self.sequence_kernel(init_nodes, sequence_graph, column_graph, membership_priors)
+            column_graph = self.column_kernel(column_graph, sequence_graph, alignment_global,  membership_priors)
             memberships.append(self.decode(column_graph, sequence_graph))
-        #tf.print(memberships[0][0], summarize=-1)
-        #tf.print(memberships[1][0], summarize=-1)
-        #tf.print(memberships[-1][0], summarize=-1)
-        #tf.print("----------------------------------------------------------")
-        return [memberships[-1]]
+            relative_positions.append(self.rp_out(self.rp_decoder(tf.concat([init_nodes, sequence_graph.nodes], axis=1))))
+        return memberships, relative_positions
 
 
 
@@ -253,8 +257,8 @@ class NeuroAlignPredictor():
         self.save_prefix = os.path.join(self.checkpoint_root, self.checkpoint_name)
 
         def inference(init_seq, init_cols, priors):
-            out = self.model(init_seq, init_cols, priors, config["test_iterations"])
-            return out[-1]
+            out,rp = self.model(init_seq, init_cols, priors, config["test_iterations"])
+            return out[-1], rp[-1]
 
         example_seq_g, example_col_g, example_priors, example_mem = self.get_window_sample(examle_msa, 0, 1, 1)
 
@@ -271,10 +275,10 @@ class NeuroAlignPredictor():
     #col_priors is a list of position pairs (s,i) = sequence s at index i
     def predict(self, msa):
         seq_g, col_g, priors, _ = self.get_window_sample(msa, 0, msa.alignment_len-1, msa.alignment_len)#self.config["num_col"])
-        mem = self.inference(seq_g, col_g, priors)
+        mem, rp = self.inference(seq_g, col_g, priors)
         # out = self.model(init_seq, init_cols, priors, config["test_iterations"])
         # mem = out[-1]
-        return mem.numpy()
+        return mem.numpy(), rp.numpy()
 
 
     #constucts sequence graphs and col priors from a msa instance
@@ -301,7 +305,9 @@ class NeuroAlignPredictor():
 
         mem = np.concatenate(mem, axis=0) - lb
 
-        seq_dicts = [{"nodes" : nodes,
+        seq_dicts = [{"nodes" : np.concatenate((np.reshape(nodes, (-1,1)),
+                                                np.reshape(np.linspace(0,1,nodes.shape[0]), (-1,1))),
+                                                    axis=1).astype(np.float32),
                         "senders" : list(range(0, nodes.shape[0]-1)),
                         "receivers" : list(range(1, nodes.shape[0])) }
                         for seqid, nodes in enumerate(nodes_subset)]
@@ -330,7 +336,7 @@ class NeuroAlignPredictor():
                 right = int(min(num_col, c+r+1))
                 cnodes[i,left:right] = 1/(right-left)
         memberships =  np.concatenate(memberships, axis = 0)
-        col_prior_dict = {"nodes" : np.zeros([num_col,1], dtype=np.float32),
+        col_prior_dict = {"nodes" : np.reshape(np.linspace(0, 1, num_col, dtype=np.float32), [num_col,1]),
                             "senders" : list(range(0, num_col-1)),
                           "receivers" : list(range(1, num_col)) }
         return col_prior_dict, memberships
