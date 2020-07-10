@@ -119,7 +119,7 @@ class SequenceKernel(snt.Module):
 # on messages from each sequence position, a column specific latent tensor for each sequence
 # position and a global tensor for each sequence position.
 #
-# Columns are initialized as follows:100
+# Columns are initialized as follows:
 # The column specific states for each sequence position must be initialized by a prior that states
 # a probability of participation to the column for each sequence position.
 # The global representation for each column is initialized by a shared parameter vector similar to the parameterization
@@ -207,7 +207,7 @@ class NeuroAlignModel(snt.Module):
         self.sequence_kernel = SequenceKernel(config)
         self.column_kernel = ColumnKernel(config)
 
-        self.membership_decoder = make_mlp_model(config["column_decode_node_layers"] + [config["col_latent_dim"]])()
+        self.membership_decoder = snt.DeepRNN([snt.LSTM(s) for s in config["column_decode_node_layers"]])
         self.membership_out_transform = snt.Linear(1, name="column_out_transform")
 
         self.rp_decoder = make_mlp_model([config["col_latent_dim"]])()
@@ -219,27 +219,30 @@ class NeuroAlignModel(snt.Module):
         sequence_graph, alignment_global = self.sequence_kernel.parameterize_init_seq(init_seq)
         init_nodes = sequence_graph.nodes
         column_graph = self.column_kernel.parameterize_col_priors(init_cols)
-        memberships = []
+        memberships = [membership_priors]
         relative_positions = []
+        mem_decode_state = self.membership_decoder.initial_state(batch_size=tf.reduce_sum(sequence_graph.n_node)*column_graph.n_node[0])
         for _ in range(iterations):
-            sequence_graph, alignment_global = self.sequence_kernel(init_nodes, sequence_graph, column_graph, membership_priors)
-            column_graph = self.column_kernel(column_graph, sequence_graph, alignment_global,  membership_priors)
-            memberships.append(self.decode(column_graph, sequence_graph))
+            sequence_graph, alignment_global = self.sequence_kernel(init_nodes, sequence_graph, column_graph, memberships[-1])
+            column_graph = self.column_kernel(column_graph, sequence_graph, alignment_global,  memberships[-1])
+            mem, mem_decode_state = self.decode(column_graph, sequence_graph, mem_decode_state)
+            memberships.append(mem)
             relative_positions.append(self.rp_out(self.rp_decoder(tf.concat([init_nodes, sequence_graph.nodes], axis=1))))
-        return memberships, relative_positions
+        return memberships[1:], relative_positions
 
 
 
     #decodes the states of sequences S_i, columns C_r to membership probabilities P(i in r | S_i, C_r)
-    def decode(self, column_graph, sequence_graph):
+    def decode(self, column_graph, sequence_graph, mem_decode_state):
         n_pos = tf.reduce_sum(sequence_graph.n_node)
         n_col = column_graph.n_node[0]
         positions = tf.repeat(sequence_graph.nodes, tf.repeat(n_col, n_pos), axis=0)
         columns = tf.tile(column_graph.nodes, [n_pos, 1])
         decode_in = tf.concat([positions, columns], axis=1)
-        decode_out = self.membership_out_transform(self.membership_decoder(decode_in))
+        latent_out, next_mem_decode_state = self.membership_decoder(decode_in, mem_decode_state)
+        decode_out = self.membership_out_transform(latent_out)
         memberships = tf.nn.softmax(tf.reshape(decode_out, [n_pos, n_col]))
-        return memberships
+        return memberships, next_mem_decode_state
 
 
 
