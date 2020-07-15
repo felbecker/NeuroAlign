@@ -16,11 +16,84 @@ def make_mlp_model(layersizes):
         snt.LayerNorm(axis=-1, create_offset=True, create_scale=True)
         ])
 
+class Identity(snt.Module):
+    def __call__(self, x):
+        return x
+
+def make_identity():
+    return lambda: Identity()
+
+def make_lstm_model(layersizes):
+    return lambda: snt.DeepRNN([snt.LSTM(s) for s in layersizes] +
+                                [snt.LayerNorm(axis=-1, create_offset=True, create_scale=True)])
+
 def get_len_alphabet(config):
     return 4 if config["type"] == "nucleotide" else 23
 
 def init_weights(shape):
     return np.random.normal(0, 1, shape).astype(dtype=np.float32)
+
+#
+# A graph network that performs update steps according to the graph
+# topology as usual, but with LSTM update functions and hidden states
+# accompanying edges, nodes and globals
+#
+class LSTMGraphNetwork(gn._base.AbstractModule):
+    def __init__(self,
+                edge_lstm,
+                node_lstm,
+                global_lstm,
+                reducer=tf.math.unsorted_segment_sum,
+                edge_block_opt=None,
+                node_block_opt=None,
+                global_block_opt=None,
+                name = "LSTMGraphNetwork"):
+        super(LSTMGraphNetwork, self).__init__(name=name)
+        edge_block_opt = gn.modules._make_default_edge_block_opt(edge_block_opt)
+        node_block_opt = gn.modules._make_default_node_block_opt(node_block_opt, reducer)
+        global_block_opt = gn.modules._make_default_global_block_opt(global_block_opt, reducer)
+
+        with self._enter_variable_scope():
+            self._edge_block = gn.blocks.EdgeBlock(
+                edge_model_fn=make_identity(), **edge_block_opt)
+            self._node_block = gn.blocks.NodeBlock(
+                node_model_fn=make_identity(), **node_block_opt)
+            self._global_block = gn.blocks.GlobalBlock(
+                global_model_fn=make_identity(), **global_block_opt)
+            self._edge_lstm = edge_lstm()
+            self._node_lstm = node_lstm()
+            self._global_lstm = global_lstm()
+
+
+    def get_initial_states(self, template_graph):
+        init_edges = self._edge_lstm.initial_state(batch_size=tf.reduce_sum(template_graph.n_edge))
+        init_nodes = self._node_lstm.initial_state(batch_size=tf.reduce_sum(template_graph.n_node))
+        init_global = self._global_lstm.initial_state(batch_size=gn.utils_tf.get_num_graphs(template_graph))
+        return template_graph.replace(edges=init_edges, nodes=init_nodes, globals=init_global)
+
+
+
+    def _build(self, graph, hidden_graph):
+
+        graph_e = self._edge_block(graph)
+        output_edges, hidden_edges = self._edge_lstm(graph_e.edges, hidden_graph.edges)
+        graph_e = graph_e.replace(edges=output_edges)
+
+        graph_n = self._node_block(graph_e)
+        output_nodes, hidden_nodes = self._node_lstm(graph_n.nodes, hidden_graph.nodes)
+        graph_n = graph_n.replace(nodes=output_nodes)
+
+        graph_g = self._global_block(graph_n)
+        output_globals, hidden_globals = self._global_lstm(graph_n.globals, hidden_graph.globals)
+        graph_g = graph_g.replace(globals=output_globals)
+
+        updated_hidden_graph = hidden_graph.replace(
+                                nodes=hidden_nodes,
+                                edges=hidden_edges,
+                                globals=hidden_globals)
+
+        return graph_g, updated_hidden_graph
+
 
 
 #
@@ -40,7 +113,7 @@ def init_weights(shape):
 #
 # output:   - updated sequences
 #
-class SequenceKernel(snt.Module):
+class SequenceKernel(gn._base.AbstractModule):
     def __init__(self, config, name = "SequenceKernel"):
 
         super(SequenceKernel, self).__init__(name=name)
@@ -48,36 +121,34 @@ class SequenceKernel(snt.Module):
         self.config = config
         self.lenA = get_len_alphabet(config)
 
-        self.sequence_param = tf.Variable(
-                                    tf.zeros([1, config["seq_latent_dim"]]),
-                                        trainable=True, name="sequence_param")
+        with self._enter_variable_scope():
+            self.sequence_param = tf.Variable(
+                                        tf.zeros([1, config["seq_latent_dim"]]),
+                                            trainable=True, name="sequence_param")
 
-        self.edge_param = tf.Variable(
-                                    tf.zeros([1, config["seq_latent_dim"]]),
-                                        trainable=True, name="edge_param")
+            self.edge_param = tf.Variable(
+                                        tf.zeros([1, config["seq_latent_dim"]]),
+                                            trainable=True, name="edge_param")
 
-        self.seq_global_param = tf.Variable(
-                                    tf.zeros([1, config["seq_global_dim"]]),
-                                        trainable=True, name="seq_global_param")
+            self.seq_global_param = tf.Variable(
+                                        tf.zeros([1, config["seq_global_dim"]]),
+                                            trainable=True, name="seq_global_param")
 
-        self.seq_network = gn.modules.GraphNetwork(
-                                    edge_model_fn=make_mlp_model(config["seq_net_edge_layers"]+[config["seq_latent_dim"]]),
-                                    node_model_fn=make_mlp_model(config["seq_net_node_layers"]+[config["seq_latent_dim"]]),
-                                    global_model_fn=make_mlp_model(config["seq_net_global_per_seq_layers"]+[config["seq_latent_dim"]]),
-                                    node_block_opt={"use_sent_edges" : True},
-                                    reducer = tf.math.unsorted_segment_mean)
+            self.seq_network = LSTMGraphNetwork(
+                                        edge_lstm=make_lstm_model(config["seq_net_edge_layers"]+[config["seq_latent_dim"]]),
+                                        node_lstm=make_lstm_model(config["seq_net_node_layers"]+[config["seq_latent_dim"]]),
+                                        global_lstm=make_lstm_model(config["seq_net_global_per_seq_layers"]+[config["seq_latent_dim"]]),
+                                        node_block_opt={"use_sent_edges" : True},
+                                        reducer = tf.math.unsorted_segment_mean)
 
 
-        self.node_param = tf.Variable(
-                                    init_weights([self.lenA, config["seq_latent_dim"]]),
-                                        trainable=True, name="alphabet_node_param")
+            self.node_param = tf.Variable(
+                                        init_weights([self.lenA, config["seq_latent_dim"]]),
+                                            trainable=True, name="alphabet_node_param")
 
-        self.column_messenger = make_mlp_model(config["columns_to_sequence_layers"]+[config["col_latent_dim"]])()
-        self.column_global_messenger = make_mlp_model(config["columns_to_sequence_layers"]+[config["col_latent_dim"]])()
+            self.column_messenger = make_mlp_model(config["columns_to_sequence_layers"]+[config["col_latent_dim"]])()
 
-        self.global_update = make_mlp_model(config["seq_global_layers"]+[config["seq_global_dim"]])()
-
-        self.node_encoder = snt.Linear(config["seq_latent_dim"])
+            self.node_encoder = snt.Linear(config["seq_latent_dim"])
 
 
     #given a topology init_seq for the sequences with forward edges, returns
@@ -91,23 +162,17 @@ class SequenceKernel(snt.Module):
                                 globals = tf.tile(self.sequence_param, [gn.utils_tf.get_num_graphs(init_seq),1])), self.seq_global_param
 
 
-    def __call__(self, init_nodes, sequence_graph, column_graph, memberships):
+    def _build(self, init_nodes, sequence_graph, hidden_sequence_graph, column_graph, memberships):
 
         #compute incoming messages from columns
-        messages_from_columns = tf.matmul(memberships, column_graph.nodes)
-        messages_from_columns = self.column_messenger(messages_from_columns)
-        messages_from_column_global = self.column_global_messenger(column_graph.globals)
-
-        tiled_col_global = tf.tile(messages_from_column_global, [gn.utils_tf.get_num_graphs(sequence_graph), 1])
+        messages_from_columns = self.column_messenger(column_graph.nodes)
+        messages_from_columns = tf.matmul(memberships, messages_from_columns)
 
         #concat and update
-        in_sequence_graph = sequence_graph.replace(nodes = tf.concat([init_nodes, sequence_graph.nodes, messages_from_columns], axis=1),
-                                                    globals = tf.concat([sequence_graph.globals, tiled_col_global], axis=1))
-        out_sequence_graph = self.seq_network(in_sequence_graph)
+        in_sequence_graph = sequence_graph.replace(nodes = tf.concat([init_nodes, sequence_graph.nodes, messages_from_columns], axis=1))
+        out_sequence_graph, hidden_sequence_graph = self.seq_network(in_sequence_graph, hidden_sequence_graph)
 
-        out_globals = self.global_update(tf.reduce_sum(out_sequence_graph.globals, axis=0, keepdims=True))
-
-        return out_sequence_graph, out_globals
+        return out_sequence_graph, hidden_sequence_graph
 
 
 
@@ -132,7 +197,7 @@ class SequenceKernel(snt.Module):
 # output: updated representation of the columns
 #         messages to be send to every sequence node
 #
-class ColumnKernel(snt.Module):
+class ColumnKernel(gn._base.AbstractModule):
     def __init__(self, config, name = "ColumnKernel"):
 
         super(ColumnKernel, self).__init__(name=name)
@@ -140,29 +205,25 @@ class ColumnKernel(snt.Module):
         self.config = config
         self.lenA = get_len_alphabet(config)
 
-        self.column_network = gn.modules.GraphNetwork(
-                                    node_model_fn=make_mlp_model(config["column_net_node_layers"]+[config["col_latent_dim"]]),
-                                    edge_model_fn=make_mlp_model(config["column_net_node_layers"]+[config["col_latent_dim"]]),
-                                    global_model_fn=make_mlp_model(config["column_net_global_layers"]+[config["col_latent_dim"]]),
-                                    node_block_opt={"use_sent_edges" : True},
-                                    reducer = tf.math.unsorted_segment_mean)
+        with self._enter_variable_scope():
+            self.column_network = LSTMGraphNetwork(
+                                        node_lstm=make_lstm_model(config["column_net_node_layers"]+[config["col_latent_dim"]]),
+                                        edge_lstm=make_lstm_model(config["column_net_node_layers"]+[config["col_latent_dim"]]),
+                                        global_lstm=make_lstm_model(config["column_net_global_layers"]+[config["col_latent_dim"]]),
+                                        node_block_opt={"use_sent_edges" : True},
+                                        reducer= tf.math.unsorted_segment_mean)
 
-        self.col_global_param = tf.Variable(
-                                    tf.zeros([1, config["col_latent_dim"]]),
-                                        trainable=True, name="col_global_param")
+            self.col_global_param = tf.Variable(
+                                        tf.zeros([1, config["col_latent_dim"]]),
+                                            trainable=True, name="col_global_param")
 
-        self.col_edge_param = tf.Variable(
-                                    tf.zeros([1, config["col_latent_dim"]]),
-                                        trainable=True, name="col_edge_param")
+            self.col_edge_param = tf.Variable(
+                                        tf.zeros([1, config["col_latent_dim"]]),
+                                            trainable=True, name="col_edge_param")
 
-        # self.col_node_param = tf.Variable(
-        #                             tf.zeros([1, config["col_latent_dim"]]),
-        #                                 trainable=True, name="col_node_param")
+            self.sequence_messenger = make_mlp_model(config["sequence_to_columns_layers"]+[config["seq_latent_dim"]])()
 
-        self.sequence_messenger = make_mlp_model(config["sequence_to_columns_layers"]+[config["seq_latent_dim"]])()
-        self.alignment_global_messenger = make_mlp_model(config["sequence_to_columns_layers"]+[config["seq_latent_dim"]])()
-
-        self.col_encoder = make_mlp_model([config["col_latent_dim"]])()
+            self.col_encoder = make_mlp_model([config["col_latent_dim"]])()
 
 
 
@@ -173,18 +234,17 @@ class ColumnKernel(snt.Module):
 
 
 
-    def __call__(self, column_graph, sequence_graph, alignment_global, memberships):
+    def _build(self, column_graph, hidden_column_graph, sequence_graph, memberships):
 
         #compute incoming messages from sequences
-        messages_from_seq = tf.matmul(memberships, sequence_graph.nodes, transpose_a = True)
-        messages_from_seq = self.sequence_messenger(messages_from_seq)
+        messages_from_seq = self.sequence_messenger(sequence_graph.nodes)
+        messages_from_seq = tf.matmul(memberships, messages_from_seq, transpose_a = True)
 
-        in_column_graph = column_graph.replace(nodes = tf.concat([column_graph.nodes, messages_from_seq], axis=1),
-                                                    globals = tf.concat([column_graph.globals, alignment_global], axis=1))
+        #update
+        in_column_graph = column_graph.replace(nodes = tf.concat([column_graph.nodes, messages_from_seq], axis=1))
+        out_column_graph, hidden_column_graph = self.column_network(in_column_graph, hidden_column_graph)
 
-        out_column_graph = self.column_network(in_column_graph)
-
-        return out_column_graph
+        return out_column_graph, hidden_column_graph
 
 
 
@@ -198,23 +258,25 @@ class ColumnKernel(snt.Module):
 #
 # Output: n x R matrix where each line is a probability distribution D_i : P4(i in r) for r=1:R
 #
-class NeuroAlignModel(snt.Module):
+class NeuroAlignModel(gn._base.AbstractModule):
 
     def __init__(self, config, name = "NeuroAlignModel"):
 
         super(NeuroAlignModel, self).__init__(name=name)
         self.config = config
-        self.sequence_kernel = SequenceKernel(config)
-        self.column_kernel = ColumnKernel(config)
 
-        self.membership_decoder = snt.DeepRNN([snt.LSTM(s) for s in config["column_decode_node_layers"]])
-        self.membership_out_transform = snt.Linear(1, name="column_out_transform")
+        with self._enter_variable_scope():
+            self.sequence_kernel = SequenceKernel(config)
+            self.column_kernel = ColumnKernel(config)
 
-        self.rp_decoder = make_mlp_model([config["col_latent_dim"]])()
-        self.rp_out = snt.Linear(1, name="rp_out_transform")
+            self.membership_decoder = snt.DeepRNN([snt.LSTM(s) for s in config["column_decode_node_layers"]])
+            self.membership_out_transform = snt.Linear(1, name="column_out_transform")
+
+            self.rp_decoder = make_mlp_model([config["col_latent_dim"]])()
+            self.rp_out = snt.Linear(1, name="rp_out_transform")
 
 
-    def __call__(self, init_seq, init_cols, membership_priors, iterations):
+    def _build(self, init_seq, init_cols, membership_priors, iterations):
 
         sequence_graph, alignment_global = self.sequence_kernel.parameterize_init_seq(init_seq)
         init_nodes = sequence_graph.nodes
@@ -222,9 +284,11 @@ class NeuroAlignModel(snt.Module):
         memberships = [membership_priors]
         relative_positions = []
         mem_decode_state = self.membership_decoder.initial_state(batch_size=tf.reduce_sum(sequence_graph.n_node)*column_graph.n_node[0])
+        hidden_sequence_graph = self.sequence_kernel.seq_network.get_initial_states(sequence_graph)
+        hidden_column_graph = self.column_kernel.column_network.get_initial_states(column_graph)
         for _ in range(iterations):
-            sequence_graph, alignment_global = self.sequence_kernel(init_nodes, sequence_graph, column_graph, memberships[-1])
-            column_graph = self.column_kernel(column_graph, sequence_graph, alignment_global,  memberships[-1])
+            sequence_graph, hidden_sequence_graph = self.sequence_kernel(init_nodes, sequence_graph, hidden_sequence_graph, column_graph, memberships[-1])
+            column_graph, hidden_column_graph = self.column_kernel(column_graph, hidden_column_graph, sequence_graph,  memberships[-1])
             mem, mem_decode_state = self.decode(column_graph, sequence_graph, mem_decode_state)
             memberships.append(mem)
             relative_positions.append(self.rp_out(self.rp_decoder(tf.concat([init_nodes, sequence_graph.nodes], axis=1))))
