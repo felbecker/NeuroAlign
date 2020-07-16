@@ -13,13 +13,13 @@ config = {
     "test_iterations" : 20,
 
     #training performance and logging
-    "learning_rate" : 1e-3,
+    "learning_rate" : 1e-5,
     "num_training_iteration" : 2000,
     "batch_size": 10,
     "savestate_milestones": 100,
-    "l2_regularization" : 1e-10,
+    "l2_regularization" : 0,#1e-10,
     "adjacent_column_radius" : 1000,
-    "window_uniform_radius" : 20,
+    "window_uniform_radius" : 10,
 
     #hidden dimension for the latent representations for each sequence position
     #for simplicity also used for the representations of the forward edges the along sequences and

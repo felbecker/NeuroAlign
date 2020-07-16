@@ -31,7 +31,7 @@ def get_len_alphabet(config):
     return 4 if config["type"] == "nucleotide" else 23
 
 def init_weights(shape):
-    return np.random.normal(0, 1, shape).astype(dtype=np.float32)
+    return np.random.normal(0, 0.1, shape).astype(dtype=np.float32)
 
 #
 # A graph network that performs update steps according to the graph
@@ -234,14 +234,14 @@ class ColumnKernel(gn._base.AbstractModule):
 
 
 
-    def _build(self, column_graph, hidden_column_graph, sequence_graph, memberships):
+    def _build(self, init_nodes, column_graph, hidden_column_graph, sequence_graph, memberships):
 
         #compute incoming messages from sequences
         messages_from_seq = self.sequence_messenger(sequence_graph.nodes)
         messages_from_seq = tf.matmul(memberships, messages_from_seq, transpose_a = True)
 
         #update
-        in_column_graph = column_graph.replace(nodes = tf.concat([column_graph.nodes, messages_from_seq], axis=1))
+        in_column_graph = column_graph.replace(nodes = tf.concat([init_nodes, column_graph.nodes, messages_from_seq], axis=1))
         out_column_graph, hidden_column_graph = self.column_network(in_column_graph, hidden_column_graph)
 
         return out_column_graph, hidden_column_graph
@@ -279,29 +279,32 @@ class NeuroAlignModel(gn._base.AbstractModule):
     def _build(self, init_seq, init_cols, membership_priors, iterations):
 
         sequence_graph, alignment_global = self.sequence_kernel.parameterize_init_seq(init_seq)
-        init_nodes = sequence_graph.nodes
+        init_seq = sequence_graph.nodes
         column_graph = self.column_kernel.parameterize_col_priors(init_cols)
+        init_col = column_graph.nodes
         memberships = [membership_priors]
         relative_positions = []
         mem_decode_state = self.membership_decoder.initial_state(batch_size=tf.reduce_sum(sequence_graph.n_node)*column_graph.n_node[0])
         hidden_sequence_graph = self.sequence_kernel.seq_network.get_initial_states(sequence_graph)
         hidden_column_graph = self.column_kernel.column_network.get_initial_states(column_graph)
         for _ in range(iterations):
-            sequence_graph, hidden_sequence_graph = self.sequence_kernel(init_nodes, sequence_graph, hidden_sequence_graph, column_graph, memberships[-1])
-            column_graph, hidden_column_graph = self.column_kernel(column_graph, hidden_column_graph, sequence_graph,  memberships[-1])
-            mem, mem_decode_state = self.decode(column_graph, sequence_graph, mem_decode_state)
+            sequence_graph, hidden_sequence_graph = self.sequence_kernel(init_seq, sequence_graph, hidden_sequence_graph, column_graph, memberships[-1])
+            column_graph, hidden_column_graph = self.column_kernel(init_col, column_graph, hidden_column_graph, sequence_graph,  memberships[-1])
+            mem, mem_decode_state = self.decode(init_seq, init_col, column_graph, sequence_graph, mem_decode_state)
             memberships.append(mem)
-            relative_positions.append(self.rp_out(self.rp_decoder(tf.concat([init_nodes, sequence_graph.nodes], axis=1))))
+            relative_positions.append(self.rp_out(self.rp_decoder(tf.concat([init_seq, sequence_graph.nodes], axis=1))))
         return memberships[1:], relative_positions
 
 
 
     #decodes the states of sequences S_i, columns C_r to membership probabilities P(i in r | S_i, C_r)
-    def decode(self, column_graph, sequence_graph, mem_decode_state):
+    def decode(self, init_seq, init_col, column_graph, sequence_graph, mem_decode_state):
         n_pos = tf.reduce_sum(sequence_graph.n_node)
         n_col = column_graph.n_node[0]
-        positions = tf.repeat(sequence_graph.nodes, tf.repeat(n_col, n_pos), axis=0)
-        columns = tf.tile(column_graph.nodes, [n_pos, 1])
+        seq = tf.concat([init_seq, sequence_graph.nodes], axis=1)
+        col = tf.concat([init_col, column_graph.nodes], axis=1)
+        positions = tf.repeat(seq, tf.repeat(n_col, n_pos), axis=0)
+        columns = tf.tile(col, [n_pos, 1])
         decode_in = tf.concat([positions, columns], axis=1)
         latent_out, next_mem_decode_state = self.membership_decoder(decode_in, mem_decode_state)
         decode_out = self.membership_out_transform(latent_out)
