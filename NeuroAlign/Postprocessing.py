@@ -15,7 +15,6 @@ def greedy_consistent(msa, memberships):
     greedy_sorted = np.dstack(np.unravel_index(np.argsort(-memberships, axis=None), memberships.shape))[0]
     #results; -1 indicates a uncertain column, 2 positions in incertain columns compare as "not aligned"
     checker = ConsistencyChecker(msa, memberships.shape)
-    print(np.argmax(memberships, axis=1))
     for pos,col in greedy_sorted:
         checker.try_add(pos, col)
     return checker.get_result()
@@ -23,7 +22,7 @@ def greedy_consistent(msa, memberships):
 
 class ConsistencyChecker():
     def __init__(self, msa, n):
-        self.picks = -np.ones(n[0])
+        self.picks = -np.ones(n[0], dtype=np.int32)
         self.alignment_graph = nx.DiGraph()
         edges = []
         self.lsum = 0
@@ -34,14 +33,13 @@ class ConsistencyChecker():
         self.alignment_graph.add_edges_from(edges)
 
     def test_cycle(self, graph, u, v):
-        graph.add_edge(u, v)
-        cycle = False
         for _,t in nx.bfs_edges(graph, v):
             if t == u: #cycle containing edge (u,v) found
-                cycle = True
-                break
-        graph.remove_edge(u, v)
-        return cycle
+                return True
+        for _,t in nx.bfs_edges(graph, u):
+            if t == v: #cycle containing edge (v,u) found
+                return True
+        return False
 
     def try_add(self, pos, col):
         cycle = self.test_cycle(self.alignment_graph, self.lsum+col, pos)

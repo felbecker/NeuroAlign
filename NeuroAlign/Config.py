@@ -20,7 +20,7 @@ config = {
     "num_training_iteration" : 2000,
     "batch_size": 10,
     "savestate_milestones": 100,
-    "l2_regularization" : 1e-12,
+    "l2_regularization" : 0,#1e-12,
     "adjacent_column_radius" : 1000,
     "window_uniform_radius" : 10,
 

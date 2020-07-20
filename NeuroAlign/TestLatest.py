@@ -6,6 +6,7 @@ import sys
 np.set_printoptions(threshold=sys.maxsize)
 
 from Config import config
+import Postprocessing
 
 parser = argparse.ArgumentParser(description='Tests the latest NeuroAlign model.')
 parser.add_argument("-n", type=int, default=200, help="number of testing examples")
@@ -31,9 +32,8 @@ for m in msa:
     print("___________________________")
     print(m.ref_seq)
     mem, rp = predictor.predict(m)
-    print(rp)
-    am = np.argmax(mem, axis=1)
     print(m.membership_targets)
+    am = Postprocessing.greedy_consistent(m, mem)
     print(am)
     p,r = m.recall_prec(am.flatten())
     ps += p
