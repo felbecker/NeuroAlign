@@ -24,8 +24,7 @@ def make_identity():
     return lambda: Identity()
 
 def make_lstm_model(layersizes):
-    return lambda: snt.DeepRNN([snt.LSTM(s) for s in layersizes] +
-                                [snt.LayerNorm(axis=-1, create_offset=True, create_scale=True)])
+    return lambda: snt.DeepRNN([snt.LSTM(s) for s in layersizes])
 
 def get_len_alphabet(config):
     return 4 if config["type"] == "nucleotide" else 23
@@ -148,7 +147,7 @@ class SequenceKernel(gn._base.AbstractModule):
 
             self.column_messenger = make_mlp_model(config["columns_to_sequence_layers"]+[config["col_latent_dim"]])()
 
-            self.node_encoder = snt.Linear(config["seq_latent_dim"])
+            self.node_encoder = make_mlp_model(config["encoder"]+[config["col_latent_dim"]])()
 
 
     #given a topology init_seq for the sequences with forward edges, returns
@@ -208,7 +207,7 @@ class ColumnKernel(gn._base.AbstractModule):
         with self._enter_variable_scope():
             self.column_network = LSTMGraphNetwork(
                                         node_lstm=make_lstm_model(config["column_net_node_layers"]+[config["col_latent_dim"]]),
-                                        edge_lstm=make_lstm_model(config["column_net_node_layers"]+[config["col_latent_dim"]]),
+                                        edge_lstm=make_lstm_model(config["column_net_edge_layers"]+[config["col_latent_dim"]]),
                                         global_lstm=make_lstm_model(config["column_net_global_layers"]+[config["col_latent_dim"]]),
                                         node_block_opt={"use_sent_edges" : True},
                                         reducer= tf.math.unsorted_segment_mean)
@@ -269,11 +268,32 @@ class NeuroAlignModel(gn._base.AbstractModule):
             self.sequence_kernel = SequenceKernel(config)
             self.column_kernel = ColumnKernel(config)
 
-            self.membership_decoder = snt.DeepRNN([snt.LSTM(s) for s in config["column_decode_node_layers"]])
+            #self.membership_decoder = snt.DeepRNN([snt.LSTM(s) for s in config["column_decode_node_layers"]])
+            self.membership_decoder = make_mlp_model(config["column_decode_node_layers"])()
             self.membership_out_transform = snt.Linear(1, name="column_out_transform")
 
             self.rp_decoder = make_mlp_model([config["col_latent_dim"]])()
             self.rp_out = snt.Linear(1, name="rp_out_transform")
+
+
+    # def _build(self, init_seq, init_cols, membership_priors, iterations):
+    #
+    #     sequence_graph, alignment_global = self.sequence_kernel.parameterize_init_seq(init_seq)
+    #     init_seq = sequence_graph.nodes
+    #     column_graph = self.column_kernel.parameterize_col_priors(init_cols)
+    #     init_col = column_graph.nodes
+    #     memberships = [membership_priors]
+    #     relative_positions = []
+    #     #mem_decode_state = self.membership_decoder.initial_state(batch_size=tf.reduce_sum(sequence_graph.n_node)*column_graph.n_node[0])
+    #     hidden_sequence_graph = self.sequence_kernel.seq_network.get_initial_states(sequence_graph)
+    #     hidden_column_graph = self.column_kernel.column_network.get_initial_states(column_graph)
+    #     for _ in range(iterations):
+    #         sequence_graph, hidden_sequence_graph = self.sequence_kernel(init_seq, sequence_graph, hidden_sequence_graph, column_graph, memberships[-1])
+    #         column_graph, hidden_column_graph = self.column_kernel(init_col, column_graph, hidden_column_graph, sequence_graph,  memberships[-1])
+    #         mem = self.decode(init_seq, init_col, column_graph, sequence_graph)
+    #         memberships.append(mem)
+    #         relative_positions.append(self.rp_out(self.rp_decoder(tf.concat([init_seq, sequence_graph.nodes], axis=1))))
+    #     return memberships[1:], relative_positions
 
 
     def _build(self, init_seq, init_cols, membership_priors, iterations):
@@ -283,22 +303,24 @@ class NeuroAlignModel(gn._base.AbstractModule):
         column_graph = self.column_kernel.parameterize_col_priors(init_cols)
         init_col = column_graph.nodes
         memberships = [membership_priors]
+        running_mem = membership_priors
         relative_positions = []
-        mem_decode_state = self.membership_decoder.initial_state(batch_size=tf.reduce_sum(sequence_graph.n_node)*column_graph.n_node[0])
+        #mem_decode_state = self.membership_decoder.initial_state(batch_size=tf.reduce_sum(sequence_graph.n_node)*column_graph.n_node[0])
         hidden_sequence_graph = self.sequence_kernel.seq_network.get_initial_states(sequence_graph)
         hidden_column_graph = self.column_kernel.column_network.get_initial_states(column_graph)
         for _ in range(iterations):
-            sequence_graph, hidden_sequence_graph = self.sequence_kernel(init_seq, sequence_graph, hidden_sequence_graph, column_graph, memberships[-1])
-            column_graph, hidden_column_graph = self.column_kernel(init_col, column_graph, hidden_column_graph, sequence_graph,  memberships[-1])
-            mem, mem_decode_state = self.decode(init_seq, init_col, column_graph, sequence_graph, mem_decode_state)
+            sequence_graph, hidden_sequence_graph = self.sequence_kernel(init_seq, sequence_graph, hidden_sequence_graph, column_graph, running_mem)
+            column_graph, hidden_column_graph = self.column_kernel(init_col, column_graph, hidden_column_graph, sequence_graph,  running_mem)
+            mem = self.decode(init_seq, init_col, column_graph, sequence_graph)
             memberships.append(mem)
+            running_mem = 0.1*running_mem + 0.9*memberships[-1]
             relative_positions.append(self.rp_out(self.rp_decoder(tf.concat([init_seq, sequence_graph.nodes], axis=1))))
-        return memberships[1:], relative_positions
+        return memberships, relative_positions
 
 
 
     #decodes the states of sequences S_i, columns C_r to membership probabilities P(i in r | S_i, C_r)
-    def decode(self, init_seq, init_col, column_graph, sequence_graph, mem_decode_state):
+    def decode(self, init_seq, init_col, column_graph, sequence_graph):
         n_pos = tf.reduce_sum(sequence_graph.n_node)
         n_col = column_graph.n_node[0]
         seq = tf.concat([init_seq, sequence_graph.nodes], axis=1)
@@ -306,10 +328,10 @@ class NeuroAlignModel(gn._base.AbstractModule):
         positions = tf.repeat(seq, tf.repeat(n_col, n_pos), axis=0)
         columns = tf.tile(col, [n_pos, 1])
         decode_in = tf.concat([positions, columns], axis=1)
-        latent_out, next_mem_decode_state = self.membership_decoder(decode_in, mem_decode_state)
+        latent_out = self.membership_decoder(decode_in)
         decode_out = self.membership_out_transform(latent_out)
         memberships = tf.nn.softmax(tf.reshape(decode_out, [n_pos, n_col]))
-        return memberships, next_mem_decode_state
+        return memberships
 
 
 
