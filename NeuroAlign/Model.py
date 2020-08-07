@@ -265,8 +265,8 @@ class NeuroAlignModel(gn._base.AbstractModule):
         self.config = config
 
         with self._enter_variable_scope():
-            self.sequence_kernel = SequenceKernel(config)
-            self.column_kernel = ColumnKernel(config)
+            self.sequence_kernel = [SequenceKernel(config) for _ in range(self.config["num_kernel"])]
+            self.column_kernel = [ColumnKernel(config) for _ in range(self.config["num_kernel"])]
 
             #self.membership_decoder = snt.DeepRNN([snt.LSTM(s) for s in config["column_decode_node_layers"]])
             self.membership_decoder = make_mlp_model(config["column_decode_node_layers"])()
@@ -298,23 +298,24 @@ class NeuroAlignModel(gn._base.AbstractModule):
 
     def _build(self, init_seq, init_cols, membership_priors, iterations):
 
-        sequence_graph, alignment_global = self.sequence_kernel.parameterize_init_seq(init_seq)
+        sequence_graph, alignment_global = self.sequence_kernel[0].parameterize_init_seq(init_seq)
         init_seq = sequence_graph.nodes
-        column_graph = self.column_kernel.parameterize_col_priors(init_cols)
+        column_graph = self.column_kernel[0].parameterize_col_priors(init_cols)
         init_col = column_graph.nodes
         memberships = [membership_priors]
         running_mem = membership_priors
         relative_positions = []
         #mem_decode_state = self.membership_decoder.initial_state(batch_size=tf.reduce_sum(sequence_graph.n_node)*column_graph.n_node[0])
-        hidden_sequence_graph = self.sequence_kernel.seq_network.get_initial_states(sequence_graph)
-        hidden_column_graph = self.column_kernel.column_network.get_initial_states(column_graph)
-        for _ in range(iterations):
-            sequence_graph, hidden_sequence_graph = self.sequence_kernel(init_seq, sequence_graph, hidden_sequence_graph, column_graph, running_mem)
-            column_graph, hidden_column_graph = self.column_kernel(init_col, column_graph, hidden_column_graph, sequence_graph,  running_mem)
-            mem = self.decode(init_seq, init_col, column_graph, sequence_graph)
-            memberships.append(mem)
-            running_mem = 0.1*running_mem + 0.9*memberships[-1]
-            relative_positions.append(self.rp_out(self.rp_decoder(tf.concat([init_seq, sequence_graph.nodes], axis=1))))
+        hidden_sequence_graph = self.sequence_kernel[0].seq_network.get_initial_states(sequence_graph)
+        hidden_column_graph = self.column_kernel[0].column_network.get_initial_states(column_graph)
+        for num_kernel in range(self.config["num_kernel"]):
+            for _ in range(iterations):
+                sequence_graph, hidden_sequence_graph = self.sequence_kernel[num_kernel](init_seq, sequence_graph, hidden_sequence_graph, column_graph, running_mem)
+                column_graph, hidden_column_graph = self.column_kernel[num_kernel](init_col, column_graph, hidden_column_graph, sequence_graph,  running_mem)
+                mem = self.decode(init_seq, init_col, column_graph, sequence_graph)
+                memberships.append(mem)
+                running_mem = 0.1*running_mem + 0.9*memberships[-1]
+                relative_positions.append(self.rp_out(self.rp_decoder(tf.concat([init_seq, sequence_graph.nodes], axis=1))))
         return memberships, relative_positions
 
 
@@ -366,10 +367,7 @@ class NeuroAlignPredictor():
 
     #col_priors is a list of position pairs (s,i) = sequence s at index i
     def predict(self, msa):
-        center = np.randint(msa.alignment_len)
-        l = max(0, center - self.config["batch_window_size"])
-        r = min(msa.alignment_len-1, center + self.config["batch_window_size"])
-        seq_g, col_g, priors, _ = self.get_window_sample(msa, l, r, r-l+1)
+        seq_g, col_g, priors, _ = self.get_window_sample(msa, 0, msa.alignment_len-1, msa.alignment_len)
         mem, rp = self.inference(seq_g, col_g, priors)
         # out = self.model(init_seq, init_cols, priors, config["test_iterations"])
         # mem = out[-1]
@@ -440,7 +438,7 @@ class NeuroAlignPredictor():
     def load_latest(self):
         latest = tf.train.latest_checkpoint(self.checkpoint_root)
         if latest is not None:
-            self.checkpoint.restore(latest)
+            self.checkpoint.restore(latest).expect_partial()
             print("Loaded latest checkpoint")
 
 

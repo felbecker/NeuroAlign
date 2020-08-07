@@ -9,19 +9,19 @@ config = {
     #"num_col" : 250,
 
     #number of sequentially applied core networks (each with unique parameters)
-    "num_kernel" : 1,
+    "num_kernel" : 2,
 
     #iteration counts for the different components
     "train_iterations" : 3,
     "test_iterations" : 3,
 
     #training performance and logging
-    "learning_rate" : 2e-6,
+    "learning_rate" : 1e-3,
     "num_training_iteration" : 2000,
     "batch_size": 100,
     "savestate_milestones": 20,
     "l2_regularization" : 1e-12,
-    "adjacent_column_radius" : 1000,
+    "adjacent_column_radius" : 20,
     "window_uniform_radius" : 10,
     "batch_window_size" : 20,
 
