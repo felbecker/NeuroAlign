@@ -13,6 +13,7 @@ def greedy_col_max_likely(msa, memberships):
 def greedy_consistent(msa, memberships):
     #2d descending argsort the predicted memberships
     greedy_sorted = np.dstack(np.unravel_index(np.argsort(-memberships, axis=None), memberships.shape))[0]
+    greedy_sorted[:,1] = np.max(greedy_sorted[:,1]) - greedy_sorted[:,1]
     #results; -1 indicates a uncertain column, 2 positions in incertain columns compare as "not aligned"
     checker = ConsistencyChecker(msa, memberships.shape)
     for pos,col in greedy_sorted:

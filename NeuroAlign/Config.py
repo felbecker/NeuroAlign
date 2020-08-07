@@ -4,7 +4,7 @@ HIDDEN_LAYER_DIM = 32
 #NeuroAlign parameter configuration
 config = {
 
-    "type" : "nucleotide",  #currently supports nucleotide or protein
+    "type" : "protein",  #currently supports nucleotide or protein
 
     #"num_col" : 250,
 
@@ -12,17 +12,18 @@ config = {
     "num_kernel" : 1,
 
     #iteration counts for the different components
-    "train_iterations" : 10,
-    "test_iterations" : 20,
+    "train_iterations" : 3,
+    "test_iterations" : 3,
 
     #training performance and logging
-    "learning_rate" : 2e-5,
+    "learning_rate" : 2e-6,
     "num_training_iteration" : 2000,
-    "batch_size": 10,
-    "savestate_milestones": 100,
-    "l2_regularization" : 0,#1e-12,
+    "batch_size": 100,
+    "savestate_milestones": 20,
+    "l2_regularization" : 1e-12,
     "adjacent_column_radius" : 1000,
     "window_uniform_radius" : 10,
+    "batch_window_size" : 20,
 
     #hidden dimension for the latent representations for each sequence position
     #for simplicity also used for the representations of the forward edges the along sequences and

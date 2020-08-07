@@ -366,7 +366,10 @@ class NeuroAlignPredictor():
 
     #col_priors is a list of position pairs (s,i) = sequence s at index i
     def predict(self, msa):
-        seq_g, col_g, priors, _ = self.get_window_sample(msa, 0, msa.alignment_len-1, msa.alignment_len)#self.config["num_col"])
+        center = np.randint(msa.alignment_len)
+        l = max(0, center - self.config["batch_window_size"])
+        r = min(msa.alignment_len-1, center + self.config["batch_window_size"])
+        seq_g, col_g, priors, _ = self.get_window_sample(msa, l, r, r-l+1)
         mem, rp = self.inference(seq_g, col_g, priors)
         # out = self.model(init_seq, init_cols, priors, config["test_iterations"])
         # mem = out[-1]

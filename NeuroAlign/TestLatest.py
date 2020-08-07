@@ -26,17 +26,25 @@ for i in range(1,args.n+1):
 predictor = Model.NeuroAlignPredictor(config, msa[0])
 predictor.load_latest()
 
-ps = 0
-rs = 0
+ps_ml = 0
+rs_ml = 0
+ps_gc = 0
+rs_gc = 0
 for m in msa:
     print("___________________________")
     print(m.ref_seq)
     mem, rp = predictor.predict(m)
     print(m.membership_targets)
-    am = Postprocessing.greedy_consistent(m, mem)
-    print(am)
-    p,r = m.recall_prec(am.flatten())
-    ps += p
-    rs += r
+    am_ml = Postprocessing.greedy_col_max_likely(m, mem)
+    am_gc = Postprocessing.greedy_consistent(m, mem)
+    print(am_ml)
+    print(am_gc)
+    p,r = m.recall_prec(am_ml.flatten())
+    ps_ml += p
+    rs_ml += r
+    p,r = m.recall_prec(am_gc.flatten())
+    ps_gc += p
+    rs_gc += r
 
-print("precision=", ps/len(msa), "recall=", rs/len(msa))
+print("max likely precision=", ps_ml/len(msa), "recall=", rs_ml/len(msa))
+print("greedy consistent precision=", ps_gc/len(msa), "recall=", rs_gc/len(msa))
