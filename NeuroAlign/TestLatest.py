@@ -32,8 +32,9 @@ ps_gc = 0
 rs_gc = 0
 for m in msa:
     print("___________________________")
+    print(m.filename)
     print(m.ref_seq)
-    mem, rp = predictor.predict(m)
+    mem, rp, gaps = predictor.predict(m)
     print(m.membership_targets)
     am_ml = Postprocessing.greedy_col_max_likely(m, mem)
     am_gc = Postprocessing.greedy_consistent(m, mem)

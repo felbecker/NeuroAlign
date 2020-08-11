@@ -28,7 +28,10 @@ class ConsistencyChecker():
         edges = []
         self.lsum = 0
         for l in msa.seq_lens:
-            edges.extend([(self.lsum+i, self.lsum+i+1) for i in range(l-1)])
+            if l == 1:
+                self.alignment_graph.add_node(self.lsum)
+            else:
+                edges.extend([(self.lsum+i, self.lsum+i+1) for i in range(l-1)])
             self.lsum += l
         edges.extend([(self.lsum+i, self.lsum+i+1) for i in range(n[1]-1)])
         self.alignment_graph.add_edges_from(edges)

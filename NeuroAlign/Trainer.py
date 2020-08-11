@@ -12,27 +12,29 @@ class NeuroAlignTrainer():
         self.config = config
         self.predictor = predictor
         optimizer = snt.optimizers.Adam(config["learning_rate"])
-        def train_step(sequence_graph, col_graph, priors, target_col_ids):
+        def train_step(sequence_graph, col_graph, priors, target_col_ids, target_gaps):
             with tf.GradientTape() as tape:
-                memberships, relative_positions = self.predictor.model(sequence_graph, col_graph, priors, config["train_iterations"])
+                memberships, relative_positions, gaps = self.predictor.model(sequence_graph, col_graph, priors, config["train_iterations"])
                 train_loss = 0
                 mem_tar = tf.one_hot(target_col_ids, col_graph.n_node[0])
                 mem_tar_sqr = tf.matmul(mem_tar, mem_tar, transpose_b = True)
                 rp_targets = tf.reshape(target_col_ids/col_graph.n_node[0], (-1,1))
-                for mem, rp in zip(memberships, relative_positions):
+                for mem, rp, g in zip(memberships, relative_positions, gaps):
                     mem_sqr = tf.matmul(mem, mem, transpose_b = True)
                     l_mem = tf.compat.v1.losses.log_loss(labels=mem_tar_sqr, predictions=mem_sqr)
                     l_rp = tf.compat.v1.losses.mean_squared_error(labels=rp_targets, predictions=rp)
-                    train_loss += l_mem + l_rp
+                    l_g = tf.compat.v1.losses.mean_squared_error(labels=tf.reshape(target_gaps, (-1,1)), predictions=g)
+                    train_loss += l_mem + l_rp + l_g
                 train_loss /= len(memberships)
                 regularizer = snt.regularizers.L2(config["l2_regularization"])
                 train_loss += regularizer(self.predictor.model.trainable_variables)
                 gradients = tape.gradient(train_loss, self.predictor.model.trainable_variables)
                 optimizer.apply(gradients, self.predictor.model.trainable_variables)
-                return mem, train_loss, l_mem, l_rp
+                return mem, train_loss, l_mem, l_rp, l_g
 
         # Get the input signature for that function by obtaining the specs
         self.input_signature = [
+            tf.TensorSpec((None), dtype=tf.dtypes.int32),
             tf.TensorSpec((None), dtype=tf.dtypes.int32)
         ]
 
@@ -47,8 +49,8 @@ class NeuroAlignTrainer():
         c = np.random.randint(msa.alignment_len)
         lb = max(0, c - radius)
         ub = min(msa.alignment_len-1, c + radius)
-        seq_g, col_g, priors, target_col_ids = self.predictor.get_window_sample(msa, lb, ub, ub -lb +1)#self.config["num_col"])
-        return self.step_op(seq_g, col_g, priors, target_col_ids)
+        seq_g, col_g, priors, target_col_ids, gaps = self.predictor.get_window_sample(msa, lb, ub, ub -lb +1)#self.config["num_col"])
+        return self.step_op(seq_g, col_g, priors, target_col_ids, gaps)
 
 
 

@@ -6,6 +6,7 @@ import copy
 #reads sequences as fasta file and converts them to inputs and targets interpretable by the NeuroAlign model
 class Instance:
     def __init__(self, filename, alphabet):
+        self.filename = filename
         self.alphabet = alphabet
         self.valid = self.read_seqs(filename)
         if self.valid:
@@ -75,7 +76,9 @@ class Instance:
         #a mapping from raw position to position in the reference solution (sequences with gaps)
         cumsum = np.cumsum(self.ref_seq != len(self.alphabet), axis=1) #A-B--C -> 112223
         diff = np.diff(np.insert(cumsum, 0, 0.0, axis=1), axis=1) #112223 -> 0112223 -> [[(i+1) - i]] -> 101001
-        self.membership_targets = np.concatenate([np.argwhere(diff[i,:]) for i in range(diff.shape[0])]).flatten()
+        diff_where = [np.argwhere(diff[i,:]).flatten() for i in range(diff.shape[0])]
+        self.gap_lengths = np.concatenate([np.diff(d)-1 for d in diff_where]).flatten()
+        self.membership_targets = np.concatenate(diff_where).flatten()
 
         #also compute a mapping for each sequence from alignment column to the last occuring index
         #self.col_to_seq[i-1] == self.col_to_seq[i]  <->  gap at i
