@@ -31,15 +31,25 @@ rs_ml = 0
 ps_gc = 0
 rs_gc = 0
 for m in msa:
-    print("___________________________")
-    print(m.filename)
-    print(m.ref_seq)
     mem, rp, gaps = predictor.predict(m)
-    print(m.membership_targets)
     am_ml = Postprocessing.greedy_col_max_likely(m, mem)
     am_gc = Postprocessing.greedy_consistent(m, mem)
-    print(am_ml)
-    print(am_gc)
+
+    print("___________________________")
+    print("file:", m.filename)
+    print("target sequences: \n", m.ref_seq)
+    print("___________________________")
+    print("target memberships:", m.membership_targets)
+    print("greedy fast:", am_ml)
+    print("greedy consistent:", am_gc)
+    print("___________________________")
+    print("target rp:", m.membership_targets/m.alignment_len)
+    print("predicted rp:", rp)
+    print("___________________________")
+    print("target gaps:", m.gap_lengths)
+    print("predicted gaps:", gaps)
+    print("___________________________")
+
     p,r = m.recall_prec(am_ml.flatten())
     ps_ml += p
     rs_ml += r

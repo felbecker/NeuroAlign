@@ -1,10 +1,10 @@
-STATE_DIM = 8
-HIDDEN_LAYER_DIM = 16
+STATE_DIM = 4
+HIDDEN_LAYER_DIM = 8
 
 #NeuroAlign parameter configuration
 config = {
 
-    "type" : "protein",  #currently supports nucleotide or protein
+    "type" : "nucleotide",  #currently supports nucleotide or protein
 
     #"num_col" : 250,
 
@@ -12,18 +12,18 @@ config = {
     "num_kernel" : 1,
 
     #iteration counts for the different components
-    "train_iterations" : 1,
-    "test_iterations" : 1,
+    "train_iterations" : 10,
+    "test_iterations" : 10,
 
     #training performance and logging
     "learning_rate" : 1e-5,
     "num_training_iteration" : 2000,
-    "batch_size": 100,
-    "savestate_milestones": 10,
-    "l2_regularization" : 0,#1e-12,
+    "batch_size": 10,
+    "savestate_milestones": 100,
+    "l2_regularization" : 0,#1e-10,
     "adjacent_column_radius" : 200,
     "window_uniform_radius" : 1,
-    "batch_window_size" : 20,
+    "final_iteration_loss_weight" : 5, #final iteration is weighted 5 times as much as any intermediate iteration
 
     #hidden dimension for the latent representations for each sequence position
     #for simplicity also used for the representations of the forward edges the along sequences and
@@ -34,9 +34,9 @@ config = {
 
     "encoder" : [HIDDEN_LAYER_DIM],
 
-    "seq_net_node_layers" : [2*HIDDEN_LAYER_DIM, 2*HIDDEN_LAYER_DIM, 2*HIDDEN_LAYER_DIM],
-    "seq_net_edge_layers" : [HIDDEN_LAYER_DIM],
-    "seq_net_global_per_seq_layers" : [HIDDEN_LAYER_DIM],
+    "seq_net_node_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "seq_net_edge_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "seq_net_global_per_seq_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
     "seq_global_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
 
     "alphabet_to_sequence_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
@@ -45,10 +45,10 @@ config = {
     #hidden dimension for the latent representation of the global property of each column
     "col_latent_dim" : STATE_DIM,
 
-    "column_net_node_layers" : [2*HIDDEN_LAYER_DIM, 2*HIDDEN_LAYER_DIM, 2*HIDDEN_LAYER_DIM],
-    "column_net_global_layers" : [HIDDEN_LAYER_DIM],
-    "column_net_edge_layers" : [HIDDEN_LAYER_DIM],
-    "column_decode_node_layers" : [HIDDEN_LAYER_DIM],
+    "column_net_node_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "column_net_global_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "column_net_edge_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "column_decode_node_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
 
     "sequence_to_columns_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM]
 }

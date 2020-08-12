@@ -291,7 +291,7 @@ class NeuroAlignModel(gn._base.AbstractModule):
     #     hidden_sequence_graph = self.sequence_kernel.seq_network.get_initial_states(sequence_graph)
     #     hidden_column_graph = self.column_kernel.column_network.get_initial_states(column_graph)
     #     for _ in range(iterations):
-    #         sequence_graph, hidden_sequence_graph = self.sequence_kernel(init_seq, sequence_graph, hidden_sequence_graph, column_graph, memberships[-1])
+    #         sequence_graph, hidden_sequence_graph = self.sequence_kernel(init_seq, sequence_graph, hidden_sequence_graph, column_graph, membenucleotiderships[-1])
     #         column_graph, hidden_column_graph = self.column_kernel(init_col, column_graph, hidden_column_graph, sequence_graph,  memberships[-1])
     #         mem = self.decode(init_seq, init_col, column_graph, sequence_graph)
     #         memberships.append(mem)
@@ -410,7 +410,7 @@ class NeuroAlignPredictor():
                                                 np.reshape(np.linspace(0,1,nodes.shape[0]), (-1,1))),
                                                     axis=1).astype(np.float32),
                         "senders" : list(range(0, nodes.shape[0]-1)),
-                        "receivers" : list(range(1, nodesnum_col.shape[0])) }
+                        "receivers" : list(range(1, nodes.shape[0])) }
                         for seqid, nodes in enumerate(nodes_subset)]
 
         col_dict, priors = self.make_window_uniform_priors(nodes_subset, num_col)
