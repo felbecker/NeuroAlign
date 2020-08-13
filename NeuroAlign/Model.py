@@ -279,26 +279,6 @@ class NeuroAlignModel(gn._base.AbstractModule):
             self.gaps_out = snt.Linear(1, name="gaps_out_transform")
 
 
-    # def _build(self, init_seq, init_cols, membership_priors, iterations):
-    #
-    #     sequence_graph, alignment_global = self.sequence_kernel.parameterize_init_seq(init_seq)
-    #     init_seq = sequence_graph.nodes
-    #     column_graph = self.column_kernel.parameterize_col_priors(init_cols)
-    #     init_col = column_graph.nodes
-    #     memberships = [membership_priors]
-    #     relative_positions = []
-    #     #mem_decode_state = self.membership_decoder.initial_state(batch_size=tf.reduce_sum(sequence_graph.n_node)*column_graph.n_node[0])
-    #     hidden_sequence_graph = self.sequence_kernel.seq_network.get_initial_states(sequence_graph)
-    #     hidden_column_graph = self.column_kernel.column_network.get_initial_states(column_graph)
-    #     for _ in range(iterations):
-    #         sequence_graph, hidden_sequence_graph = self.sequence_kernel(init_seq, sequence_graph, hidden_sequence_graph, column_graph, membenucleotiderships[-1])
-    #         column_graph, hidden_column_graph = self.column_kernel(init_col, column_graph, hidden_column_graph, sequence_graph,  memberships[-1])
-    #         mem = self.decode(init_seq, init_col, column_graph, sequence_graph)
-    #         memberships.append(mem)
-    #         relative_positions.append(self.rp_out(self.rp_decoder(tf.concat([init_seq, sequence_graph.nodes], axis=1))))
-    #     return memberships[1:], relative_positions
-
-
     def _build(self, init_seq, init_cols, membership_priors, iterations):
 
         sequence_graph, alignment_global = self.sequence_kernel[0].parameterize_init_seq(init_seq)

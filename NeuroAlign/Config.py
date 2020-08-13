@@ -4,7 +4,7 @@ HIDDEN_LAYER_DIM = 8
 #NeuroAlign parameter configuration
 config = {
 
-    "type" : "nucleotide",  #currently supports nucleotide or protein
+    "type" : "protein",  #currently supports nucleotide or protein
 
     #"num_col" : 250,
 

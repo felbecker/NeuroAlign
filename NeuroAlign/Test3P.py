@@ -5,8 +5,8 @@ from Config import config
 
 parser = argparse.ArgumentParser(description='Tests the latest NeuroAlign model.')
 parser.add_argument("-n", type=int, default=200, help="number of testing examples")
-parser.add_argument("-dir_3p", type=str, default="./data_20_test/tcoffee", help="directory with 3p data files")
-parser.add_argument("-dir_ref", type=str, default="./data_20_test", help="directory with reference data files")
+parser.add_argument("-dir_3p", type=str, default="", help="directory with 3p data files")
+parser.add_argument("-dir_ref", type=str, default="", help="directory with reference data files")
 parser.add_argument("-type", type=str, default="nucleotide", help="nucleotide or protein")
 args = parser.parse_args()
 
