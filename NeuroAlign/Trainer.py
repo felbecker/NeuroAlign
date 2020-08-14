@@ -31,7 +31,7 @@ class NeuroAlignTrainer():
                 train_loss += regularizer(self.predictor.model.trainable_variables)
                 gradients = tape.gradient(train_loss, self.predictor.model.trainable_variables)
                 optimizer.apply(gradients, self.predictor.model.trainable_variables)
-                return mem, train_loss, l_mem/weights[-1], l_rp/weights[-1], l_g/weights[-1]
+                return mem, train_loss, l_mem, l_rp, l_g
 
         # Get the input signature for that function by obtaining the specs
         self.input_signature = [
