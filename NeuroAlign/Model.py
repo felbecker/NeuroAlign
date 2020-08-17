@@ -313,7 +313,7 @@ class NeuroAlignModel(gn._base.AbstractModule):
         decode_out = tf.reshape(decode_out, [n_pos, n_col])
         memberships = tf.nn.softmax(decode_out)
         range = tf.reshape(tf.range(tf.cast(n_col, dtype=tf.float32), dtype=tf.float32), (1,-1))
-        soft_argmax = tf.reduce_sum(memberships * range, axis=-1, keepdims=True)
+        soft_argmax = tf.malmul(memberships, range) 
         gaps = soft_argmax[1:,:] - soft_argmax[:-1,:] - 1
         indices= tf.cast(tf.reshape(tf.math.cumsum(sequence_graph.n_node[:-1])-1, (-1,1)), dtype=tf.int64)
         values = tf.ones((gn.utils_tf.get_num_graphs(sequence_graph)-1), dtype=tf.bool)
