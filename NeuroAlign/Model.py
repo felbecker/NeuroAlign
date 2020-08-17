@@ -272,9 +272,6 @@ class NeuroAlignModel(gn._base.AbstractModule):
             self.membership_decoder = make_mlp_model(config["column_decode_node_layers"])()
             self.membership_out_transform = snt.Linear(1, name="column_out_transform")
 
-            self.rp_decoder = make_mlp_model([config["col_latent_dim"]])()
-            self.rp_out = snt.Linear(1, name="rp_out_transform")
-
 
     def _build(self, init_seq, init_cols, membership_priors, iterations):
 
@@ -293,10 +290,10 @@ class NeuroAlignModel(gn._base.AbstractModule):
             for _ in range(iterations):
                 sequence_graph, hidden_sequence_graph = self.sequence_kernel[num_kernel](init_seq, sequence_graph, hidden_sequence_graph, column_graph, running_mem)
                 column_graph, hidden_column_graph = self.column_kernel[num_kernel](init_col, column_graph, hidden_column_graph, sequence_graph,  running_mem)
-                mem, g = self.decode(init_seq, init_col, column_graph, sequence_graph)
+                mem, g, rp = self.decode(init_seq, init_col, column_graph, sequence_graph)
                 memberships.append(mem)
                 running_mem = 0.1*running_mem + 0.9*memberships[-1]
-                relative_positions.append(self.rp_out(self.rp_decoder(tf.concat([init_seq, sequence_graph.nodes], axis=1))))
+                relative_positions.append(rp)
                 gaps.append(g)
         return memberships, relative_positions, gaps
 
@@ -323,7 +320,8 @@ class NeuroAlignModel(gn._base.AbstractModule):
         st = tf.sparse.SparseTensor(indices, values, [tf.cast(n_pos-1, dtype=tf.int64)])
         remove_seq_ends = tf.math.logical_not(tf.sparse.to_dense(st))
         gaps_no_seq_end = tf.boolean_mask(gaps, remove_seq_ends)
-        return memberships, gaps_no_seq_end
+        relative_positions = soft_argmax/tf.cast(n_col, dtype=tf.float32)
+        return memberships, gaps_no_seq_end, relative_positions
 
 
 
