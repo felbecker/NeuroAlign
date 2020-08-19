@@ -1,5 +1,5 @@
-STATE_DIM = 16
-HIDDEN_LAYER_DIM = 32
+STATE_DIM = 32
+HIDDEN_LAYER_DIM = 64
 
 #NeuroAlign parameter configuration
 config = {
@@ -12,7 +12,7 @@ config = {
     "num_kernel" : 1,
 
     #iteration counts for the different components
-    "train_iterations" : 15,
+    "train_iterations" : 10,
     "test_iterations" : 10,
 
     #training performance and logging

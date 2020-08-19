@@ -9,6 +9,7 @@ class Instance:
         self.filename = filename
         self.alphabet = alphabet
         self.valid = self.read_seqs(filename)
+        self.seq_ids = []
         if self.valid:
             self.compute_inputs()
             self.compute_targets()
@@ -25,6 +26,7 @@ class Instance:
             if len(line)>0:
                 if line[0]=='>':
                     seq_open = True
+                    self.seq_ids.append(line[1:])
                 elif seq_open:
                     self.ref_seq.append(line)
                     seq_open = False
@@ -118,3 +120,22 @@ class Instance:
         rec = tp/(tp+fn) if tp+fn > 0 else 1
 
         return prec, rec
+
+
+#takes a vector of columns indices and a MSA instance and outputs a fasta file
+#the column indices per sequence have to be strictly increasing
+def column_pred_to_fasta(msa, cols):
+    lsum = 0
+    with open("NR_"+msa.filename,"w") as f:
+        for id,l,raw in zip(msa.seq_ids, msa.seq_lens, msa.raw_seq):
+            cur = 0
+            seq_with_gaps = ""
+            for i,c in enumerate(cols[lsum:(lsum+l)]):
+                while c > cur:
+                    seq_with_gaps += "-"
+                    cur += 1
+                seq_with_gaps += msa.raw[i]
+                cur += 1
+            f.write(id)
+            f.write(seq_with_gaps)
+            lsum += l

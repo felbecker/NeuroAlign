@@ -3,6 +3,7 @@ import MSA
 import Model
 import numpy as np
 import sys
+import os
 np.set_printoptions(threshold=sys.maxsize)
 
 from Config import config
@@ -11,7 +12,18 @@ import Postprocessing
 parser = argparse.ArgumentParser(description='Tests the latest NeuroAlign model.')
 parser.add_argument("-n", type=int, default=200, help="number of testing examples")
 parser.add_argument("-dir", type=str, default="./data_20_test", help="directory with data files")
+parser.add_argument("-w", action='store_true', help="write output fasta files")
 args = parser.parse_args()
+
+if args.w:
+    try:
+        os.rmdir("./test_out")
+    except OSError:
+        print ("Can not remove test directory")
+    try:
+        os.mkdir("./test_out")
+    except OSError:
+        print ("Can not remove test directory")
 
 #load the training dataset
 msa = []
@@ -56,6 +68,9 @@ for m in msa:
     p,r = m.recall_prec(am_gc.flatten())
     ps_gc += p
     rs_gc += r
+
+    if args.w:
+        MSA.column_pred_to_fasta(m, am_ml)
 
 print("max likely precision=", ps_ml/len(msa), "recall=", rs_ml/len(msa))
 print("greedy consistent precision=", ps_gc/len(msa), "recall=", rs_gc/len(msa))
