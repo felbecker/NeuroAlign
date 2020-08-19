@@ -70,7 +70,7 @@ for m in msa:
     rs_gc += r
 
     if args.w:
-        MSA.column_pred_to_fasta(m, am_ml)
+        MSA.column_pred_to_fasta(m, am_ml, "./test_out/")
 
 print("max likely precision=", ps_ml/len(msa), "recall=", rs_ml/len(msa))
 print("greedy consistent precision=", ps_gc/len(msa), "recall=", rs_gc/len(msa))
