@@ -1,10 +1,10 @@
-STATE_DIM = 50
-HIDDEN_LAYER_DIM = 50
+STATE_DIM = 20
+HIDDEN_LAYER_DIM = 20
 
 #NeuroAlign parameter configuration
 config = {
 
-    "type" : "protein",  #currently supports nucleotide or protein
+    "type" : "nucleotide",  #currently supports nucleotide or protein
 
     #"num_col" : 250,
 
@@ -16,14 +16,14 @@ config = {
     "test_iterations" : 50,
 
     #training performance and logging
-    "learning_rate" : 1e-5,
+    "learning_rate" : 2e-2,
     "num_training_iteration" : 2000,
     "batch_size": 10,
     "savestate_milestones": 100,
     "l2_regularization" : 1e-5,
-    "adjacent_column_radius" : 10,
-    "window_uniform_radius" : 6,
-    "final_iteration_loss_weight" : 4, #final iteration is weighted 5 times as much as any intermediate iteration
+    "adjacent_column_radius" : 2000,
+    "window_uniform_radius" : 1,
+    "final_iteration_loss_weight" : 4, #final iteration is weighted xxx times as much as any intermediate iteration
     "lambda_rp" : 1.0,
     "lambda_gap" : 0.1,
 

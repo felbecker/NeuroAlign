@@ -51,11 +51,18 @@ for i in range(config["num_training_iteration"]):
     rp_losses.append(rp_loss_sum/config["batch_size"])
     gaps_losses.append(gaps_loss_sum/config["batch_size"])
 
-    print(i,
-            " l=", sum(train_losses[-100:])/len(train_losses[-100:]),
-            " mem=", sum(mem_losses[-100:])/len(mem_losses[-100:]),
-            " rp=", sum(rp_losses[-100:])/len(rp_losses[-100:]),
-            " gap=", sum(gaps_losses[-100:])/len(gaps_losses[-100:]), flush=True)
+    if len(train_losses) >= 100:
+        print(i,
+                " l=", sum(train_losses[-100:])/100,
+                " mem=", sum(mem_losses[-100:])/100,
+                " rp=", sum(rp_losses[-100:])/100,
+                " gap=", sum(gaps_losses[-100:])/100, flush=True)
+    else:
+        print(i,
+                " l=", train_losses[i],
+                " mem=", mem_losses[i],
+                " rp=", rp_losses[i],
+                " gap=", gaps_losses[i], flush=True)
 
     if i % config["savestate_milestones"] == 0 and i > 0:
         predictor.save()
