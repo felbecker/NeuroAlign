@@ -79,7 +79,7 @@ class Instance:
         cumsum = np.cumsum(self.ref_seq != len(self.alphabet), axis=1) #A-B--C -> 112223
         diff = np.diff(np.insert(cumsum, 0, 0.0, axis=1), axis=1) #112223 -> 0112223 -> [[(i+1) - i]] -> 101001
         diff_where = [np.argwhere(diff[i,:]).flatten() for i in range(diff.shape[0])]
-        self.gap_lengths = np.concatenate([np.diff(d)-1 for d in diff_where]).flatten()
+        self.gap_lengths = np.concatenate([np.diff(np.concatenate([-np.ones(1), d, self.alignment_len*np.ones(1)]))-1 for d in diff_where]).flatten()
         self.membership_targets = np.concatenate(diff_where).flatten()
 
         #also compute a mapping for each sequence from alignment column to the last occuring index
@@ -137,6 +137,8 @@ def column_pred_to_fasta(msa, cols, dir):
                     cur += 1
                 seq_with_gaps += msa.alphabet[raw[i]]
                 cur += 1
+            while cur < msa.alignment_len:
+                seq_with_gaps += "-"
             f.write(id+"\n")
             f.write(seq_with_gaps+"\n")
             lsum += l
