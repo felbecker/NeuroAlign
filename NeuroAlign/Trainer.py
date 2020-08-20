@@ -17,6 +17,7 @@ class NeuroAlignTrainer():
                 memberships, relative_positions, gaps = self.predictor.model(sequence_graph, col_graph, priors, config["train_iterations"])
                 train_loss = 0
                 mem_tar = tf.one_hot(target_col_ids, col_graph.n_node[0])
+                colf = tf.cast(col_graph.n_node[0], dtype=tf.float32)
                 mem_tar_sqr = tf.matmul(mem_tar, mem_tar, transpose_b = True)
                 rp_targets = tf.reshape(target_col_ids/col_graph.n_node[0], (-1,1))
                 weights = [1]*(len(memberships)-1) + [config["final_iteration_loss_weight"]]
@@ -24,9 +25,9 @@ class NeuroAlignTrainer():
                     mem_sqr = tf.matmul(mem, mem, transpose_b = True)
                     l_mem = tf.compat.v1.losses.log_loss(labels=mem_tar_sqr, predictions=mem_sqr)
                     l_rp = tf.compat.v1.losses.mean_squared_error(labels=rp_targets, predictions=rp)
-                    l_g = tf.compat.v1.losses.mean_squared_error(labels=tf.reshape(target_gaps_in/col_graph.n_node[0], (-1,1)), predictions=g)
-                    l_g += tf.compat.v1.losses.mean_squared_error(labels=tf.reshape(target_gaps_begin/col_graph.n_node[0], (-1,1)), predictions=gs)
-                    l_g += tf.compat.v1.losses.mean_squared_error(labels=tf.reshape(target_gaps_end/col_graph.n_node[0], (-1,1)), predictions=ge)
+                    l_g = tf.compat.v1.losses.mean_squared_error(labels=tf.reshape(target_gaps_in/colf, (-1,1)), predictions=g/colf)
+                    l_g += tf.compat.v1.losses.mean_squared_error(labels=tf.reshape(target_gaps_begin/colf, (-1,1)), predictions=gs/colf)
+                    l_g += tf.compat.v1.losses.mean_squared_error(labels=tf.reshape(target_gaps_end/colf, (-1,1)), predictions=ge/colf)
                     train_loss += w*(l_mem + config["lambda_rp"]*l_rp + config["lambda_gap"]*l_g)
                 train_loss /= sum(weights)
                 regularizer = snt.regularizers.L2(config["l2_regularization"])
@@ -38,9 +39,9 @@ class NeuroAlignTrainer():
         # Get the input signature for that function by obtaining the specs
         self.input_signature = [
             tf.TensorSpec((None), dtype=tf.dtypes.int32),
-            tf.TensorSpec((None), dtype=tf.dtypes.int32),
-            tf.TensorSpec((None), dtype=tf.dtypes.int32),
-            tf.TensorSpec((None), dtype=tf.dtypes.int32)
+            tf.TensorSpec((None), dtype=tf.dtypes.float32),
+            tf.TensorSpec((None), dtype=tf.dtypes.float32),
+            tf.TensorSpec((None), dtype=tf.dtypes.float32)
         ]
 
         # Compile the update function using the input signature for speedy code.

@@ -388,19 +388,24 @@ class NeuroAlignPredictor():
                 nodes_subset.append(np.copy(seq[l:(r+1)]))
                 lsum = sum(msa.seq_lens[:seqid])
                 mem_list.append(msa.membership_targets[(lsum+l):(lsum+r+1)])
-                gaps_list.append(msa.gap_lengths[(lsum+seqid+l):(lsum+seqid+r+2)])
+                gaps_list.append(np.copy(msa.gap_lengths[(lsum+seqid+l):(lsum+seqid+r+2)]))
                 #if the left or right bound of the window is inside a long gap, we have to
                 #adjust the gap length accordingly
                 if l > 0:
-                    gaps_list[-1][0] -= lb - msa.membership_targets[lsum+l-1]
+                    gaps_list[-1][0] -= lb - msa.membership_targets[lsum+l-1] + 1
                 if r < msa.seq_lens[seqid]-1:
-                    gaps_list[-1][-1] -= msa.membership_targets[lsum+r+1] - ub
+                    gaps_list[-1][-1] -= msa.membership_targets[lsum+r+1] - ub - 1
 
 
         mem = np.concatenate(mem_list, axis=0) - lb
         gaps_in = np.concatenate([g[1:-1] for g in gaps_list], axis=0)
         gaps_start = np.concatenate([np.reshape(g[0], (1)) for g in gaps_list], axis=0)
         gaps_end = np.concatenate([np.reshape(g[-1], (1)) for g in gaps_list], axis=0)
+
+        # print(msa.ref_seq)
+        # print(gaps_in)
+        # print(gaps_start)
+        # print(gaps_end)
 
         seq_dicts = [{"nodes" : np.concatenate((np.reshape(nodes, (-1,1)),
                                                 np.reshape(np.linspace(0,1,nodes.shape[0]), (-1,1))),
