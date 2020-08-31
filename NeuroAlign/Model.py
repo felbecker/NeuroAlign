@@ -379,22 +379,31 @@ class NeuroAlignPredictor():
         nodes_subset = []
         mem_list = []
         gaps_list = []
-        for seqid, seq in enumerate(msa.raw_seq):
-            l = msa.col_to_seq[seqid, lb]
-            r = msa.col_to_seq[seqid, ub]
-            if r-l>0 or not msa.ref_seq[seqid, lb] == len(msa.alphabet):
-                if msa.ref_seq[seqid, lb] == len(msa.alphabet):
-                    l += 1
-                nodes_subset.append(np.copy(seq[l:(r+1)]))
-                lsum = sum(msa.seq_lens[:seqid])
-                mem_list.append(msa.membership_targets[(lsum+l):(lsum+r+1)])
-                gaps_list.append(np.copy(msa.gap_lengths[(lsum+seqid+l):(lsum+seqid+r+2)]))
-                #if the left or right bound of the window is inside a long gap, we have to
-                #adjust the gap length accordingly
-                if l > 0:
-                    gaps_list[-1][0] -= lb - msa.membership_targets[lsum+l-1] + 1
-                if r < msa.seq_lens[seqid]-1:
-                    gaps_list[-1][-1] -= msa.membership_targets[lsum+r+1] - ub - 1
+        runs = 0
+        while len(mem_list) == 0: #sampling might select only empty sequences (long gaps, retry)
+            nodes_subset = []
+            mem_list = []
+            gaps_list = []
+            runs += 1
+            for seqid, seq in enumerate(msa.raw_seq):
+                l = msa.col_to_seq[seqid, lb]
+                r = msa.col_to_seq[seqid, ub]
+                if r-l>0 or not msa.ref_seq[seqid, lb] == len(msa.alphabet):
+                    if msa.ref_seq[seqid, lb] == len(msa.alphabet):
+                        l += 1
+                    nodes_subset.append(np.copy(seq[l:(r+1)]))
+                    lsum = sum(msa.seq_lens[:seqid])
+                    mem_list.append(msa.membership_targets[(lsum+l):(lsum+r+1)])
+                    gaps_list.append(np.copy(msa.gap_lengths[(lsum+seqid+l):(lsum+seqid+r+2)]))
+                    #if the left or right bound of the window is inside a long gap, we have to
+                    #adjust the gap length accordingly
+                    if l > 0:
+                        gaps_list[-1][0] -= lb - msa.membership_targets[lsum+l-1] + 1
+                    if r < msa.seq_lens[seqid]-1:
+                        gaps_list[-1][-1] -= msa.membership_targets[lsum+r+1] - ub - 1
+            if runs > 50:
+                print("Could not sample non empty sequences in under 50 attempts, check your data.")
+                quit()
 
 
         mem = np.concatenate(mem_list, axis=0) - lb

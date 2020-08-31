@@ -139,6 +139,7 @@ def column_pred_to_fasta(msa, cols, dir):
                 cur += 1
             while cur < msa.alignment_len:
                 seq_with_gaps += "-"
+                cur += 1
             f.write(id+"\n")
             f.write(seq_with_gaps+"\n")
             lsum += l
