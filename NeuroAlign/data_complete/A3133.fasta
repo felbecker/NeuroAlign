@@ -1,0 +1,650 @@
+>COX2_HORSE|P48660/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlvasrpglyygq......CseiCgsnHsfM
+>COX2_DEKBR|P43374/178-226: COX2|PS00078
+ViHdfampslgikidavpgrlnqtsaliqregvyygq......CselCgvmHssM
+>COX2_BRAHY|Q9GCE7/159-207: COX2|PS00078
+VlHswavpsxgvkadaipgrlnqamlasmrpglfygq......CseiCgsnHcfM
+>COX2_GORGO|P26456/159-207: COX2|PS00078
+VlHswavptlglktdaipgrlnqttftatrpgvyygq......CseiCganHsfM
+>COX2_MOUSE|P00405/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_DIDVI|P41311/159-207: COX2|PS00078
+VlHawtmpslglkadaipgrlnqitltssrpgvfygq......CseiCgsnHsfM
+>COX2_HIPAM|Q9ZZY8/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglfygq......CseiCgsnHsfM
+>COX2_ONCMY|P48171/159-207: COX2|PS00078
+VlHswavpslgvkmdavpgrlnqtafiasrpgvfygq......CseiCganHsfM
+>COX2_LEMCA|P98035/159-207: COX2|PS00078
+VlHswtvpslgvktdaipgrlnqatlmasrpgvyygq......CseiCganHsfM
+>COX2_TUPGL|Q37684/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatlistrpglfygq......CseiCgsnHsfM
+>COX2_MYCPA|Q73YL5/251-305: COX2|PS00078
+VvHtfwvpeflfkrdvipnaeannsihvfqveeinspgafvghCaefCgtyHsmM
+>COX2_CAIMO|P50666/158-206: COX2|PS00078
+VlHswavptlgvktdaipgrlnqtsfiatrpgvfygq......CseiCganHsyM
+>COX2_MICTV|Q7IKU8/159-207: COX2|PS00078
+VlHswtvpslgvktdaipgrlnqatlmtsrpgiyygq......CseiCganHsfM
+>COX2_YPOMA|P98048/159-207: COX2|PS00078
+ViHswtvpslgvkidanpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_APIFL|P50267/157-205: COX2|PS00078
+ViHswtvpslgikvdavpgrinqlnliskrpgiffgq......CseiCgmnHsfM
+>COX2_CASBE|O03890/126-174: COX2|PS00078
+VlHswavptlgvktdaipgrlnqtsfittrpgifygq......CseiCganHsyM
+>COX2_MYXGL|Q9G2X2/160-208: COX2|PS00078
+VlHawtlpsmgikvdavpgrlnqvtfssslpglffgq......CseiCganHsfM
+>COX2_DROMI|P67797/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_DROPE|P67798/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_DROPS|P67799/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_DROLO|P29860/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_APIKO|P50268/157-205: COX2|PS00078
+ViHswtvpslgikvdavpgrinqlnliskrpgiffgq......CseiCgmnHsfM
+>COX2_PARDE|P08306/208-256: COX2|PS00078
+ViHawtipafavkqdavpgriaqlwfsvdqegvyfgq......CselCginHayM
+>COX2_VULZE|O47673/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_ZOOAN|P29881/159-207: COX2|PS00078
+VlHswtipslgikadatpgrlnqssfminrpgllygq......CseiCganHsfM
+>COX2_ROULE|Q37649/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttllstrpglyygq......CseiCgsnHsfM
+>COX2_MAIZE|P00412/187-235: COX2|PS00078
+VlHswavpslgvkcdavpgrlnltsilvqregvyygq......CseiCgtnHafM
+>COX2_CHOBI|P98025/159-207: COX2|PS00078
+ViHswtipslgvkvdanpgrlnqtnffinrpgifygq......CseiCganHsfM
+>COX2_PAPAN|P68297/159-207: COX2|PS00078
+VlHswtiptlglktdavpgrlnqtvftatrpgvyygq......CseiCganHsfM
+>COX2_PAPHA|P68298/159-207: COX2|PS00078
+VlHswtiptlglktdavpgrlnqtvftatrpgvyygq......CseiCganHsfM
+>COX2_HUMAN|P00403/159-207: COX2|PS00078
+VlHswavptlglktdaipgrlnqttftatrpgvyygq......CseiCganHsfM
+>COX2_CARAU|O78682/159-207: COX2|PS00078
+VlHswavpslgvkmdavpgrlnqtafiasrpgvfygq......CseiCganHsfM
+>COX2_CHOCR|P48869/184-232: COX2|PS00078
+VlHswavpsfrskcdaipgrlnqtslfikregvyygq......CseiCginHgfM
+>COX2_CRACA|P50662/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatlissrpglyygq......CseiCganHsfM
+>COX2_DROAM|P29856/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_WICCA|P48871/180-228: COX2|PS00078
+ViHdfavpslgikidacpgrlnqvsaliqregvyygq......CselCgvaHsaM
+>COX2_SYNCA|P50675/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglyygq......CseiCgsnHsfM
+>COX2_ALOPA|P98024/159-207: COX2|PS00078
+VlHswavpslgvkadaipgrlnqvmlasmrpglfygq......CseiCgsnHsfM
+>COX2_APOSY|P50673/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_PANPA|P26457/159-207: COX2|PS00078
+VlHswavptlglktdaipgrlnqttftatrpgvyygq......CseiCganHsfM
+>COX2_STRCO|Q9X814/225-273: COX2|PS00078
+ViHsfwvvpflmkqdvipghtnafevtpnkegtflgk......CaelCgvdHsrM
+>COX2_COTJA|P50684/158-206: COX2|PS00078
+VlHswavptlgvktdaipgrlnqtsfittrpgvfygq......CseiCganHsyM
+>COX2_ALBCA|P48889/159-207: COX2|PS00078
+ViHawalpsmgvkmdavpgrlnsmgfhanlpgiyygq......CseiCganHsfM
+>COX2_HYLLA|Q96127/159-207: COX2|PS00078
+VlHswtvpslglktdaipgrlnqttftatrpgvyygq......CseiCganHsfM
+>COX2_PODAN|P20682/183-231: COX2|PS00078
+ViHsfaapalgikcdaypgrlnqvsvfinregvfygq......CseiCgilHssM
+>COX2_GERVA|Q37476/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatitsnrpgvfygq......CseiCgsnHsfM
+>COX2_BUBDE|P50678/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglyygq......CseiCgsnHsfM
+>COX2_RHIDA|Q37643/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttllsnrpglyygq......CseiCgsnHsfM
+>COX2_TARSY|P98046/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttltstrpglyygq......CseiCgsnHsfM
+>COX2_EMEND|P13588/182-230: COX2|PS00078
+ViHsyacpslgikadaypgrlnqasvyingpgtffgq......CseiCgilHssM
+>COX2_CYBMR|P47918/180-228: COX2|PS00078
+ViHdfaipslgikvdacpgrlnqvsaliqregvyygm......CsetCgvaHsaM
+>COX2_UROCI|O48276/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_ATEMI|Q7J6G4/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_BRALA|O79417/159-207: COX2|PS00078
+ViHswtvpslglkmdavpgrlnqlalqcsrvgtfygq......CseiCganHsfM
+>COX2_RHOSH|Q03736/215-263: COX2|PS00078
+ViHswtvpafgvkqdavpgrlaqlwfraeregiffgq......CselCgisHayM
+>COX2_HAPGR|P98034/159-207: COX2|PS00078
+VlHswavpslgvktdaipgrlnqatlmasrpgiyygq......CseiCganHsfM
+>COX2_THEGE|P98044/159-207: COX2|PS00078
+VlHswtiptlglktdavpgrlnqtvftatrpgvyygq......CseiCganHsfM
+>COX2_CHLAE|P26455/159-207: COX2|PS00078
+VlHswtiptlglktdavpgrlnqttftatrpgvyygq......CseiCganHsfM
+>COX2_TAMTO|Q9G185/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COXT_SOYBN|Q02226/325-373: COX2|PS00078
+VlHswavpslgvkcdavpgrlnqistfiqregvyygq......CseiCgtnHafM
+>COX2_DAMPP|P50679/159-207: COX2|PS00078
+VlHswavpslglktdavpgrlnqttlmstrpglyygq......CseiCgsnHsfM
+>COX2_PANTR|P50690/159-207: COX2|PS00078
+VlHswavptlglktdaipgrlnqttftatrpgvyygq......CseiCganHsfM
+>COX2_CORGL|Q8NNK2/242-296: COX2|PS00078
+VaHsfwvpeflfkrdayahpeanksqrvfqieeiteegafvgrCaemCgtyHamM
+>COX2_EXERO|P29873/157-205: COX2|PS00078
+ViHswtvpslgvkidsvpgrinqtlmminrpgiyfgq......CseiCgmnHsfM
+>COX2_CYACA|P48870/185-233: COX2|PS00078
+ViHswavpslgvkcdaipgrlnqisffikregiyygq......CseiCgvnHgfM
+>COX2_RICPR|Q9ZDC6/231-279: COX2|PS00078
+ViHsfavpslgfkidavpgrinetwtrvtkkgvyygq......CselCginHgfM
+>COX2_APILI|P20375/157-205: COX2|PS00078
+ViHswtvpslgikvdavpgrinqlnliskrpgiffgq......CseiCgmnHsfM
+>COX2_MARPO|P26857/182-230: COX2|PS00078
+VlHswavpslgvkcdavpgrlnqtsifikregvyygq......CselCgtnHgfM
+>COX2_ASHGO|Q7YFV7/181-229: COX2|PS00078
+ViHdfavpslgikidttpgrlsqvstliqregifygq......CselCgaqHsaM
+>COX2_SIMVI|P98021/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnflmnrpglffgq......CseiCganHsfM
+>COX2_PARLI|P12701/159-207: COX2|PS00078
+VlHswavpslgvkmdavpgrlnqttffaaraglfygq......CseiCganHsfM
+>COX2_ORNAN|Q37718/159-207: COX2|PS00078
+VlHswalpsmglktdaipgrlnqatitstrpglfygq......CseiCgsnHsfM
+>COX2_SALSA|Q37677/159-207: COX2|PS00078
+VlHswavpslgvkmdaspgrlnqtafiasrpgvfygq......CseiCganHsfM
+>COX2_DROAI|Q85TA0/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_DROAL|P84201/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_DROAT|P84202/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_DROAZ|P84287/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_TAMBU|Q7IZ16/159-207: COX2|PS00078
+VlHswaipslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COX2_EENNA|P43375/180-228: COX2|PS00078
+ViHdfcmpslgikidaapgrlnqtsalmqregvyygq......CselCgvmHssM
+>COX2_STRPU|P15545/159-207: COX2|PS00078
+VlHswavpslgtkmdavpgrlnqttffaartgvfygq......CseiCganHsfM
+>COX2_AOTNI|Q7IC90/159-207: COX2|PS00078
+VlHswavpslgvktdaipgrlnqamlasmrpglfygq......CseiCgsnHsfM
+>COX2_BOVIN|P68530/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmssrpglyygq......CseiCgsnHsfM
+>COX2_BOSIN|P68553/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmssrpglyygq......CseiCgsnHsfM
+>COX2_BOSMU|P68554/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmssrpglyygq......CseiCgsnHsfM
+>COX2_BISBI|Q37416/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglyygq......CseiCgsnHsfM
+>COX1_ACACA|Q37370/799-847: COX2|PS00078
+VlHswavpsfgvkvdavpgrlnqtslylkntgtfygq......CselCgvnHafM
+>COX2_BRECS|P43370/180-228: COX2|PS00078
+VmHdfsvpslglkidavpgrlnqmsalmqregvyygq......CselCgvmHssM
+>COX2_SACEX|P43377/182-230: COX2|PS00078
+ViHdfaipslgikvdgtpgrlnqvstliqregvfygm......CselCgigHaqM
+>COX2_POLOR|Q96183/159-207: COX2|PS00078
+VlHswavpslglkmdavpgrlnqttfiatrpgvffgq......CseiCganHsfM
+>COX2_GADMO|Q37741/159-207: COX2|PS00078
+VlHswavpalgikmdavpgrlnqtafitsrpgvfygq......CseiCganHsfM
+>COX2_BISBO|P68296/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglyygq......CseiCgsnHsfM
+>COX2_BOSGA|P68295/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglyygq......CseiCgsnHsfM
+>COX2_BOSJA|P68294/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglyygq......CseiCgsnHsfM
+>COX2_RICCN|Q92I65/233-281: COX2|PS00078
+ViHsfavpslgfkidavpgrinetwtrvakkgvyygq......CselCgihHgfM
+>COX2_LEITA|P14545/155-203: COX2|PS00078
+ViHsfaisslgvkvdcipgrcneivlfssnnatvygq......CselCgvlHgfM
+>COX2_LYCSE|O47678/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_SYMSY|P25312/159-207: COX2|PS00078
+VlHswtvpslglktdaipgrlnqttftatrpgvyygq......CseiCganHsfM
+>COX2_CANAL|Q9B8D8/173-221: COX2|PS00078
+ViHsftipslgmkidatpgrlnqvsaliqrtgvyygq......CselCgvnHgmM
+>COX2_HALGR|P38596/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_SCYCA|O79404/159-207: COX2|PS00078
+VlHawavpalgvkmdavpgrlnqtafiisrpgvyygq......CseiCganHsfM
+>COX2_ANOQU|P33505/159-207: COX2|PS00078
+VlHswtvpslgvkvdatpgrlnqlnflinrpglffgq......CseiCganHsfM
+>COX2_DANRE|Q9MIY7/159-207: COX2|PS00078
+VlHswavpslgikmdavpgrlnqtafivsrpgvfygq......CseiCganHsfM
+>COX2_PIG|P50667/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglyygq......CseiCgsnHsfM
+>COX2_LYCCU|O47676/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_CERGA|P98020/159-207: COX2|PS00078
+VlHswtiptlglktdavpgrlnqtvftatrpgvyygq......CseiCganHsfM
+>COX2_BACP3|Q03438/176-230: COX2|PS00078
+VkHsfwipavggkmdtntdnknqfwlvfdqkatdkaggvfygkCaelCgpsHalM
+>COX2_SITGR|P29879/159-207: COX2|PS00078
+ViHswtipsmsikidgtpgrlnqanlianrssiffgq......CseiCganHsfM
+>COX2_MACFA|P11948/159-207: COX2|PS00078
+VlHswtiptlglktdavpgrlnqtvftatrpgvyygq......CseiCganHsfM
+>COX2_MYCTO|P9WP68/252-306: COX2|PS00078
+ViHafwvpeflfkrdvmpnpvannsvnvfqieeitktgafvghCaemCgtyHsmM
+>COX2_MYCTU|P9WP69/252-306: COX2|PS00078
+ViHafwvpeflfkrdvmpnpvannsvnvfqieeitktgafvghCaemCgtyHsmM
+>COX2_MYCBO|P63855/252-306: COX2|PS00078
+ViHafwvpeflfkrdvmpnpvannsvnvfqieeitktgafvghCaemCgtyHsmM
+>COX2_DROBF|P29859/159-207: COX2|PS00078
+ViHswtipalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_LATCH|O03848/159-207: COX2|PS00078
+VlHswavpalgvkmdavpgrlnqitfmisrpglyygq......CseiCganHsfM
+>COX2_CANSI|P98031/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmatrpglyygq......CseiCgsnHsfM
+>COX2_CANAD|O47667/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_MICPE|P24988/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatissnrpglfygq......CseiCgsnHsfM
+>COX2_CAEBR|Q8HEC3/162-210: COX2|PS00078
+ViHawalnslsvkldamsgilstfsysfpmvgvfygq......CseiCganHsfM
+>COX2_ANTAM|Q37369/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatlmstrpglyygq......CseiCgsnHsfM
+>COX2_SCHGR|P29878/159-207: COX2|PS00078
+VlHswavpalgvkidatpgrlnqgtftmnrpglffgq......CseiCganHsfM
+>COX2_VULVU|O47681/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>NOSZ_PSEFL|Q9F0W4/582-630: COX2|PS00078
+VsHgfvmtnhgasmeispqqtssitftadkaglhwyy......CswfChalHmeM
+>COX2_RHEAM|O03893/126-174: COX2|PS00078
+VlHswavptlgvktdaipgrlnqtsfittrpgifygq......CseiCganHsyM
+>COX2_METSE|O47496/178-226: COX2|PS00078
+VlHsfavpalavkmdaipgrlnqtgffikrpgifygq......CseiCganHsfM
+>COX2_PONAB|P92693/159-207: COX2|PS00078
+VlHswtvpslglktdaipgrlnqttftatrpgvyygq......CseiCganHsfM
+>COX2_CHICK|P18944/158-206: COX2|PS00078
+VlHswavpalgvktdaipgrlnqtsfittrpgvfygq......CseiCganHsyM
+>COX2_NOTPE|O03892/126-174: COX2|PS00078
+VlHswavptlgvktdaipgrlnqtsfittrpgifygq......CseiCganHsyM
+>COX2_ASCSU|P24882/162-210: COX2|PS00078
+ViHswalpsmsikldamsgilstlsysfpvvgvfygq......CseiCganHsfM
+>COX2_PHYME|Q02212/184-232: COX2|PS00078
+VlHswaipslgikldacpgrlnqtsmfikregvfygq......CseiCgvnHgfM
+>COX2_PELSU|O79673/159-207: COX2|PS00078
+VlHswaipslglktdavpgrinqavfiimqagifygq......CseiCganHsfM
+>COX2_PONPY|Q37605/159-207: COX2|PS00078
+VlHswtvpslglktdaipgrlnqttftatrpgvyygq......CseiCganHsfM
+>COX2_SQUAC|Q9ZZ51/159-207: COX2|PS00078
+VlHswtvpalgvkmdavpgrlnqtafiisrpgvyygq......CseiCganHsfM
+>COX2_PARTE|P08749/113-161: COX2|PS00078
+ViHswfipalgikidcvpgrathhtfycdsvgfyygq......CaeiCgryHhhM
+>COX2_CAEEL|P24894/162-210: COX2|PS00078
+ViHawalnslsvkldamsgilstfsysfpmvgvfygq......CseiCganHsfM
+>COX2_THET8|Q5SJ80/112-160: COX2|PS00078
+ViHgfhvegtninvevlpgevstvrytfkrpgeyrii......CnqyCglgHqnM
+>COX2_DUGDU|Q8W9N3/159-207: COX2|PS00078
+VlHswaipsmglktdaipgrlnqatlmssrpglfygq......CseiCgsnHsfM
+>AOX2_AERPE|Q9YDX7/149-199: COX2|PS00078
+VfHafgipefknkidaipgilnsmwiktpdepgkvynay....CyelCgigHslM
+>COX2_ALLMI|O47870/159-207: COX2|PS00078
+VlHswaipsigtkmdavpgrlnqvmitlanpgvfygq......CseiCganHsfM
+>COX2_LYCSM|O79549/160-208: COX2|PS00078
+VlHswtipslgvkvdavpgrlnqlplatsrvgvfygq......CseiCganHsfM
+>COX2_CORDI|Q6NG98/244-298: COX2|PS00078
+VsHafwvpeflfkrdaynhpeqnkqqrrfqiekiekegafvgrCaemCgtyHamM
+>COX2_DAUMA|P98032/159-207: COX2|PS00078
+VlHswtvpslglktdaipgrlnqttlmasrpglyygq......CseiCganHsfM
+>COX2_MACCA|Q37548/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttllsirpglyygq......CseiCgsnHsfM
+>COX2_CHORO|P98030/159-207: COX2|PS00078
+ViHswtipslgvkvdanpgrlnqtnffinrpgifygq......CseiCganHsfM
+>COX2_CYBSA|P06029/180-228: COX2|PS00078
+ViHdfaipslgikvvaspgrlnqvsaliqregvyygm......CsetCgvaHsaM
+>COX2_APTAU|O03889/126-174: COX2|PS00078
+VlHswavptlgvktdaipgrlnqtsfittrpgifygq......CseiCganHsyM
+>COX2_BACPE|Q04441/173-221: COX2|PS00078
+VlHsfwvpalggkidtvpgitnhmwleadepgvfkgk......CaelCgpsHalM
+>COX2_FELCA|P48890/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmatrpglyygq......CseiCgsnHsfM
+>COX2_AEDAE|P50692/159-207: COX2|PS00078
+VlHswtvpslgvkidatpgrlnqtnflinqpglffgq......CseiCganHsfM
+>COX2_CANGA|P43373/184-232: COX2|PS00078
+ViHdfaipslgikvdanpgrlnqvsaliqregvfygq......CselCgvnHaaM
+>COX2_GALME|P29874/159-207: COX2|PS00078
+ViHswtipslgvkvdanpgrlnqtnffinrpgifygq......CseiCganHsfM
+>COX2_TRAIM|Q37685/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmssrpglyygq......CseiCgsnHsfM
+>COX2_XENLA|P00407/159-207: COX2|PS00078
+VlHswavpslgvktdaipgrlhqtsfiatrpgvfygq......CseiCganHsfM
+>COX2_CYPCA|P24987/159-207: COX2|PS00078
+VlHswavpslgvkmdavpgrlnqaafiasrpgvfygq......CseiCganHsfM
+>COX2_CAPHI|Q37430/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglfygq......CseiCgsnHsfM
+>NOSZ_PSEAI|Q01710/577-625: COX2|PS00078
+VsHgfvmvnhgvsmeispqqtssitfiadkpglhwyy......CswfChalHmeM
+>COX2_NYCPR|O47675/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_VIGUN|P32646/307-355: COX2|PS00078
+VlHswavpslgvkcdavpgrlnqistfiqregvyygq......CseiCgtnHafM
+>COX2_CULQU|P50693/159-207: COX2|PS00078
+VlHswtvpslgvkidatpgrlnqtnflinqsglffgq......CseiCganHsfM
+>COX2_LYCVE|Q7J6G2/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_LYCGR|O48267/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_ANOGA|P34840/159-207: COX2|PS00078
+VlHswtvpslgvkvdatpgrlnqlnflinrpglffgq......CseiCganHsfM
+>COXM_BRADU|P98053/188-236: COX2|PS00078
+VlHdfyvpefrakmdmvpgmvtyfwirpirtgtfdvl......CaelCgaaHyqM
+>COX2_RHIUN|Q96190/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlistrpglyygq......CseiCgsnHsfM
+>COX2_LAGLA|P98036/159-207: COX2|PS00078
+VlHswavpslgvktdaipgrlnqamlasmrpglfygq......CseiCgsnHsfM
+>COX2_LASSP|P29875/158-206: COX2|PS00078
+ViHswtvpslgikmdstpgrlnqsllymyrpglyfgq......CseiCgtnHsfM
+>COX2_SCHPO|P21534/180-228: COX2|PS00078
+ViHswavpslgikcdcipgrlnqvslsidreglfygq......CselCgvlHssM
+>COX2_YEAST|P00410/184-232: COX2|PS00078
+ViHdfaipslgikvdatpgrlnqvsaliqregvfyga......CselCgtgHanM
+>COX2_TRYCR|P98023/155-203: COX2|PS00078
+ViHsftlaslgikvdcipgrcneiilfasnnatiygq......CselCgvlHgfM
+>COX2_MACRO|P92662/159-207: COX2|PS00078
+ViHawtvpslglkadaipgrlnqatltstrpgvyygq......CseiCgsnHsfM
+>COX2_STRCA|O21400/158-206: COX2|PS00078
+VlHswavptlgvktdaipgrlnqtsfittrpgifygq......CseiCganHsyM
+>COX2_ANAPL|P98019/158-206: COX2|PS00078
+VlHswavptlgvktdaipgrlnqtsfittrpgifygq......CseiCganHsyM
+>COX2_LYCPI|O47674/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmatrpglyygq......CseiCgsnHsfM
+>COX2_RUSUN|Q37440/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglyygq......CseiCgsnHsfM
+>COX2_TINMA|O03895/126-174: COX2|PS00078
+VlHswavptlgvktdaipgrlnqtsfittrpgifygq......CseiCganHsfM
+>COX2_MYCLE|Q9CCF1/244-298: COX2|PS00078
+VvHsfwvpkflfkrdvmpnpvannsvnvfqveeitktgafvghCaemCgtyHsmM
+>COX2_DRONR|P67795/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_DROTO|P67796/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_BOSTR|Q37419/159-207: COX2|PS00078
+VlHswtvpslglktdaipgrlnqttlmstrpglyygq......CseiCgsnHsfM
+>COX2_LOCMI|P14573/159-207: COX2|PS00078
+VlHswavpalvlkidatpgrlnqgmfminrpglffgq......CseiCganHsfM
+>COX1_DICDI|O21042/697-745: COX2|PS00078
+VlHswaipsfgikvdavpgrlnqiglyvkregtfygq......CselCgvdHgfM
+>COX2_ACHDO|P29870/158-206: COX2|PS00078
+ViHswtvsalgvktdatpgrlnqinfminrpglfygq......CseiCganHsfM
+>COX2_CHEME|P98027/159-207: COX2|PS00078
+VlHswtvpslgvktdaipgrlnqatlmtsrpgiyygq......CseiCganHsfM
+>COX2_MACMU|P98038/159-207: COX2|PS00078
+VlHswtiptlglktdavpgrlnqtvftatrpgvyygq......CseiCganHsfM
+>COX2_MANLE|P98037/159-207: COX2|PS00078
+VlHswtiptlglktdavpgrlnqtvftatrpgvyygq......CseiCganHsfM
+>COX2_TACSP|Q37691/159-207: COX2|PS00078
+VlHswavpslglktdtipgrlnqatlsstrpglfygq......CseiCgsnHsfM
+>COX2_CALGO|P50661/153-201: COX2|PS00078
+VlHswavpalgvktdaipgrlnqamltstrpglyygq......CseiCgsnHsfM
+>COX2_ACOWI|P50672/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvssnrpglfygq......CseiCgsnHsfM
+>COX2_THEVL|P98054/219-266: COX2|PS00078
+ViHsfwvpqfrlkqdaipgvpttrfkatkvgtypvv.......CaelCggyHgaM
+>COX2_PATPE|Q37411/159-207: COX2|PS00078
+VlHswaipslgikmdavpgrlnqvnffisrcglfygq......CseiCganHsfM
+>NOSZ_PSEST|P19573/581-629: COX2|PS00078
+VsHgfvvvnhgvsmeispqqtssitfvadkpglhwyy......CswfChalHmeM
+>COX2_MALTY|Q37547/159-207: COX2|PS00078
+VlHswaipslglktdaipgrlnqatissnrpglfygq......CseiCgsnHsfM
+>COX2_PETMA|Q37604/159-207: COX2|PS00078
+ViHswtipslgtkvdavpgrlnqatfittrpglffgq......CseiCganHsfM
+>COX2_SYNY3|Q06474/212-260: COX2|PS00078
+ViHafwipqlrlkqdvipgrgstlvfnastpgqypvi......CaelCgayHggM
+>COX2_ARTSF|Q37706/159-207: COX2|PS00078
+VlHswavpslgikmdadpgrlnqssllvnmpgvfygq......CseiCgsgHsfM
+>COX2_TAMQA|Q9G5S9/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COX2_PNECA|P29163/176-224: COX2|PS00078
+VlHdfavpslgikvdaspgrlnqvstyvqregvyygq......CselCgvlHssM
+>COX2_LOXAF|Q9TA26/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqvtltsmrpglfygq......CseiCganHsfM
+>COX2_EULMA|P98033/159-207: COX2|PS00078
+VlHswtipslgvktdaipgrlnqatlmasrpgvyygq......CseiCganHsfM
+>COX2_CANLU|P67782/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_CANLA|P67781/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_CANLF|P67780/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_BALPH|P24986/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglfygq......CseiCgsnHsfM
+>COX2_GALSE|P50688/159-207: COX2|PS00078
+VlHswtvpalgiktdaipgrlnqatlmtsrvgiyygq......CseiCganHsyM
+>COX2_CTEFE|P29872/159-207: COX2|PS00078
+VlHswtipslgikidatpgrlnqsnfmmnrpglyfgq......CseiCganHsfM
+>COX2_GORBE|Q37472/159-207: COX2|PS00078
+VlHswavptlglktdaipgrlnqttftatrpglyygq......CseiCganHsfM
+>COX2_GEOCP|P50689/159-207: COX2|PS00078
+VlHswtvpsmglktdaipgrlnqatltssrpglfygq......CseiCgsnHsfM
+>NOSZ_PSEAE|Q9HYL2/579-627: COX2|PS00078
+VtHgfvmvnhgvcmeispqqtssitfvadkpgvhwyy......CswfChalHmeM
+>COX2_CUOAL|O47668/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_CANME|O47671/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_PROTA|P98042/159-207: COX2|PS00078
+VlHswavpslgvktdaipgrlnqatlmtsrpgiyygq......CseiCganHsfM
+>COX2_BACSU|P24011/174-228: COX2|PS00078
+VkHsfwipsvggkldtntdnenkffltfdskrskeagdmffgkCaelCgpsHalM
+>COX2_CAERE|Q8SEM9/161-209: COX2|PS00078
+ViHawalnslsvkldamsgilstfsysfpmvgvfygq......CseiCganHsfM
+>COX2_SPEVE|O47679/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmatrpglyygq......CseiCgsnHsfM
+>COX2_ALBTU|Q09334/159-207: COX2|PS00078
+ViHawalpsmgvkmdavpgrlnsmgfhanlpgiyygq......CseiCganHsfM
+>COX2_DROME|P00408/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_WHEAT|P00413/187-235: COX2|PS00078
+VlHswavpslgvkcdavpgrlnltsilvqregvyygq......CseiCgtnHafM
+>COX2_BRENA|P43372/181-229: COX2|PS00078
+ViHdfcmpslgikidaapgrlnqtsaliqregvyygq......CselCgvmHsaM
+>COX2_CERTH|O47672/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_YARLI|Q9B6D5/175-223: COX2|PS00078
+ViHdfalpslgikcdatpgrlnqvsallqresvyygq......CselCgvlHssM
+>COX2_CRABU|P50685/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatlvssrpglfygq......CseiCganHsfM
+>COX2_CHRBR|O47670/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_RAT|P00406/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_ADABI|P29871/159-207: COX2|PS00078
+ViHswtipssgvkidaspgrlnqmsftlnrtgifygq......CseiCganHsfM
+>COX2_LUMTE|Q37545/159-207: COX2|PS00078
+ViHswtvpalgvkvdavpgrlnqigftttqpgvfygq......CseiCganHsfM
+>COX2_TAMMR|Q7IZ08/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COX2_TAMRF|Q9G1N5/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COX2_CANAU|O47669/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_SYMST|P29880/159-207: COX2|PS00078
+VlHswtvpslgikvdatpgrlnqtsffinrpgiffgq......CseiCganHsfM
+>COX2_TRYBB|P04372/155-203: COX2|PS00078
+ViHsftisslgikvdcipgrcneiilfatnnatlygq......CselCgvlHgfM
+>COX2_PHOVI|Q00528/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmtmrpglyygq......CseiCgsnHsfM
+>COX2_VARVI|P98047/159-207: COX2|PS00078
+VlHswtvpslgvktdaipgrlnqatlmasrpgvyygq......CseiCganHsfM
+>COX2_GAZSP|P50680/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmsarpglyygq......CseiCgsnHsfM
+>COX2_PERAM|P29877/159-207: COX2|PS00078
+VlHswtipslgvkadatpgrlnqvsflinrpgvlygq......CseiCganHsfM
+>COX2_BETVU|P98012/185-233: COX2|PS00078
+VlHswavpssgvkcdavpgrlnqtsilvqregvyygq......CseiCgtnHafM
+>COX2_NYCCO|P98039/159-207: COX2|PS00078
+VlHswtvpalgiktdaipgrlnqatlmtsrpgiyygq......CseiCgsnHsfM
+>COX2_FORLA|P34189/159-207: COX2|PS00078
+VlHswalpamgvkmdavpgrlnqtafiasrpgvfygq......CseiCganHsfM
+>COX2_LACK1|Q9XLW8/184-232: COX2|PS00078
+ViHdfaipslgikvdatpgrlnqvsaliqregvfygq......CselCgtaHsaM
+>COX2_TRIRU|Q01556/174-222: COX2|PS00078
+ViHsfacpslgikcdaypgrlnqssvylnrqgtyfgq......CseiCgilHssM
+>COX2_SCICA|P50691/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COX2_BREAN|P43369/176-224: COX2|PS00078
+VmHdfampslgikidavpgrlnqtsaliqregvyygq......CselCgvmHssM
+>COX2_LACTC|P43376/184-232: COX2|PS00078
+ViHdfaipslgikvdaapgrlnqvsaliqregvfygq......CselCgtaHsaM
+>COX2_PISOC|P25002/159-207: COX2|PS00078
+VlHswtvpslgikmdavpgrlnqvnffisrcglfygq......CseiCganHsfM
+>COX2_DRONO|O03891/126-174: COX2|PS00078
+VlHswavptlgvktdaipgrlnqtsfittrpgifygq......CseiCganHsyM
+>COX2_ONCFA|P29876/159-207: COX2|PS00078
+VlHswaipslgvkidatpgrlnqgsikinrpgilfgq......CseiCganHsfM
+>COX2_STRAW|Q82AL0/225-273: COX2|PS00078
+ViHsfwvvpflmkqdvipghtnsfqvtpnregtflgk......CaelCgvdHsrM
+>COX2_DROYA|P00409/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_DROSU|P29865/159-207: COX2|PS00078
+ViHswtipalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_RABIT|P98049/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatlistrpglfygq......CseiCgsnHsfM
+>COX2_EQUAS|P92478/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlvasrpglyygq......CseiCgsnHsfM
+>COX2_CAVAP|P50683/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatlmssrpglyygq......CseiCgsnHsfM
+>COX2_GALVR|P50686/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlsatrpglfygq......CseiCgsnHsfM
+>COX2_OENBE|P05490/185-233: COX2|PS00078
+VlHswavpslgvkcdavpgrlnqismlvqregvyygq......CseiCgtnHafM
+>COX2_CERSI|O03851/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlvstrpglyygq......CseiCgsnHsfM
+>COX2_CEPBA|P98043/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatlmstrpglyygq......CseiCgsnHsfM
+>COX2_CHOFU|P84288/159-207: COX2|PS00078
+ViHswtipslgvkvdanpgrlnqtnffinrpgifygq......CseiCganHsfM
+>COX2_CHOOC|P84289/159-207: COX2|PS00078
+ViHswtipslgvkvdanpgrlnqtnffinrpgifygq......CseiCganHsfM
+>COX2_CHOPI|P84290/159-207: COX2|PS00078
+ViHswtipslgvkvdanpgrlnqtnffinrpgifygq......CseiCganHsfM
+>COX2_RHISA|O99819/158-206: COX2|PS00078
+ViHswtipslgikmdavpgrlnqsfsissrpglyygq......CseiCganHsfM
+>COX2_PERFA|Q37595/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvsssrpglfygq......CseiCgsnHsfM
+>COX2_BALMU|P41294/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglfygq......CseiCgsnHsfM
+>COX2_BRAFL|O47428/159-207: COX2|PS00078
+ViHswtvpslglkmdavpgrlnqlalqcsrvgtfygq......CseiCganHsfM
+>COX2_ARATH|P93285/185-233: COX2|PS00078
+VlHswavpslgvkcdavpgrlnqisilvqregvyygq......CseiCgtnHafM
+>COX2_PHYHA|Q37596/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttllstrpglyygq......CseiCgsnHsfM
+>COX2_VULMA|O47680/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_TAMCA|Q7IZ15/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COX2_TAMDO|Q7IZ11/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COX2_TAMAM|Q7IZ21/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COX2_TAMCI|Q7IZ14/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COX2_TAMPL|Q7IZ01/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COX2_TAMSO|Q9G0U1/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltstrpglyygq......CseiCgsnHsfM
+>COX2_DROSI|P50253/159-207: COX2|PS00078
+ViHswtvpalgvkvdgtpgrlnqtnffinrpglfygq......CseiCganHsfM
+>COX2_DASNO|P50687/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatlmatrpglyygq......CseiCgsnHsfM
+>COX2_MYTED|Q00227/174-222: COX2|PS00078
+VlHsfalpkllikvdaipgrinrlpmkasqcsiiygq......CseiCgvnHsfM
+>COX2_KLULA|P20387/180-228: COX2|PS00078
+ViHdfavpslgikidaapgrlnqvsaliqregvfygq......CseiCgqsHsaM
+>COX2_NOCFA|Q5YZ37/262-316: COX2|PS00078
+ViHafwvpeflfkrdvmpnpkenhsdnvfqiteiekegafvgrCaemCgtyHsmM
+>COX2_COREF|Q8FNQ7/242-296: COX2|PS00078
+VaHsfwvpeflfkrdlyahpeanksqrvfqideifeegafvgrCaemCgtyHamM
+>COX2_BALBO|Q599A0/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmstrpglfygq......CseiCgsnHsfM
+>COX2_THETH|P98052/79-127: COX2|PS00078
+ViHgfhvegtninvevlpgevstvrytfkrpgeyrii......CnqyCglgHqnM
+>COX2_VULCO|Q539C6/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_RICFE|Q4ULU3/233-281: COX2|PS00078
+ViHsfavpslgfkidavpgrinetwtrvakkgvyygq......CselCginHgfM
+>COX2_TETNG|Q4JQI4/159-207: COX2|PS00078
+VlHswavpslgikmdavpgrlnqtafivsrpgvfygq......CseiCganHsfM
+>COX2_ZANCU|Q3T4C0/180-228: COX2|PS00078
+ViHsfavpslglkidalpgrlngistyveregtfygq......CselCgvyHfgM
+>COX2_AILFU|Q3L6W7/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_APOSM|Q38S29/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_HYBUN|Q38S11/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvssnrpglfygq......CseiCgsnHsfM
+>COX2_UROCA|Q38RU4/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCganHsfM
+>COX2_PRAJA|Q38RX1/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_MAXBA|Q38RZ2/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglyygq......CseiCgsnHsfM
+>COX2_GERRO|Q38S56/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvmsnrpgifygq......CseiCgsnHsfM
+>COX2_GERGE|Q38S62/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatitsnrpgvfygq......CseiCgsnHsfM
+>COX2_LEMBA|Q38S02/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvssnrpglfygq......CseiCgsnHsfM
+>COX2_RHAPU|Q38RV6/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_ANIIM|Q38S38/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_CONPN|Q38S17/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_BATGR|Q38S23/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltsnrpglfygq......CseiCgsnHsfM
+>COX2_PRATA|Q38RW8/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_APOMY|Q38S35/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_BERBO|Q38S20/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_HYLPR|Q38S08/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_MICNA|Q38S41/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvssnrpglfygq......CseiCgsnHsfM
+>COX2_NIVCU|Q38RY6/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_RHYIS|Q38RV3/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvssnrpglfygq......CseiCgsnHsfM
+>COX2_ZELHI|Q38RU1/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_MERSH|Q38S59/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpgvfygq......CseiCgsnHsfM
+>COX2_LOPFL|Q38S47/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatltsnrpglfygq......CseiCgsnHsfM
+>COX2_MAXSU|Q38RY9/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_ACOIG|Q38S50/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatissnrpglfygq......CseiCgsnHsfM
+>COX2_LEGFO|Q38S05/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_MALLO|Q38RZ7/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_LEOSA|Q38S00/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_MAMPR|Q38PR9/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqvtltsmrpglfygq......CseiCganHsfM
+>COX2_OENHY|Q38RY0/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_TATEM|Q38S53/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpgvfygq......CseiCgsnHsfM
+>COX2_ARVSO|Q38S26/159-207: COX2|PS00078
+VlHswtvpslglktdaipgrlnqatlssnrpglyygq......CseiCgsnHsfM
+>COX2_DACMI|Q38S14/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_DESAU|Q38S65/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpgifygq......CseiCgsnHsfM
+>COX2_SUNME|Q38RU7/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_PRATU|Q38RW5/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqatvtsnrpglfygq......CseiCgsnHsfM
+>COX2_AILME|Q2Y0B9/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqttlmamrpglyygq......CseiCgsnHsfM
+>COX2_ELEMA|Q2I3H1/159-207: COX2|PS00078
+VlHswavpslglktdaipgrlnqvtltsmrpglfygq......CseiCganHsfM
+>COX1_DICCI|Q2LCQ6/707-755: COX2|PS00078
+VlHswavpsfgikvdavpgrlnqiglyvkregtfygq......CselCgvdHgfM
+>COX2_RICBR|Q1RI44/187-235: COX2|PS00078
+ViHsfavpslgfkidavpgrvnetwtrvakkgvyygq......CselCginHgfM
+>COX2_USTMA|Q0H8Y7/187-235: COX2|PS00078
+ViHdfavpslglkidavpgrlnqtsvlieregvfygq......CseiCgvyHgfM
+>COX2_DEBHA|A9RAG1/173-221: COX2|PS00078
+VlHcftmpslgikvdacpgrlnqvsalmqrtgvyygq......CselCgvnHglM
+>COX2_VANPO|A6H4Q5/182-230: COX2|PS00078
+ViHdfaipslgikvdanpgrlnqvsaliqregvfygm......CselCgtgHsqM
+>COX2_NEUCR|P00411/183-231: COX2|PS00078
+ViHsfavpslgvkcdaypgrlnqvsvfinregvfygq......CseiCgilHssM
