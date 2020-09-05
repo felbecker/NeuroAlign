@@ -44,7 +44,7 @@ class Instance:
             self.ref_seq = [s.replace(c.lower(),str(i)+' ') for s in self.ref_seq]
     	#Usually a gap is a position of your sequence of interest with no matching amino acids (aa) at corresponding position of multiple sequences aligned.
     	#A dot refers to a mismatched aa with similar biochemical property (for example positively charged aa).
-        self.ref_seq = [s.replace('.','-') for s in self.ref_seq] #treat dots as gaps
+        self.ref_seq = [s.replace('.','X') for s in self.ref_seq] #treat dots as gaps
         self.raw_seq = copy.deepcopy(self.ref_seq)
         self.ref_seq = [s.replace('-',str(len(self.alphabet))+' ') for s in self.ref_seq]
         self.raw_seq = [s.replace('-','') for s in self.raw_seq]
