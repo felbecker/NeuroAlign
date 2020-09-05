@@ -1,3 +1,6 @@
+STATE_DIM = 100
+HIDDEN_LAYER_DIM = 100
+
 #NeuroAlign parameter configuration
 config = {
 
@@ -6,55 +9,48 @@ config = {
     #"num_col" : 250,
 
     #number of sequentially applied core networks (each with unique parameters)
-    "num_col_kernel" : 1,
+    "num_kernel" : 1,
 
     #iteration counts for the different components
-    "train_col_iterations" : 2,
-    "train_alpha_iterations_per_col" : 1,
-    "train_seq_iterations_per_col" : 1,
-    "test_col_iterations" : 2,
-    "test_alpha_iterations_per_col" : 1,
-    "test_seq_iterations_per_col" : 1,
+    "train_iterations" : 5,
+    "test_iterations" : 60,
 
     #training performance and logging
-    "learning_rate" : 1e-4,
+    "learning_rate" : 2e-5,
     "num_training_iteration" : 2000,
     "batch_size": 10,
-    "savestate_milestones": 10,
-    "l2_regularization" : 1e-10,
-    "adjacent_column_radius" : 3000,
-    "window_uniform_radius" : 15,
-
-    #hidden dimension for the latent representations for each alphabet symbol
-    #for simplicity also used for the representations of their interactions (edges) and their global representation
-    "alphabet_latent_dim" : 20,
-
-    "alphabet_net_node_layers" : [40, 40],
-    "alphabet_net_edge_layers" : [40, 40],
-    "alphabet_net_global_layers" : [40, 40],
-
-    "alphabet_to_sequence_layers" : [],
-    "alphabet_to_column_layers" : [],
+    "savestate_milestones": 100,
+    "l2_regularization" : 1e-4,
+    "adjacent_column_radius" : 20,
+    "window_uniform_radius" : 12,
+    "final_iteration_loss_weight" : 10, #final iteration is weighted xxx times as much as any intermediate iteration
+    "lambda_rp" : 1.0,
+    "lambda_gap" : 1.0,
 
     #hidden dimension for the latent representations for each sequence position
     #for simplicity also used for the representations of the forward edges the along sequences and
     #the global representation for each sequence
-    "seq_latent_dim" : 20,
+    "seq_latent_dim" : STATE_DIM,
 
-    "seq_net_node_layers" : [40,40],
-    "seq_net_edge_layers" : [40,40],
-    "seq_net_global_layers" : [40,40],
+    "seq_global_dim" : 3*STATE_DIM,
 
-    "sequence_to_column_layers" : [],
-    "sequence_to_alphabet_layers" : [],
+    "encoder" : [HIDDEN_LAYER_DIM],
+
+    "seq_net_node_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "seq_net_edge_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "seq_net_global_per_seq_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "seq_global_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+
+    "alphabet_to_sequence_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "columns_to_sequence_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
 
     #hidden dimension for the latent representation of the global property of each column
-    "col_latent_dim" : 20,
+    "col_latent_dim" : STATE_DIM,
 
-    "column_net_node_layers" : [40,40],
-    "column_net_global_layers" : [40,40],
-    "column_decode_node_layers" : [40],
+    "column_net_node_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "column_net_global_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "column_net_edge_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
+    "column_decode_node_layers" : [3*HIDDEN_LAYER_DIM, 3*HIDDEN_LAYER_DIM],
 
-    "column_to_sequence_layers" : [],
-    "column_to_alphabet_layers" : []
+    "sequence_to_columns_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM]
 }

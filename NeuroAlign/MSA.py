@@ -6,13 +6,16 @@ import copy
 #reads sequences as fasta file and converts them to inputs and targets interpretable by the NeuroAlign model
 class Instance:
     def __init__(self, filename, alphabet):
+        self.filename = filename
         self.alphabet = alphabet
+        self.seq_ids = []
         self.valid = self.read_seqs(filename)
         if self.valid:
             self.compute_inputs()
             self.compute_targets()
 
     def read_seqs(self, filename):
+        print("reading file ", self.filename)
         #read seqs as strings
         _, file_extension = os.path.splitext(filename)
         with open(filename) as f:
@@ -24,6 +27,7 @@ class Instance:
             if len(line)>0:
                 if line[0]=='>':
                     seq_open = True
+                    self.seq_ids.append(line[1:])
                 elif seq_open:
                     self.ref_seq.append(line)
                     seq_open = False
@@ -38,10 +42,13 @@ class Instance:
         for i,c in enumerate(self.alphabet):
             self.ref_seq = [s.replace(c,str(i)+' ') for s in self.ref_seq]
             self.ref_seq = [s.replace(c.lower(),str(i)+' ') for s in self.ref_seq]
+    	#Usually a gap is a position of your sequence of interest with no matching amino acids (aa) at corresponding position of multiple sequences aligned.
+    	#A dot refers to a mismatched aa with similar biochemical property (for example positively charged aa).
+        self.ref_seq = [s.replace('.','-') for s in self.ref_seq] #treat dots as gaps
         self.raw_seq = copy.deepcopy(self.ref_seq)
         self.ref_seq = [s.replace('-',str(len(self.alphabet))+' ') for s in self.ref_seq]
         self.raw_seq = [s.replace('-','') for s in self.raw_seq]
-        #can store this as matrix since seq + gaps have uniform length
+        #can store sequences with gaps as matrix
         self.ref_seq = np.reshape(np.fromstring("".join(self.ref_seq), dtype=int, sep=' '), (len(self.ref_seq), alen))
         self.raw_seq = [np.fromstring(s, dtype=int, sep=' ') for s in self.raw_seq]
 
@@ -60,7 +67,7 @@ class Instance:
         for seq, nodes in zip(self.raw_seq, self.nodes):
             for i,s in enumerate(seq):
                 nodes[i, s] = 1 #onehot
-                nodes[i, len(self.alphabet)] = i 
+                nodes[i, len(self.alphabet)] = i
 
         #compute forward edges
         self.forward_senders = []
@@ -75,7 +82,9 @@ class Instance:
         #a mapping from raw position to position in the reference solution (sequences with gaps)
         cumsum = np.cumsum(self.ref_seq != len(self.alphabet), axis=1) #A-B--C -> 112223
         diff = np.diff(np.insert(cumsum, 0, 0.0, axis=1), axis=1) #112223 -> 0112223 -> [[(i+1) - i]] -> 101001
-        self.membership_targets = np.concatenate([np.argwhere(diff[i,:]) for i in range(diff.shape[0])]).flatten()
+        diff_where = [np.argwhere(diff[i,:]).flatten() for i in range(diff.shape[0])]
+        self.gap_lengths = np.concatenate([np.diff(np.concatenate([-np.ones(1), d, self.alignment_len*np.ones(1)]))-1 for d in diff_where]).flatten()
+        self.membership_targets = np.concatenate(diff_where).flatten()
 
         #also compute a mapping for each sequence from alignment column to the last occuring index
         #self.col_to_seq[i-1] == self.col_to_seq[i]  <->  gap at i
@@ -115,3 +124,26 @@ class Instance:
         rec = tp/(tp+fn) if tp+fn > 0 else 1
 
         return prec, rec
+
+
+#takes a vector of columns indices and a MSA instance and outputs a fasta file
+#the column indices per sequence have to be strictly increasing
+def column_pred_to_fasta(msa, cols, dir):
+    lsum = 0
+    file = dir+os.path.basename(msa.filename)
+    with open(file,"w") as f:
+        for id,l,raw in zip(msa.seq_ids, msa.seq_lens, msa.raw_seq):
+            cur = 0
+            seq_with_gaps = ""
+            for i,c in enumerate(cols[lsum:(lsum+l)]):
+                while c > cur:
+                    seq_with_gaps += "-"
+                    cur += 1
+                seq_with_gaps += msa.alphabet[raw[i]]
+                cur += 1
+            while cur < msa.alignment_len:
+                seq_with_gaps += "-"
+                cur += 1
+            f.write(id+"\n")
+            f.write(seq_with_gaps+"\n")
+            lsum += l
