@@ -27,7 +27,7 @@ def make_lstm_model(layersizes):
     return lambda: snt.DeepRNN([snt.LSTM(s) for s in layersizes])
 
 def get_len_alphabet(config):
-    return 4 if config["type"] == "nucleotide" else 23
+    return 4 if config["type"] == "nucleotide" else 25
 
 def init_weights(shape):
     return np.random.normal(0, 0.1, shape).astype(dtype=np.float32)
