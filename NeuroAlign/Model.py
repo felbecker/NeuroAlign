@@ -27,7 +27,7 @@ def make_lstm_model(layersizes):
     return lambda: snt.DeepRNN([snt.LSTM(s) for s in layersizes])
 
 def get_len_alphabet(config):
-    return 4 if config["type"] == "nucleotide" else 25
+    return 4 if config["type"] == "nucleotide" else 23
 
 def init_weights(shape):
     return np.random.normal(0, 0.1, shape).astype(dtype=np.float32)
@@ -273,7 +273,7 @@ class NeuroAlignModel(gn._base.AbstractModule):
             self.membership_out_transform = snt.Linear(1, name="column_out_transform")
 
 
-    def _build(self, init_seq, init_cols, membership_priors, iterations):
+    def _build(self, init_seq, init_cols, membership_priors, iterations, batches = 1):
 
         sequence_graph, alignment_global = self.sequence_kernel[0].parameterize_init_seq(init_seq)
         init_seq = sequence_graph.nodes
@@ -290,7 +290,7 @@ class NeuroAlignModel(gn._base.AbstractModule):
             for _ in range(iterations):
                 sequence_graph, hidden_sequence_graph = self.sequence_kernel[num_kernel](init_seq, sequence_graph, hidden_sequence_graph, column_graph, running_mem)
                 column_graph, hidden_column_graph = self.column_kernel[num_kernel](init_col, column_graph, hidden_column_graph, sequence_graph,  running_mem)
-                mem, g,gs,ge, rp = self.decode(init_seq, init_col, column_graph, sequence_graph)
+                mem, g,gs,ge, rp = self.decode(init_seq, init_col, column_graph, sequence_graph, batches)
                 memberships.append(mem)
                 running_mem = 0.1*running_mem + 0.9*memberships[-1]
                 relative_positions.append(rp)
@@ -300,20 +300,26 @@ class NeuroAlignModel(gn._base.AbstractModule):
 
 
     #decodes the states of sequences S_i, columns C_r to membership probabilities P(i in r | S_i, C_r)
-    def decode(self, init_seq, init_col, column_graph, sequence_graph):
+    def decode(self, init_seq, init_col, column_graph, sequence_graph, batches):
+
         n_pos = tf.reduce_sum(sequence_graph.n_node)
         n_col = column_graph.n_node[0]
         seq = tf.concat([init_seq, sequence_graph.nodes], axis=1)
         col = tf.concat([init_col, column_graph.nodes], axis=1)
-        positions = tf.repeat(seq, tf.repeat(n_col, n_pos), axis=0)
-        columns = tf.tile(col, [n_pos, 1])
-        decode_in = tf.concat([positions, columns], axis=1)
-        latent_out = self.membership_decoder(decode_in)
-        decode_out = self.membership_out_transform(latent_out)
+        n_batch_size = tf.cast(tf.math.ceil(n_pos/batches), dtype=tf.int32)
+        decode_out = []
+        for i in range(batches):
+            _s = seq[(i*n_batch_size):((i+1)*n_batch_size)]
+            positions = tf.repeat(_s, tf.repeat(n_col, tf.shape(_s)[0]), axis=0)
+            columns = tf.tile(col, [tf.shape(_s)[0], 1])
+            decode_in = tf.concat([positions, columns], axis=1)
+            latent_out = self.membership_decoder(decode_in)
+            decode_out.append(self.membership_out_transform(latent_out))
+        decode_out = tf.concat(decode_out, axis=0)
         decode_out = tf.reshape(decode_out, [n_pos, n_col])
         memberships = tf.nn.softmax(decode_out)
-        range = tf.reshape(tf.range(tf.cast(n_col, dtype=tf.float32), dtype=tf.float32), (-1,1))
-        soft_argmax = tf.matmul(memberships, range)
+        colrange = tf.reshape(tf.range(tf.cast(n_col, dtype=tf.float32), dtype=tf.float32), (-1,1))
+        soft_argmax = tf.matmul(memberships, colrange)
         gaps = soft_argmax[1:,:] - soft_argmax[:-1,:] - 1
         indices= tf.cast(tf.reshape(tf.math.cumsum(sequence_graph.n_node), (-1,1)), dtype=tf.int64)
         values = tf.ones((gn.utils_tf.get_num_graphs(sequence_graph)-1), dtype=tf.bool)
@@ -342,10 +348,10 @@ class NeuroAlignPredictor():
         self.save_prefix = os.path.join(self.checkpoint_root, self.checkpoint_name)
 
         def inference(init_seq, init_cols, priors):
-            out,rp,gaps = self.model(init_seq, init_cols, priors, config["test_iterations"])
+            out,rp,gaps = self.model(init_seq, init_cols, priors, config["test_iterations"], config["decode_batches_test"])
             return out[-1], rp[-1], gaps[-1]
 
-        example_seq_g, example_col_g, example_priors, example_mem, example_gaps_in, example_gaps_start, example_gaps_end = self.get_window_sample(examle_msa, 0, 1, 1)
+        example_seq_g, example_col_g, example_priors = self.get_pred_input(examle_msa)
 
         # Get the input signature for that function by obtaining the specs
         self.input_signature = [
@@ -359,12 +365,28 @@ class NeuroAlignPredictor():
 
     #col_priors is a list of position pairs (s,i) = sequence s at index i
     def predict(self, msa):
-        seq_g, col_g, priors, _, _, _, _ = self.get_window_sample(msa, 0, msa.alignment_len-1, int(np.ceil(1.1*msa.alignment_len)))
-        mem, rp, gaps = self.inference(seq_g, col_g, priors)
-        # out = self.model(init_seq, init_cols, priors, config["test_iterations"])
-        # mem = out[-1]
-        return mem.numpy(), rp.numpy(), gaps[0].numpy()
+        seq_g, col_g, priors = self.get_pred_input(msa)
+        mem, rp, gaps = self.model(seq_g, col_g, priors, self.config["test_iterations"], self.config["decode_batches_test"]) #inference
+        return mem[-1].numpy(), rp[-1].numpy(), gaps[-1][0].numpy()
 
+
+    def to_graph(self, dicts):
+        g = gn.utils_tf.data_dicts_to_graphs_tuple(dicts)
+        g = gn.utils_tf.set_zero_edge_features(g, 0)
+        return gn.utils_tf.set_zero_global_features(g, 0)
+
+    def get_pred_input(self, msa):
+        seq_dicts = [{"nodes" : np.concatenate((np.reshape(nodes, (-1,1)),
+                                                np.reshape(np.linspace(0,1,nodes.shape[0]), (-1,1))),
+                                                    axis=1).astype(np.float32),
+                        "senders" : list(range(0, nodes.shape[0]-1)),
+                        "receivers" : list(range(1, nodes.shape[0])) }
+                        for seqid, nodes in enumerate(msa.raw_seq)]
+
+        seq_g = self.to_graph(seq_dicts)
+        col_dict, priors = self.make_window_uniform_priors(msa.raw_seq, int(np.floor(1.5*max([s.size for s in msa.raw_seq]))))
+        col_g = self.to_graph([col_dict])
+        return seq_g, col_g, priors
 
     #constucts sequence graphs and col priors from a msa instance
     #that can be forwarded as input to the predictor
@@ -379,31 +401,22 @@ class NeuroAlignPredictor():
         nodes_subset = []
         mem_list = []
         gaps_list = []
-        runs = 0
-        while len(mem_list) == 0: #sampling might select only empty sequences (long gaps, retry)
-            nodes_subset = []
-            mem_list = []
-            gaps_list = []
-            runs += 1
-            for seqid, seq in enumerate(msa.raw_seq):
-                l = msa.col_to_seq[seqid, lb]
-                r = msa.col_to_seq[seqid, ub]
-                if r-l>0 or not msa.ref_seq[seqid, lb] == len(msa.alphabet):
-                    if msa.ref_seq[seqid, lb] == len(msa.alphabet):
-                        l += 1
-                    nodes_subset.append(np.copy(seq[l:(r+1)]))
-                    lsum = sum(msa.seq_lens[:seqid])
-                    mem_list.append(msa.membership_targets[(lsum+l):(lsum+r+1)])
-                    gaps_list.append(np.copy(msa.gap_lengths[(lsum+seqid+l):(lsum+seqid+r+2)]))
-                    #if the left or right bound of the window is inside a long gap, we have to
-                    #adjust the gap length accordingly
-                    if l > 0:
-                        gaps_list[-1][0] -= lb - msa.membership_targets[lsum+l-1] + 1
-                    if r < msa.seq_lens[seqid]-1:
-                        gaps_list[-1][-1] -= msa.membership_targets[lsum+r+1] - ub - 1
-            if runs > 50:
-                print("Could not sample non empty sequences in under 50 attempts, check your data.")
-                quit()
+        for seqid, seq in enumerate(msa.raw_seq):
+            l = msa.col_to_seq[seqid, lb]
+            r = msa.col_to_seq[seqid, ub]
+            if r-l>0 or not msa.ref_seq[seqid, lb] == len(msa.alphabet):
+                if msa.ref_seq[seqid, lb] == len(msa.alphabet):
+                    l += 1
+                nodes_subset.append(np.copy(seq[l:(r+1)]))
+                lsum = sum(msa.seq_lens[:seqid])
+                mem_list.append(msa.membership_targets[(lsum+l):(lsum+r+1)])
+                gaps_list.append(np.copy(msa.gap_lengths[(lsum+seqid+l):(lsum+seqid+r+2)]))
+                #if the left or right bound of the window is inside a long gap, we have to
+                #adjust the gap length accordingly
+                if l > 0:
+                    gaps_list[-1][0] -= lb - msa.membership_targets[lsum+l-1] + 1
+                if r < msa.seq_lens[seqid]-1:
+                    gaps_list[-1][-1] -= msa.membership_targets[lsum+r+1] - ub - 1
 
 
         mem = np.concatenate(mem_list, axis=0) - lb
@@ -425,12 +438,7 @@ class NeuroAlignPredictor():
 
         col_dict, priors = self.make_window_uniform_priors(nodes_subset, num_col)
 
-        def to_graph(dicts):
-            g = gn.utils_tf.data_dicts_to_graphs_tuple(dicts)
-            g = gn.utils_tf.set_zero_edge_features(g, 0)
-            return gn.utils_tf.set_zero_global_features(g, 0)
-
-        return to_graph(seq_dicts), to_graph([col_dict]), priors, mem, gaps_in, gaps_start, gaps_end
+        return self.to_graph(seq_dicts), self.to_graph([col_dict]), priors, mem, gaps_in, gaps_start, gaps_end
 
 
     #generates priors for the column graphs such that

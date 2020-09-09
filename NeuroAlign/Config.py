@@ -1,5 +1,5 @@
-STATE_DIM = 100
-HIDDEN_LAYER_DIM = 100
+STATE_DIM = 128
+HIDDEN_LAYER_DIM = 200
 
 #NeuroAlign parameter configuration
 config = {
@@ -12,27 +12,29 @@ config = {
     "num_kernel" : 1,
 
     #iteration counts for the different components
-    "train_iterations" : 5,
-    "test_iterations" : 60,
+    "train_iterations" : 30,
+    "test_iterations" : 50,
 
     #training performance and logging
     "learning_rate" : 2e-5,
-    "num_training_iteration" : 2000,
+    "num_training_iteration" : 20000,
     "batch_size": 10,
     "savestate_milestones": 100,
-    "l2_regularization" : 1e-4,
+    "l2_regularization" : 1e-10,
     "adjacent_column_radius" : 20,
     "window_uniform_radius" : 12,
     "final_iteration_loss_weight" : 10, #final iteration is weighted xxx times as much as any intermediate iteration
     "lambda_rp" : 1.0,
     "lambda_gap" : 1.0,
+    "decode_batches_test" : 20,
+    "decode_batches_train" : 1,
 
     #hidden dimension for the latent representations for each sequence position
     #for simplicity also used for the representations of the forward edges the along sequences and
     #the global representation for each sequence
     "seq_latent_dim" : STATE_DIM,
 
-    "seq_global_dim" : 3*STATE_DIM,
+    "seq_global_dim" : 2*STATE_DIM,
 
     "encoder" : [HIDDEN_LAYER_DIM],
 
@@ -50,7 +52,7 @@ config = {
     "column_net_node_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
     "column_net_global_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
     "column_net_edge_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
-    "column_decode_node_layers" : [3*HIDDEN_LAYER_DIM, 3*HIDDEN_LAYER_DIM],
+    "column_decode_node_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM],
 
     "sequence_to_columns_layers" : [HIDDEN_LAYER_DIM, HIDDEN_LAYER_DIM]
 }

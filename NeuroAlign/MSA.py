@@ -5,16 +5,17 @@ import copy
 
 #reads sequences as fasta file and converts them to inputs and targets interpretable by the NeuroAlign model
 class Instance:
-    def __init__(self, filename, alphabet):
+    def __init__(self, filename, alphabet, gaps = True):
         self.filename = filename
         self.alphabet = alphabet
         self.seq_ids = []
-        self.valid = self.read_seqs(filename)
+        self.valid = self.read_seqs(filename, gaps)
         if self.valid:
             self.compute_inputs()
-            self.compute_targets()
+            if gaps:
+                self.compute_targets()
 
-    def read_seqs(self, filename):
+    def read_seqs(self, filename, gaps):
         print("reading file ", self.filename)
         #read seqs as strings
         _, file_extension = os.path.splitext(filename)
@@ -47,11 +48,12 @@ class Instance:
         self.ref_seq = [s.replace('-',str(len(self.alphabet))+' ') for s in self.ref_seq]
         self.raw_seq = [s.replace('-','') for s in self.raw_seq]
         #can store sequences with gaps as matrix
-        self.ref_seq = np.reshape(np.fromstring("".join(self.ref_seq), dtype=int, sep=' '), (len(self.ref_seq), alen))
         self.raw_seq = [np.fromstring(s, dtype=int, sep=' ') for s in self.raw_seq]
+        if gaps:
+            self.ref_seq = np.reshape(np.fromstring("".join(self.ref_seq), dtype=int, sep=' '), (len(self.ref_seq), alen))
+            self.alignment_len = len(self.ref_seq[0])
 
         self.seq_lens = [s.shape[0] for s in self.raw_seq]
-        self.alignment_len = len(self.ref_seq[0])
         self.num_columns = 2*max(self.seq_lens)
         self.total_len = sum(self.seq_lens)
         return True

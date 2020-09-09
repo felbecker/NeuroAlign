@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description='Tests the latest NeuroAlign model.
 parser.add_argument("-n", type=int, default=200, help="number of testing examples")
 parser.add_argument("-dir", type=str, default="./data_20_test", help="directory with data files")
 parser.add_argument("-w", action='store_true', help="write output fasta files")
+parser.add_argument("-nogaps", action='store_true', help="input files have no gaps")
 args = parser.parse_args()
 
 if args.w:
@@ -25,49 +26,50 @@ if args.w:
     except OSError:
         print ("Can not remove test directory")
 
-#load the training dataset
-msa = []
-alphabet = ['A', 'C', 'G', 'T'] if config["type"] == "nucleotide" else ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X']
-for i in range(1,args.n+1):
-    filepath = args.dir + "/A"+"{0:0=4d}".format(i)+".fa"
-    inst = MSA.Instance(filepath, alphabet)
-    if inst.valid:
-        msa.append(inst)
-
-#instantiate the predictor
-predictor = Model.NeuroAlignPredictor(config, msa[0])
-predictor.load_latest()
+predictor = None
 
 ps_ml = 0
 rs_ml = 0
 ps_gc = 0
 rs_gc = 0
-for m in msa:
+alphabet = ['A', 'C', 'G', 'T'] if config["type"] == "nucleotide" else ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X']
+for i in range(1,args.n+1):
+
+    filepath = args.dir + "/A"+"{0:0=4d}".format(i)+".fa"
+    m = MSA.Instance(filepath, alphabet, not args.nogaps)
+    if not m.valid:
+        continue
+
+    if predictor == None:
+        #instantiate the predictor
+        predictor = Model.NeuroAlignPredictor(config, m)
+        predictor.load_latest()
+
     mem, rp, gaps = predictor.predict(m)
     am_ml = Postprocessing.greedy_col_max_likely(m, mem)
-    am_gc = Postprocessing.greedy_consistent(m, mem)
+    am_gc = am_ml #Postprocessing.greedy_consistent(m, mem)
 
-    print("___________________________")
+    #print("___________________________")
     print("file:", m.filename)
-    print("target sequences: \n", m.ref_seq)
-    print("___________________________")
-    print("target memberships:", m.membership_targets)
-    print("greedy fast:", am_ml)
-    print("greedy consistent:", am_gc)
-    print("___________________________")
-    print("target rp:", m.membership_targets/m.alignment_len)
-    print("predicted rp:", rp)
-    print("___________________________")
-    print("target gaps:", m.gap_lengths)
-    print("predicted gaps:", gaps)
-    print("___________________________")
+    #print("target sequences: \n", m.ref_seq)
+    #print("___________________________")
+    #print("target memberships:", m.membership_targets)
+    #print("greedy fast:", am_ml)
+    #print("greedy consistent:", am_gc)
+    #print("___________________________")
+    #print("target rp:", m.membership_targets/m.alignment_len)
+    #print("predicted rp:", rp)
+    #print("___________________________")
+    #print("target gaps:", m.gap_lengths)
+    #print("predicted gaps:", gaps)
+    #print("___________________________")
 
-    p,r = m.recall_prec(am_ml.flatten())
-    ps_ml += p
-    rs_ml += r
-    p,r = m.recall_prec(am_gc.flatten())
-    ps_gc += p
-    rs_gc += r
+    #p,r = m.recall_prec(am_ml.flatten())
+    #ps_ml += p
+    #rs_ml += r
+    #p,r = m.recall_prec(am_gc.flatten())
+    #ps_gc += p
+    #rs_gc += r
 
     if args.w:
         MSA.column_pred_to_fasta(m, am_ml, "./test_out/")
