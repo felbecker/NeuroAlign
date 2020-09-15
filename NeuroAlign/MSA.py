@@ -5,23 +5,23 @@ import copy
 
 #reads sequences as fasta file and converts them to inputs and targets interpretable by the NeuroAlign model
 class Instance:
-    def __init__(self, filename, alphabet, gaps = True):
+    def __init__(self, filename, alphabet, gaps = True, contains_lower_case = False):
         self.filename = filename
         self.alphabet = alphabet
         self.seq_ids = []
-        self.valid = self.read_seqs(filename, gaps)
+        self.valid = self.read_seqs(filename, gaps, contains_lower_case)
         if self.valid:
             self.compute_inputs()
             if gaps:
                 self.compute_targets()
 
-    def read_seqs(self, filename, gaps):
+    def read_seqs(self, filename, gaps, contains_lower_case):
         print("reading file ", self.filename)
         #read seqs as strings
         _, file_extension = os.path.splitext(filename)
         with open(filename) as f:
             content = f.readlines()
-        self.ref_seq = []
+        self.raw_seq = []
         seq_open = False
         for line in content:
             line = line.strip()
@@ -30,29 +30,33 @@ class Instance:
                     seq_open = True
                     self.seq_ids.append(line[1:])
                 elif seq_open:
-                    self.ref_seq.append(line)
+                    self.raw_seq.append(line)
                     seq_open = False
                 else:
-                    self.ref_seq[-1] += line
+                    self.raw_seq[-1] += line
 
         #convert to numpy arrays
-        alen = int(len(self.ref_seq[0]))
-        for seq in self.ref_seq:
+        for seq in self.raw_seq:
             if not seq.find("/") == -1:
                 return False
-        self.ref_seq = [s.replace('.','-') for s in self.ref_seq] #treat dots as gaps
-        for i,c in enumerate(self.alphabet):
-            self.ref_seq = [s.replace(c,str(i)+' ') for s in self.ref_seq]
-            self.ref_seq = [s.replace(c.lower(),str(i)+' ') for s in self.ref_seq]
-        self.raw_seq = copy.deepcopy(self.ref_seq)
-        self.ref_seq = [s.replace('-',str(len(self.alphabet))+' ') for s in self.ref_seq]
-        self.raw_seq = [s.replace('-','') for s in self.raw_seq]
-        #can store sequences with gaps as matrix
-        self.raw_seq = [np.fromstring(s, dtype=int, sep=' ') for s in self.raw_seq]
+
         if gaps:
-            self.ref_seq = np.reshape(np.fromstring("".join(self.ref_seq), dtype=int, sep=' '), (len(self.ref_seq), alen))
             self.alignment_len = len(self.ref_seq[0])
 
+        self.raw_seq = [s.replace('.','-') for s in self.raw_seq] #treat dots as gaps
+        for i,c in enumerate(self.alphabet):
+            self.raw_seq = [s.replace(c,str(i)+' ') for s in self.raw_seq]
+            if contains_lower_case:
+                self.raw_seq = [s.replace(c.lower(),str(i)+' ') for s in self.raw_seq]
+
+        #can store sequences with gaps as matrix
+        if gaps:
+            self.ref_seq = copy.deepcopy(self.raw_seq)
+            self.ref_seq = [s.replace('-',str(len(self.alphabet))+' ') for s in self.ref_seq]
+            self.ref_seq = np.reshape(np.fromstring("".join(self.ref_seq), dtype=int, sep=' '), (len(self.ref_seq), self.alignment_len))
+
+        self.raw_seq = [s.replace('-','') for s in self.raw_seq]
+        self.raw_seq = [np.fromstring(s, dtype=int, sep=' ') for s in self.raw_seq]
         self.seq_lens = [s.shape[0] for s in self.raw_seq]
         self.num_columns = 2*max(self.seq_lens)
         self.total_len = sum(self.seq_lens)
