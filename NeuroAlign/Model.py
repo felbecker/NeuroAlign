@@ -273,7 +273,7 @@ class NeuroAlignModel(gn._base.AbstractModule):
             self.membership_out_transform = snt.Linear(1, name="column_out_transform")
 
 
-    def _build(self, init_seq, init_cols, membership_priors, iterations, batches = 1):
+    def _build(self, init_seq, init_cols, membership_priors, iterations, training, batches = 1):
 
         sequence_graph, alignment_global = self.sequence_kernel[0].parameterize_init_seq(init_seq)
         init_seq = sequence_graph.nodes
@@ -281,26 +281,30 @@ class NeuroAlignModel(gn._base.AbstractModule):
         init_col = column_graph.nodes
         memberships = [membership_priors]
         running_mem = membership_priors
-        relative_positions = []
-        gaps = []
+        relative_positions = [] #will contain only last-iteration rp. if training == false
+        gaps = [] #will contain only last-iteration gap lengths, training == false
         #mem_decode_state = self.membership_decoder.initial_state(batch_size=tf.reduce_sum(sequence_graph.n_node)*column_graph.n_node[0])
         hidden_sequence_graph = self.sequence_kernel[0].seq_network.get_initial_states(sequence_graph)
         hidden_column_graph = self.column_kernel[0].column_network.get_initial_states(column_graph)
         for num_kernel in range(self.config["num_kernel"]):
-            for _ in range(iterations):
+            for i in range(iterations):
+                #tf.print(i)
                 sequence_graph, hidden_sequence_graph = self.sequence_kernel[num_kernel](init_seq, sequence_graph, hidden_sequence_graph, column_graph, running_mem)
                 column_graph, hidden_column_graph = self.column_kernel[num_kernel](init_col, column_graph, hidden_column_graph, sequence_graph,  running_mem)
-                mem, g,gs,ge, rp = self.decode(init_seq, init_col, column_graph, sequence_graph, batches)
+                if training or i == (iterations-1):
+                    mem, g,gs,ge, rp = self.decode(init_seq, init_col, column_graph, sequence_graph, True, batches)
+                    relative_positions.append(rp)
+                    gaps.append((g,gs,ge))
+                else:
+                    mem = self.decode(init_seq, init_col, column_graph, sequence_graph, training, batches)
                 memberships.append(mem)
-                running_mem = 0.1*running_mem + 0.9*memberships[-1]
-                relative_positions.append(rp)
-                gaps.append((g,gs,ge))
+                running_mem = memberships[-1] #0.1*running_mem + 0.9*memberships[-1]
         return memberships, relative_positions, gaps
 
 
 
     #decodes the states of sequences S_i, columns C_r to membership probabilities P(i in r | S_i, C_r)
-    def decode(self, init_seq, init_col, column_graph, sequence_graph, batches):
+    def decode(self, init_seq, init_col, column_graph, sequence_graph, training, batches):
 
         n_pos = tf.reduce_sum(sequence_graph.n_node)
         n_col = column_graph.n_node[0]
@@ -318,20 +322,23 @@ class NeuroAlignModel(gn._base.AbstractModule):
         decode_out = tf.concat(decode_out, axis=0)
         decode_out = tf.reshape(decode_out, [n_pos, n_col])
         memberships = tf.nn.softmax(decode_out)
-        colrange = tf.reshape(tf.range(tf.cast(n_col, dtype=tf.float32), dtype=tf.float32), (-1,1))
-        soft_argmax = tf.matmul(memberships, colrange)
-        gaps = soft_argmax[1:,:] - soft_argmax[:-1,:] - 1
-        indices= tf.cast(tf.reshape(tf.math.cumsum(sequence_graph.n_node), (-1,1)), dtype=tf.int64)
-        values = tf.ones((gn.utils_tf.get_num_graphs(sequence_graph)-1), dtype=tf.bool)
-        st = tf.sparse.SparseTensor(indices[:-1]-1, values, [tf.cast(n_pos-1, dtype=tf.int64)])
-        remove_seq_ends = tf.math.logical_not(tf.sparse.to_dense(st))
-        gaps_no_seq_end = tf.boolean_mask(gaps, remove_seq_ends)
-        gaps_at_seq_start = tf.gather_nd(soft_argmax, tf.concat([tf.zeros((1,1), dtype=tf.int64), indices[:-1]], axis=0))
-        ncol_f = tf.cast(n_col, dtype=tf.float32)
-        gaps_at_seq_end = ncol_f-tf.gather_nd(soft_argmax, indices-1)-1
-        relative_positions = soft_argmax/ncol_f
-        return memberships, gaps_no_seq_end, gaps_at_seq_start, gaps_at_seq_end, relative_positions
 
+        if training:
+            colrange = tf.reshape(tf.range(tf.cast(n_col, dtype=tf.float32), dtype=tf.float32), (-1,1))
+            soft_argmax = tf.matmul(memberships, colrange)
+            gaps = soft_argmax[1:,:] - soft_argmax[:-1,:] - 1
+            indices= tf.cast(tf.reshape(tf.math.cumsum(sequence_graph.n_node), (-1,1)), dtype=tf.int64)
+            values = tf.ones((gn.utils_tf.get_num_graphs(sequence_graph)-1), dtype=tf.bool)
+            st = tf.sparse.SparseTensor(indices[:-1]-1, values, [tf.cast(n_pos-1, dtype=tf.int64)])
+            remove_seq_ends = tf.math.logical_not(tf.sparse.to_dense(st))
+            gaps_no_seq_end = tf.boolean_mask(gaps, remove_seq_ends)
+            gaps_at_seq_start = tf.gather_nd(soft_argmax, tf.concat([tf.zeros((1,1), dtype=tf.int64), indices[:-1]], axis=0))
+            ncol_f = tf.cast(n_col, dtype=tf.float32)
+            gaps_at_seq_end = ncol_f-tf.gather_nd(soft_argmax, indices-1)-1
+            relative_positions = soft_argmax/ncol_f
+            return memberships, gaps_no_seq_end, gaps_at_seq_start, gaps_at_seq_end, relative_positions
+        else:
+            return memberships
 
 
 
@@ -348,7 +355,7 @@ class NeuroAlignPredictor():
         self.save_prefix = os.path.join(self.checkpoint_root, self.checkpoint_name)
 
         def inference(init_seq, init_cols, priors):
-            out,rp,gaps = self.model(init_seq, init_cols, priors, config["test_iterations"], config["decode_batches_test"])
+            out,rp,gaps = self.model(init_seq, init_cols, priors, config["test_iterations"], False, config["decode_batches_test"])
             return out[-1], rp[-1], gaps[-1]
 
         example_seq_g, example_col_g, example_priors = self.get_pred_input(examle_msa)
@@ -366,7 +373,7 @@ class NeuroAlignPredictor():
     #col_priors is a list of position pairs (s,i) = sequence s at index i
     def predict(self, msa):
         seq_g, col_g, priors = self.get_pred_input(msa)
-        mem, rp, gaps = self.model(seq_g, col_g, priors, self.config["test_iterations"], self.config["decode_batches_test"]) #inference
+        mem, rp, gaps = self.model(seq_g, col_g, priors, self.config["test_iterations"], False, self.config["decode_batches_test"]) #inference
         return mem[-1].numpy(), rp[-1].numpy(), gaps[-1][0].numpy()
 
 
@@ -384,7 +391,7 @@ class NeuroAlignPredictor():
                         for seqid, nodes in enumerate(msa.raw_seq)]
 
         seq_g = self.to_graph(seq_dicts)
-        col_dict, priors = self.make_window_uniform_priors(msa.raw_seq, int(np.floor(1.5*max([s.size for s in msa.raw_seq]))))
+        col_dict, priors = self.make_window_uniform_priors(msa.raw_seq, int(np.floor(1.2*max([s.size for s in msa.raw_seq]))))
         col_g = self.to_graph([col_dict])
         return seq_g, col_g, priors
 

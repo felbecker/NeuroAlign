@@ -1,4 +1,4 @@
-STATE_DIM = 128
+STATE_DIM = 50
 HIDDEN_LAYER_DIM = 200
 
 #NeuroAlign parameter configuration
@@ -13,20 +13,20 @@ config = {
 
     #iteration counts for the different components
     "train_iterations" : 30,
-    "test_iterations" : 50,
+    "test_iterations" : 30,
 
     #training performance and logging
-    "learning_rate" : 2e-5,
+    "learning_rate" : 1e-7,
     "num_training_iteration" : 20000,
     "batch_size": 10,
-    "savestate_milestones": 100,
+    "savestate_milestones": 500,
     "l2_regularization" : 1e-10,
-    "adjacent_column_radius" : 20,
-    "window_uniform_radius" : 12,
+    "adjacent_column_radius" : 30,
+    "window_uniform_radius" : 20,
     "final_iteration_loss_weight" : 10, #final iteration is weighted xxx times as much as any intermediate iteration
     "lambda_rp" : 1.0,
     "lambda_gap" : 1.0,
-    "decode_batches_test" : 20,
+    "decode_batches_test" : 100,
     "decode_batches_train" : 1,
 
     #hidden dimension for the latent representations for each sequence position
@@ -34,7 +34,7 @@ config = {
     #the global representation for each sequence
     "seq_latent_dim" : STATE_DIM,
 
-    "seq_global_dim" : 2*STATE_DIM,
+    "seq_global_dim" : 5*STATE_DIM,
 
     "encoder" : [HIDDEN_LAYER_DIM],
 

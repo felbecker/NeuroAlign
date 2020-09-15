@@ -126,24 +126,19 @@ class Instance:
         return prec, rec
 
 
-#takes a vector of columns indices and a MSA instance and outputs a fasta file
+#takes a vector of column indices and a MSA instance and outputs a fasta file
 #the column indices per sequence have to be strictly increasing
 def column_pred_to_fasta(msa, cols, dir):
+    ncol = np.max(cols)+1
     lsum = 0
     file = dir+os.path.basename(msa.filename)
     with open(file,"w") as f:
         for id,l,raw in zip(msa.seq_ids, msa.seq_lens, msa.raw_seq):
-            cur = 0
             seq_with_gaps = ""
             for i,c in enumerate(cols[lsum:(lsum+l)]):
-                while c > cur:
-                    seq_with_gaps += "-"
-                    cur += 1
+                seq_with_gaps += "-"*int(c - len(seq_with_gaps))
                 seq_with_gaps += msa.alphabet[raw[i]]
-                cur += 1
-            while cur < msa.alignment_len:
-                seq_with_gaps += "-"
-                cur += 1
-            f.write(id+"\n")
+            seq_with_gaps += "-"*int(ncol - len(seq_with_gaps))
+            f.write(">"+id+"\n")
             f.write(seq_with_gaps+"\n")
             lsum += l

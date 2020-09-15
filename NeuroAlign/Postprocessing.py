@@ -2,15 +2,67 @@ import numpy as np
 import networkx as nx
 
 
-#fast but ignores consistency
-def greedy_col_max_likely(msa, memberships):
+
+#fastest but ignores consistency
+#this output is not suitable for constructing complete alignments
+#it can be used to test precision and recall
+def max_likely(msa, memberships):
     return np.argmax(memberships, axis=1)
+
+
+
+#fast but only ensures sequence-level consistency
+# takes raw predicted memberships and outputs sequence-consistent column indices
+# that fulfill: i < j -> col[i] < col[j]
+# inconsistencies in the prediction are resolved by introducing new columns
+def seq_consistent(msa, memberships):
+    memberships = np.copy(memberships) #we do not want to modify the original array
+    cols = -np.ones(memberships.shape[0])
+    lsum = 0
+    for l in msa.seq_lens:
+        seq_mem = memberships[lsum:(lsum+l),:]
+        pos_done = 0
+        while pos_done < l:
+            i,j = np.unravel_index(np.argmax(seq_mem, axis=None), seq_mem.shape) #find pos i and col j with maximum probability
+            if seq_mem[i,j] == -1:
+                break
+            cols[lsum+i] = j
+            #we don't want to pick position i again
+            seq_mem[i,:] = -1
+            #all positions that come before position i in the sequence will not be able chooce a column greater or equal j
+            seq_mem[:i,j:] = -1
+            #all positions that come after position i in the sequence will not be able chooce a column less or equal j
+            seq_mem[(i+1):,:(j+1)] = -1
+            pos_done += 1
+        lsum += l
+    # -1-columns indicate inconsistencies in the prediction
+    # the model that made the predictions has a soft mechanism to prevent this case,
+    # but we have to handle the rare cases where this soft mechanism fails
+    # if a -1 column occurs, it's always a bad thing, although it can be resolved
+    # by introducing a new column containing only the position i with cols[i] = -1
+    num_inconsistent = np.sum(cols == -1)
+    if num_inconsistent > 0:
+        print(num_inconsistent, " positions could not be assigned consistently to columns. Inserting additional columns for them.")
+        lsum = 0
+        for l in msa.seq_lens:
+            last_valid_column = -1
+            for i,j in enumerate(cols[lsum:(lsum+l)]):
+                if j == -1:
+                    #introduce a new column
+                    cols[lsum+i] = last_valid_column+1
+                    #shift all entries with a column greater equal last_valid_column by one
+                    cols += (cols >= last_valid_column+1)
+                else:
+                    last_valid_column = j #j's are strictly increasing
+            lsum += l
+    return cols
+
 
 
 #returns a consistent selection
 #greedily select the position -column pair with highest probability that is
 #consistent with previous selections
-def greedy_consistent(msa, memberships):
+def fully_consistent(msa, memberships):
     #2d descending argsort the predicted memberships
     greedy_sorted = np.dstack(np.unravel_index(np.argsort(-memberships, axis=None), memberships.shape))[0]
     #greedy_sorted[:,1] = np.max(greedy_sorted[:,1]) - greedy_sorted[:,1]
@@ -19,6 +71,7 @@ def greedy_consistent(msa, memberships):
     for pos,col in greedy_sorted:
         checker.try_add(pos, col)
     return checker.get_result()
+
 
 
 class ConsistencyChecker():
