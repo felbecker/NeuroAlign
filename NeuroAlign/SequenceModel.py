@@ -3,6 +3,7 @@ import numpy as np
 
 
 LSTM_DIM = 64
+LSTM_STACKED = 2
 ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
 LEARNING_RATE = 1e-3
@@ -39,6 +40,7 @@ class OutputShift(tf.keras.layers.Layer):
 
     #input dim is [batchsize, seq_len, len(ALPHABET)]
     def call(self, inputs):
+        #tf.print(inputs, summarize=-1)
         #inputs have shape (batch, len, 2*LSTM_DIM)
         #shift such that:
         #out_i = (forward_i-1 , backward_i+1)
@@ -47,6 +49,44 @@ class OutputShift(tf.keras.layers.Layer):
         backward_shifted = tf.concat([inputs[:,1:,LSTM_DIM:], zeros], axis=1)
         output = tf.concat([forward_shifted, backward_shifted], axis=-1)
         return output
+
+
+class StackedLSTM(tf.keras.layers.Layer):
+    def __init__(self,
+                    go_backwards=False,
+                    return_sequences=True,
+                    return_state=False,
+                    name="StackedLSTM",
+                    trainable=True,
+                    dtype=tf.float32):
+        super(StackedLSTM, self).__init__(name=name, trainable=trainable, dtype=dtype)
+        self.lstms = []
+        self.go_backwards = go_backwards
+        self.return_sequences = return_sequences
+        self.return_state = return_state
+        for i in range(LSTM_STACKED):
+            self.lstms.append(tf.keras.layers.LSTM(LSTM_DIM,
+                                                    go_backwards=go_backwards,
+                                                    return_sequences=return_sequences,
+                                                    return_state=return_state,
+                                                    trainable=trainable,
+                                                    dtype=dtype))
+
+    def get_config(self):
+        config = super().get_config().copy()
+        config.update({
+            'go_backwards': self.go_backwards,
+            'return_sequences': self.return_sequences,
+            'return_state': self.return_state
+        })
+        return config
+
+    def call(self, inputs):
+        cur = inputs
+        for lstm in self.lstms:
+            cur = lstm(cur)
+        return cur
+
 
 ##################################################################################################
 ##################################################################################################
@@ -62,13 +102,8 @@ def make_model():
     model.add(tf.keras.layers.Masking(mask_value=0.0))
 
     #bidirectional LSTMs
-    model.add(tf.keras.layers.Bidirectional(layer = tf.keras.layers.LSTM(LSTM_DIM, return_sequences=True),
-                                            backward_layer = tf.keras.layers.LSTM(LSTM_DIM, return_sequences=True, go_backwards=True),
+    model.add(tf.keras.layers.Bidirectional(layer = StackedLSTM(),
                                             merge_mode = "concat"))
-    model.add(tf.keras.layers.Bidirectional(layer = tf.keras.layers.LSTM(LSTM_DIM, return_sequences=True),
-                                            backward_layer = tf.keras.layers.LSTM(LSTM_DIM, return_sequences=True, go_backwards=True),
-                                            merge_mode = "concat"))
-
     model.add(OutputShift())
 
     #transform to symbol probabilities, this part will be skipped when shipping the model
