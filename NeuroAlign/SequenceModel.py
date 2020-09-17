@@ -18,7 +18,7 @@ VALIDATION_SPLIT = 0.05
 ##################################################################################################
 
 #load the data
-msa = MSA.Instance("Pfam-80-500.fasta", ALPHABET, gaps=False)
+msa = MSA.Instance("Pfam_very_thin.fasta", ALPHABET, gaps=False)
 
 if not msa.valid:
     print("Invalid data.")
@@ -40,7 +40,7 @@ class SequenceBatchGenerator(tf.keras.utils.Sequence):
         self.split = split
 
     def __len__(self):
-        return 10000#int(np.floor(len(self.split) / BATCH_SIZE)) #steps per epoch
+        return int(np.floor(len(self.split) / BATCH_SIZE)) #steps per epoch
 
     def __getitem__(self, index):
         batch_indices = np.random.choice(self.split, size=BATCH_SIZE)
@@ -87,8 +87,8 @@ class OutputShift(tf.keras.layers.Layer):
         #shift such that:
         #out_i = (forward_i-1 , backward_i+1)
         zeros = tf.zeros_like(inputs[:,0:1,:LSTM_DIM])
-        forward_shifted = tf.concat([zeros, inputs[:,1:,:LSTM_DIM]], axis=1)
-        backward_shifted = tf.concat([inputs[:,:-1,LSTM_DIM:], zeros], axis=1)
+        forward_shifted = tf.concat([zeros, inputs[:,:-1,:LSTM_DIM]], axis=1)
+        backward_shifted = tf.concat([inputs[:,1:,LSTM_DIM:], zeros], axis=1)
         output = tf.concat([forward_shifted, backward_shifted], axis=-1)
         return output
 
@@ -133,6 +133,5 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath="seq_checkpoints/model
 model.fit(train_gen,
             validation_data=val_gen,
             epochs = NUM_EPOCHS,
-            verbose = 2,
+            verbose = 1,
             callbacks=[cp_callback])
-
