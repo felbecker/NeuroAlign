@@ -5,8 +5,8 @@ import numpy as np
 import MSA
 
 
-LSTM_DIM = 256
-ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X']
+LSTM_DIM = 64
+ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
 LEARNING_RATE = 1e-3
 NUM_EPOCHS = 100
@@ -18,7 +18,7 @@ VALIDATION_SPLIT = 0.05
 ##################################################################################################
 
 #load the data
-msa = MSA.Instance("Pfam_very_thin.fasta", ALPHABET, gaps=False)
+msa = MSA.Instance("Pfam-80-500.fasta", ALPHABET, gaps=False)
 
 if not msa.valid:
     print("Invalid data.")
@@ -40,7 +40,7 @@ class SequenceBatchGenerator(tf.keras.utils.Sequence):
         self.split = split
 
     def __len__(self):
-        return int(np.floor(len(self.split) / BATCH_SIZE)) #steps per epoch
+        return 10000#int(np.floor(len(self.split) / BATCH_SIZE)) #steps per epoch
 
     def __getitem__(self, index):
         batch_indices = np.random.choice(self.split, size=BATCH_SIZE)
@@ -50,7 +50,7 @@ class SequenceBatchGenerator(tf.keras.utils.Sequence):
         seq = np.zeros((BATCH_SIZE, num_steps, len(ALPHABET)), dtype=np.float32)
         for j,(l,s) in enumerate(zip(batch_lens, batch)):
             seq[j,np.arange(l),s] = 1
-        return seq, seq, [None]
+        return seq, seq
 
 
 train_gen = SequenceBatchGenerator(train)
@@ -67,6 +67,7 @@ class SequenceEmbedding(tf.keras.layers.Layer):
     def build(self, input_shape):
         self.sites_w = self.add_weight(shape=(len(ALPHABET), len(ALPHABET)),
                                         trainable=True,
+                                        name="alphabet_embedding",
                                         initializer = tf.constant_initializer(np.eye(len(ALPHABET))))
 
     #input dim is [batchsize, seq_len, len(ALPHABET)]
@@ -125,7 +126,13 @@ model.compile(loss='categorical_crossentropy',
 
 data = val_gen.__getitem__(0)
 
+cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath="seq_checkpoints/model.ckpt",
+                                                 save_weights_only=True,
+                                                 verbose=1)
+
 model.fit(train_gen,
             validation_data=val_gen,
             epochs = NUM_EPOCHS,
-            verbose = 1)
+            verbose = 2,
+            callbacks=[cp_callback])
+

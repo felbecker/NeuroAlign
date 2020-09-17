@@ -10,10 +10,10 @@ class Instance:
         self.alphabet = alphabet
         self.seq_ids = []
         self.valid = self.read_seqs(filename, gaps, contains_lower_case)
-        if self.valid:
-            self.compute_inputs()
-            if gaps:
-                self.compute_targets()
+#        if self.valid:
+#            self.compute_inputs()
+#            if gaps:
+#                self.compute_targets()
 
     def read_seqs(self, filename, gaps, contains_lower_case):
         print("reading file ", self.filename)
