@@ -10,10 +10,8 @@ class Instance:
         self.alphabet = alphabet
         self.seq_ids = []
         self.valid = self.read_seqs(filename, gaps, contains_lower_case)
-#        if self.valid:
-#            self.compute_inputs()
-#            if gaps:
-#                self.compute_targets()
+        if self.valid and gaps:
+            self.compute_targets()
 
     def read_seqs(self, filename, gaps, contains_lower_case):
         print("reading file ", self.filename)
@@ -61,24 +59,6 @@ class Instance:
         self.num_columns = 2*max(self.seq_lens)
         self.total_len = sum(self.seq_lens)
         return True
-
-
-
-    def compute_inputs(self):
-        #convert to binary alphabet
-        #for each node, we store a one hot encoding of the respective symbol and the relative raw seq position
-        self.nodes = [np.zeros((slen, len(self.alphabet)+1), dtype=np.float32) for slen in self.seq_lens]
-        for seq, nodes in zip(self.raw_seq, self.nodes):
-            for i,s in enumerate(seq):
-                nodes[i, s] = 1 #onehot
-                nodes[i, len(self.alphabet)] = i
-
-        #compute forward edges
-        self.forward_senders = []
-        self.forward_receivers = []
-        for l in self.seq_lens:
-            self.forward_senders.append(list(range(0, l-1)))
-            self.forward_receivers.append(list(range(1, l)))
 
 
 
