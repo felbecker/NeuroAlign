@@ -39,7 +39,7 @@ class Instance:
                 return False
 
         if gaps:
-            self.alignment_len = len(self.ref_seq[0])
+            self.alignment_len = len(self.raw_seq[0])
 
         self.raw_seq = [s.replace('.','-') for s in self.raw_seq] #treat dots as gaps
         for i,c in enumerate(self.alphabet):
