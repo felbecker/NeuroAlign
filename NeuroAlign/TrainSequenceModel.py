@@ -2,13 +2,14 @@ import tensorflow as tf
 import numpy as np
 import MSA
 import SequenceModel
+import os.path
 
 
 ##################################################################################################
 ##################################################################################################
 
 #load the data
-msa = MSA.Instance("Pfam_very_thin.fasta", SequenceModel.ALPHABET, gaps=False)
+msa = MSA.Instance("Pfam-80-500.fasta", SequenceModel.ALPHABET, gaps=False)
 
 if not msa.valid:
     print("Invalid data.")
@@ -32,8 +33,8 @@ class SequenceBatchGenerator(tf.keras.utils.Sequence):
 
     def __len__(self):
         if self.train:
-            if len(self.split) > 10*SequenceModel.BATCH_SIZE:
-                return int(np.floor(len(self.split) / (10*SequenceModel.BATCH_SIZE)))
+            if len(self.split) > 3*SequenceModel.BATCH_SIZE:
+                return int(np.floor(len(self.split) / (3*SequenceModel.BATCH_SIZE)))
         return int(np.floor(len(self.split) / SequenceModel.BATCH_SIZE)) #steps per epoch
 
     def __getitem__(self, index):
@@ -55,6 +56,8 @@ val_gen = SequenceBatchGenerator(test, False)
 ##################################################################################################
 
 model = SequenceModel.make_model()
+if os.path.isfile(SequenceModel.CHECKPOINT_PATH):
+    model.load_weights(SequenceModel.CHECKPOINT_PATH)
 
 data = val_gen.__getitem__(0)
 
@@ -65,5 +68,5 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=SequenceModel.CHECKPOI
 model.fit(train_gen,
             validation_data=val_gen,
             epochs = SequenceModel.NUM_EPOCHS,
-            verbose = 1,
+            verbose = 2,
             callbacks=[cp_callback])

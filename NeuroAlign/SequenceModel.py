@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 
-LSTM_DIM = 64
+LSTM_DIM = 512
 LSTM_STACKED = 2
 ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
@@ -11,7 +11,7 @@ BATCH_SIZE = 256
 NUM_EPOCHS = 100
 VALIDATION_SPLIT = 0.05
 
-CHECKPOINT_PATH = "seq_checkpoints/model.ckpt"
+CHECKPOINT_PATH = "seq_checkpoints2/model.ckpt"
 
 ##################################################################################################
 ##################################################################################################
