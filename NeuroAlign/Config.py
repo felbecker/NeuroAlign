@@ -1,32 +1,33 @@
-STATE_DIM = 50
-HIDDEN_LAYER_DIM = 200
+STATE_DIM = 32
+HIDDEN_LAYER_DIM = 64
 
 #NeuroAlign parameter configuration
 config = {
 
-    "type" : "protein",  #currently supports nucleotide or protein
+    "type" : "nucleotide",  #currently supports nucleotide or protein
 
     #"num_col" : 250,
 
     #number of sequentially applied core networks (each with unique parameters)
-    "num_kernel" : 1,
+    "num_kernel" : 2,
 
     #iteration counts for the different components
-    "train_iterations" : 30,
-    "test_iterations" : 30,
+    "train_iterations" : 1,
+    "test_iterations" : 20,
 
     #training performance and logging
-    "learning_rate" : 1e-7,
+    "learning_rate" : 2e-5,
     "num_training_iteration" : 20000,
     "batch_size": 10,
     "savestate_milestones": 500,
     "l2_regularization" : 1e-10,
     "adjacent_column_radius" : 30,
     "window_uniform_radius" : 20,
-    "final_iteration_loss_weight" : 10, #final iteration is weighted xxx times as much as any intermediate iteration
+    "final_iteration_loss_weight" : 1, #final iteration is weighted xxx times as much as any intermediate iteration
     "lambda_rp" : 1.0,
     "lambda_gap" : 1.0,
-    "decode_batches_test" : 100,
+    "lambda_res_dist" : 1.0,
+    "decode_batches_test" : 1,
     "decode_batches_train" : 1,
 
     #hidden dimension for the latent representations for each sequence position

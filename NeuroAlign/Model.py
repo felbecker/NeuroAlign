@@ -272,6 +272,8 @@ class NeuroAlignModel(gn._base.AbstractModule):
             self.membership_decoder = make_mlp_model(config["column_decode_node_layers"])()
             self.membership_out_transform = snt.Linear(1, name="column_out_transform")
 
+            self.res_dist_decoder = snt.Linear(get_len_alphabet(self.config)+1, name="res_dist_decoder")
+
 
     def _build(self, init_seq, init_cols, membership_priors, iterations, training, batches = 1):
 
@@ -283,6 +285,7 @@ class NeuroAlignModel(gn._base.AbstractModule):
         running_mem = membership_priors
         relative_positions = [] #will contain only last-iteration rp. if training == false
         gaps = [] #will contain only last-iteration gap lengths, training == false
+        res_dists = [] #will contain only last-iteration res dists, training == false
         #mem_decode_state = self.membership_decoder.initial_state(batch_size=tf.reduce_sum(sequence_graph.n_node)*column_graph.n_node[0])
         hidden_sequence_graph = self.sequence_kernel[0].seq_network.get_initial_states(sequence_graph)
         hidden_column_graph = self.column_kernel[0].column_network.get_initial_states(column_graph)
@@ -292,14 +295,15 @@ class NeuroAlignModel(gn._base.AbstractModule):
                 sequence_graph, hidden_sequence_graph = self.sequence_kernel[num_kernel](init_seq, sequence_graph, hidden_sequence_graph, column_graph, running_mem)
                 column_graph, hidden_column_graph = self.column_kernel[num_kernel](init_col, column_graph, hidden_column_graph, sequence_graph,  running_mem)
                 if training or i == (iterations-1):
-                    mem, g,gs,ge, rp = self.decode(init_seq, init_col, column_graph, sequence_graph, True, batches)
+                    mem, g,gs,ge, rp, res_dist = self.decode(init_seq, init_col, column_graph, sequence_graph, True, batches)
                     relative_positions.append(rp)
                     gaps.append((g,gs,ge))
+                    res_dists.append(res_dist)
                 else:
                     mem = self.decode(init_seq, init_col, column_graph, sequence_graph, training, batches)
                 memberships.append(mem)
                 running_mem = memberships[-1] #0.1*running_mem + 0.9*memberships[-1]
-        return memberships, relative_positions, gaps
+        return memberships, relative_positions, gaps, res_dists
 
 
 
@@ -336,7 +340,8 @@ class NeuroAlignModel(gn._base.AbstractModule):
             ncol_f = tf.cast(n_col, dtype=tf.float32)
             gaps_at_seq_end = ncol_f-tf.gather_nd(soft_argmax, indices-1)-1
             relative_positions = soft_argmax/ncol_f
-            return memberships, gaps_no_seq_end, gaps_at_seq_start, gaps_at_seq_end, relative_positions
+            res_dist = self.res_dist_decoder(column_graph.nodes)
+            return memberships, gaps_no_seq_end, gaps_at_seq_start, gaps_at_seq_end, relative_positions, res_dist
         else:
             return memberships
 
@@ -426,15 +431,17 @@ class NeuroAlignPredictor():
                     gaps_list[-1][-1] -= msa.membership_targets[lsum+r+1] - ub - 1
 
 
+
+        res_dist = np.zeros((num_col, get_len_alphabet(self.config)+1))
+        for m,s in zip(mem_list, nodes_subset):
+            res_dist[m- lb,s] += 1
+        res_dist[:,get_len_alphabet(self.config)] = len(msa.seq_lens) - np.sum(res_dist, axis=1)
+        res_dist /= len(msa.seq_lens)
+
         mem = np.concatenate(mem_list, axis=0) - lb
         gaps_in = np.concatenate([g[1:-1] for g in gaps_list], axis=0)
         gaps_start = np.concatenate([np.reshape(g[0], (1)) for g in gaps_list], axis=0)
         gaps_end = np.concatenate([np.reshape(g[-1], (1)) for g in gaps_list], axis=0)
-
-        # print(msa.ref_seq)
-        # print(gaps_in)
-        # print(gaps_start)
-        # print(gaps_end)
 
         seq_dicts = [{"nodes" : np.concatenate((np.reshape(nodes, (-1,1)),
                                                 np.reshape(np.linspace(0,1,nodes.shape[0]), (-1,1))),
@@ -445,7 +452,7 @@ class NeuroAlignPredictor():
 
         col_dict, priors = self.make_window_uniform_priors(nodes_subset, num_col)
 
-        return self.to_graph(seq_dicts), self.to_graph([col_dict]), priors, mem, gaps_in, gaps_start, gaps_end
+        return self.to_graph(seq_dicts), self.to_graph([col_dict]), priors, mem, gaps_in, gaps_start, gaps_end, res_dist
 
 
     #generates priors for the column graphs such that
