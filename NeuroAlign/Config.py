@@ -12,7 +12,7 @@ config = {
     "num_kernel" : 2,
 
     #iteration counts for the different components
-    "train_iterations" : 1,
+    "train_iterations" : 20,
     "test_iterations" : 20,
 
     #training performance and logging
@@ -22,7 +22,7 @@ config = {
     "savestate_milestones": 500,
     "l2_regularization" : 1e-10,
     "adjacent_column_radius" : 30,
-    "window_uniform_radius" : 20,
+    "window_uniform_radius" : 10,
     "final_iteration_loss_weight" : 1, #final iteration is weighted xxx times as much as any intermediate iteration
     "lambda_rp" : 1.0,
     "lambda_gap" : 1.0,
