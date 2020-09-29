@@ -1,5 +1,0 @@
-a merged dataset of structural protein alignments consisting of:
-- 218 MSAs from BALIBASE (version 3.0, Dec 2004)
-- 225 MSAs from Mattbench "superfamily" (http://bcb.cs.tufts.edu/mattbench/Mattbench.html)
-- 34 MSAs from Mattbench "twilight" (http://bcb.cs.tufts.edu/mattbench/Mattbench.html)
-- 1032 Pairwise- and MSAs from homstrad (release 2019-10-19) (https://mizuguchilab.org/homstrad/)
