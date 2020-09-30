@@ -19,12 +19,13 @@ trees = []
 #load the sequences (just remove the gaps from pfam alignments)
 msa = []
 
-for f in pfam[:100]:
+for f in pfam:
     try:
-        tree = Phylo.read("Pfam/trees/" + f + ".tree", "newick")
-        trees.append(tree)
         m = MSA.Instance("Pfam/alignments/" + f + ".fasta", DistanceModel.ALPHABET, gaps = False)
-        msa.append(m)
+        if len(m.raw_seq) > 1:
+            msa.append(m)
+            tree = Phylo.read("Pfam/trees/" + f + ".tree", "newick")
+            trees.append(tree)
     except FileNotFoundError:
         pfam_not_found += 1
 
@@ -32,6 +33,10 @@ np.random.seed(0)
 
 indices = np.arange(len(msa))
 np.random.shuffle(indices)
+
+print("Traing on ", len(msa), " families.")
+print(sum([len(m.raw_seq) for m in msa]), " sequences in total.")
+
 train, val = np.split(indices, [int(len(msa)*(1-DistanceModel.VALIDATION_SPLIT))])
 
 ##################################################################################################
@@ -65,7 +70,15 @@ class DistanceBatchGenerator(tf.keras.utils.Sequence):
         s1, s2 = np.random.randint(len(m.raw_seq), size=2)
         while s2 == s1:
             s2 = np.random.randint(len(m.raw_seq))
-        dist = t.distance(m.seq_ids[s1], m.seq_ids[s2])
+        try:
+            dist = t.distance(m.seq_ids[s1], m.seq_ids[s2])
+        except ValueError as err:
+            print(t)
+            print(t.find_clades(m.seq_ids[s1]))
+            print(t.find_clades(m.seq_ids[s2]))
+            print("ValueError: {0}".format(err))
+            print(m.seq_ids)
+            print(m.filename, m.seq_ids[s1], m.seq_ids[s2])
         return m.raw_seq[s1], m.raw_seq[s2], dist
 
     def __len__(self):
