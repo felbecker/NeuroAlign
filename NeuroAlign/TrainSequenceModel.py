@@ -55,11 +55,15 @@ val_gen = SequenceBatchGenerator(test, False)
 ##################################################################################################
 ##################################################################################################
 
-model = SequenceModel.make_model()
-if os.path.isfile(SequenceModel.CHECKPOINT_PATH):
-    model.load_weights(SequenceModel.CHECKPOINT_PATH)
 
-data = val_gen.__getitem__(0)
+strategy = tf.distribute.MirroredStrategy()
+print('Number of devices: {}'.format(strategy.num_replicas_in_sync), flush=True)
+
+with strategy.scope():
+    model = SequenceModel.make_model()
+    if os.path.isfile(SequenceModel.CHECKPOINT_PATH+".index"):
+        model.load_weights(SequenceModel.CHECKPOINT_PATH)
+        print("Loaded weights", flush=True)
 
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=SequenceModel.CHECKPOINT_PATH,
                                                  save_weights_only=True,
