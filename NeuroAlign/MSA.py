@@ -14,7 +14,6 @@ class Instance:
             self.compute_targets()
 
     def read_seqs(self, filename, gaps, contains_lower_case):
-        print("reading file ", self.filename)
         #read seqs as strings
         _, file_extension = os.path.splitext(filename)
         with open(filename) as f:
@@ -39,7 +38,7 @@ class Instance:
                 return False
 
         if gaps:
-            self.alignment_len = len(self.ref_seq[0])
+            self.alignment_len = len(self.raw_seq[0])
 
         self.raw_seq = [s.replace('.','-') for s in self.raw_seq] #treat dots as gaps
         for i,c in enumerate(self.alphabet):
