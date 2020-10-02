@@ -52,7 +52,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         self.family_probs = [w/sum_w for w in family_weights]
 
     def __len__(self):
-        return len(self.split) #steps per epoch
+        return 50#len(self.split) #steps per epoch
 
     def __getitem__(self, index):
 
@@ -136,13 +136,13 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
                         "sequence_gatherer" : sequence_gatherer,
                         "column_priors" : column_priors,
                         "sequence_lengths" : np.array(batch_lens, dtype=np.int32) }
-        targets = [np.matmul(memberships, np.transpose(memberships)),
-                    relative_positions,
-                    gaps_start,
-                    gaps_in,
-                    gaps_end,
-                    col_dists ]
-        return input_dict, targets
+        target_dict = {"mem" : np.matmul(memberships, np.transpose(memberships)),
+                        "rp" : relative_positions,
+                        "gs" : gaps_start,
+                        "g" : gaps_in,
+                        "ge" : gaps_end,
+                        "col" : col_dists }
+        return input_dict, target_dict
 
 
 train_gen = AlignmentBatchGenerator(train)

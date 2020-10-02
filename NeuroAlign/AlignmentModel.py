@@ -77,9 +77,9 @@ class MembershipDecoder(layers.Layer):
         col_dec = self.decoder_c(inputs[1])
         sequence_lengths = inputs[2]
         logits = tf.expand_dims(seq_dec, 1) + tf.expand_dims(col_dec, 0) #use broadcasting to efficiently get all combinations
-        _logits = tf.reshape(logits, (-1, DECODER_LAYERS[0]))
-        _logits = self.out_trans(self.decoder(_logits))
-        exp_logits = tf.exp(_logits)
+        logits = tf.reshape(logits, (-1, DECODER_LAYERS[0]))
+        logits = self.out_trans(self.decoder(logits))
+        exp_logits = tf.exp(logits)
         exp_logits = tf.reshape(exp_logits, (-1, tf.shape(inputs[1])[0]))
         M_c = exp_logits / tf.reduce_sum(exp_logits, axis=-1, keepdims=True)
         segment_ids = tf.repeat(tf.range(tf.shape(sequence_lengths)[0], dtype=tf.int32), sequence_lengths)
@@ -177,13 +177,31 @@ def make_model():
     relative_positions, gaps_start, gaps_in, gaps_end, col_dist = sec_decoder([M, columns, sequence_lengths])
     M_squared = tf.linalg.matmul(M, M, transpose_b=True)
 
+    #name outputs by passing to identity lambdas..
+    M_squared = layers.Lambda(lambda x: x, name="mem")(M_squared)
+    relative_positions = layers.Lambda(lambda x: x, name="rp")(relative_positions)
+    gaps_start = layers.Lambda(lambda x: x, name="gs")(gaps_start)
+    gaps_in = layers.Lambda(lambda x: x, name="g")(gaps_in)
+    gaps_end = layers.Lambda(lambda x: x, name="ge")(gaps_end)
+    col_dist = layers.Lambda(lambda x: x, name="col")(col_dist)
+
     model = keras.Model(
         inputs=[sequences, sequence_gatherer, column_priors, sequence_lengths],
         outputs=[M_squared, relative_positions, gaps_start, gaps_in, gaps_end, col_dist],
     )
 
-    model.compile(loss=["binary_crossentropy", "mse", "mse", "mse", "mse","categorical_crossentropy"],
+    model.compile(loss={"mem" : "binary_crossentropy",
+                        "rp" : "mse",
+                        "gs" : "mse",
+                        "g" : "mse",
+                        "ge" : "mse",
+                        "col" : "categorical_crossentropy"},
                     optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
-                    loss_weights=[MEM_LOSS, RP_LOSS, GAP_LOSS, GAP_LOSS, GAP_LOSS, COL_LOSS])
+                    loss_weights={"mem" : MEM_LOSS,
+                                    "rp" : RP_LOSS,
+                                    "gs" : GAP_LOSS,
+                                    "g" : GAP_LOSS,
+                                    "ge" : GAP_LOSS,
+                                    "col" : COL_LOSS})
 
     return model
