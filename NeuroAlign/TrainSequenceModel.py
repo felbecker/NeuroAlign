@@ -66,7 +66,7 @@ with strategy.scope():
         print("Loaded weights", flush=True)
 
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=SequenceModel.CHECKPOINT_PATH,
-                                                 save_weights_only=True,
+                                                 save_weights_only=False,
                                                  verbose=1)
 
 model.fit(train_gen,

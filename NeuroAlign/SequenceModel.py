@@ -7,7 +7,7 @@ LSTM_STACKED = 2
 ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
 LEARNING_RATE = 1e-3
-BATCH_SIZE = 512
+BATCH_SIZE = 800
 NUM_EPOCHS = 100
 VALIDATION_SPLIT = 0.05
 
@@ -38,8 +38,11 @@ class OutputShift(tf.keras.layers.Layer):
     def __init__(self):
         super(OutputShift, self).__init__()
 
+    def compute_mask(self, inputs, mask=None):
+        return mask
+
     #input dim is [batchsize, seq_len, len(ALPHABET)]
-    def call(self, inputs):
+    def call(self, inputs, mask=None):
         #tf.print(inputs, summarize=-1)
         #inputs have shape (batch, len, 2*LSTM_DIM)
         #shift such that:
@@ -72,6 +75,9 @@ class StackedLSTM(tf.keras.layers.Layer):
                                                     trainable=trainable,
                                                     dtype=dtype))
 
+    def compute_mask(self, inputs, mask=None):
+        return mask
+
     def get_config(self):
         config = super().get_config().copy()
         config.update({
@@ -81,12 +87,11 @@ class StackedLSTM(tf.keras.layers.Layer):
         })
         return config
 
-    def call(self, inputs):
+    def call(self, inputs, mask=None):
         cur = inputs
         for lstm in self.lstms:
-            cur = lstm(cur)
+            cur = lstm(cur, mask=mask)
         return cur
-
 
 ##################################################################################################
 ##################################################################################################
