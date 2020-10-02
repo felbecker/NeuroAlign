@@ -15,6 +15,7 @@ class Instance:
 
     def read_seqs(self, filename, gaps, contains_lower_case):
         #read seqs as strings
+        #print(filename)
         _, file_extension = os.path.splitext(filename)
         with open(filename) as f:
             content = f.readlines()
