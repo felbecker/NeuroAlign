@@ -18,7 +18,7 @@ VALIDATION_SPLIT = 0.01
 
 #maximum number of sites in a batch
 #must be at least as large as the sum of the two longest sequences in all families
-BATCH_SIZE = 1000
+BATCH_SIZE = 1200
 LEARNING_RATE = 1e-3
 MEM_LOSS = 1
 RP_LOSS = 0.5

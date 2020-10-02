@@ -154,7 +154,7 @@ val_gen = AlignmentBatchGenerator(val)
 def make_model():
     model = AlignmentModel.make_model()
     if os.path.isfile(AlignmentModel.CHECKPOINT_PATH+".index"):
-        model.load_weights(AlignmentModel.CHECKPOINT_PATH)
+        model = tf.keras.models.load_weights(AlignmentModel.CHECKPOINT_PATH)
         print("Loaded weights", flush=True)
     return model
 
@@ -168,11 +168,11 @@ else:
 
 
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPOINT_PATH,
-                                                 save_weights_only=False,
+                                                 save_weights_only=True,
                                                  verbose=1)
 
 model.fit(train_gen,
-            validation_data=val_gen,
+            #validation_data=val_gen,
             epochs = AlignmentModel.NUM_EPOCHS,
             verbose = 2,
             callbacks=[cp_callback])
