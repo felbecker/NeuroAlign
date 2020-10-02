@@ -122,19 +122,22 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
             suml += l
 
         # #initial column memberships
-        M_s = np.ones((len(seqs_drawn), max(batch_lens), family_m.alignment_len), dtype=np.float32)
-        M_s /= family_m.alignment_len #sum over columns = 1
-        M_c = np.ones_like(M_s)
-        M_c /= np.reshape(np.array(batch_lens), (-1,1,1)) #sum over sequence = 1
-        column_priors = M_s + M_c - M_s * M_c
+        M_c = np.ones((len(seqs_drawn), max(batch_lens), family_m.alignment_len), dtype=np.float32)
+        M_c /= family_m.alignment_len #sum over columns = 1
+        M_s = np.ones_like(M_c)
+        M_s /= np.reshape(np.array(batch_lens), (-1,1,1)) #sum over sequence = 1
+        #column_priors = M_s + M_c - M_s * M_c
 
-        column_priors = np.matmul(sequence_gatherer, np.reshape(column_priors, (-1, family_m.alignment_len)))
+        column_priors_c = np.matmul(sequence_gatherer, np.reshape(M_c, (-1, family_m.alignment_len)))
+        column_priors_s = np.matmul(sequence_gatherer, np.reshape(M_s, (-1, family_m.alignment_len)))
+
         memberships = np.matmul(sequence_gatherer, memberships)
         relative_positions = np.matmul(sequence_gatherer, np.reshape(relative_positions, (-1, 1)))
 
         input_dict = {  "sequences" : seq,
                         "sequence_gatherer" : sequence_gatherer,
-                        "column_priors" : column_priors,
+                        "column_priors_c" : column_priors_c,
+                        "column_priors_s" : column_priors_s,
                         "sequence_lengths" : np.array(batch_lens, dtype=np.int32) }
         target_dict = {"mem" : np.matmul(memberships, np.transpose(memberships)),
                         "rp" : relative_positions,

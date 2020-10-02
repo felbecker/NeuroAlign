@@ -19,11 +19,11 @@ VALIDATION_SPLIT = 0.01
 #maximum number of sites in a batch
 #must be at least as large as the sum of the two longest sequences in all families
 BATCH_SIZE = 1200
-LEARNING_RATE = 2e-5
+LEARNING_RATE = 1e-3
 MEM_LOSS = 1
-RP_LOSS = 0.5
-GAP_LOSS = 0.5
-COL_LOSS = 0.8
+RP_LOSS = 1
+GAP_LOSS = 1
+COL_LOSS = 1
 NUM_EPOCHS = 100
 
 CHECKPOINT_PATH = "alignment_checkpoints/model.ckpt"
@@ -85,8 +85,7 @@ class MembershipDecoder(layers.Layer):
         segment_ids = tf.repeat(tf.range(tf.shape(sequence_lengths)[0], dtype=tf.int32), sequence_lengths)
         segment_sum = tf.repeat(tf.math.segment_sum(exp_logits, segment_ids), sequence_lengths, axis=0)
         M_s = exp_logits / segment_sum
-        M = M_c + M_s - M_c*M_s
-        return M
+        return M_c, M_s
 
 #decodes all secondary ouputs
 class SecDecoder(layers.Layer):
@@ -122,10 +121,12 @@ class SecDecoder(layers.Layer):
 
 def make_model():
     #define inputs
-    sequences = keras.Input(shape=(None,len(ALPHABET)+2), name="sequences")
+    seq_in_dim = len(ALPHABET)+2
+    sequences = keras.Input(shape=(None,seq_in_dim), name="sequences")
     sequence_lengths = keras.Input(shape=(), name="sequence_lengths", dtype=tf.int32)
     sequence_gatherer = keras.Input(shape=(None,), name="sequence_gatherer")
-    column_priors = keras.Input(shape=(None,), name="column_priors")
+    column_priors_c = keras.Input(shape=(None,), name="column_priors_c")
+    column_priors_s = keras.Input(shape=(None,), name="column_priors_s")
 
     #networks
     seq_lstm = layers.LSTM(SITE_DIM, return_sequences=True)
@@ -149,31 +150,32 @@ def make_model():
 
     #encode the sequences
     masked_sequences = layers.Masking(mask_value=0.0)(sequences)
-    initial_sequences = layers.TimeDistributed(encoder)(masked_sequences)
-    gathered_initial_sequences = tf.linalg.matmul(sequence_gatherer, tf.reshape(initial_sequences, (-1, SITE_DIM) ))
-    encoded_sequences = initial_sequences
+    encoded_sequences = layers.TimeDistributed(encoder)(masked_sequences)
+    gathered_initial_sequences = tf.linalg.matmul(sequence_gatherer, tf.reshape(sequences, (-1, seq_in_dim) ))
 
     #initial memberships
-    M = column_priors
+    M_c = column_priors_c
+    M_s = column_priors_s
 
     #initial columns
-    columns = tf.ones((tf.shape(M)[1], COL_DIM))
+    columns = tf.ones((tf.shape(M_c)[1], COL_DIM))
 
     for _ in range(NUM_ITERATIONS):
 
         # Concatenate applys keras.All to the masks of all concatenated inputs
         #that means if one of them (initial_sequences) has a masked value, all of them will for the duration of the loop
-        concat_sequences = layers.Concatenate()([initial_sequences, encoded_sequences, message_col_to_seq(columns, M)])
+        concat_sequences = layers.Concatenate()([sequences, encoded_sequences, message_col_to_seq(columns, M_c)])
         encoded_sequences = seq_lstm(concat_sequences) #will always mask
 
         gathered_sequences = tf.linalg.matmul(sequence_gatherer, tf.reshape(encoded_sequences, (-1, SITE_DIM) ))
         seq_concat = layers.Concatenate()([gathered_initial_sequences, gathered_sequences])
 
-        concat_columns = layers.Concatenate()([columns, message_seq_to_col(seq_concat, M)])
+        concat_columns = layers.Concatenate()([columns, message_seq_to_col(seq_concat, M_s)])
         columns = tf.squeeze(col_lstm(tf.expand_dims(concat_columns, axis=0)), axis=0)
 
-        M = mem_decoder([seq_concat, columns, sequence_lengths])
+        M_c, M_s = mem_decoder([seq_concat, columns, sequence_lengths])
 
+    M = M_c + M_s - M_c*M_s
     relative_positions, gaps_start, gaps_in, gaps_end, col_dist = sec_decoder([M, columns, sequence_lengths])
     M_squared = tf.linalg.matmul(M, M, transpose_b=True)
 
@@ -186,7 +188,7 @@ def make_model():
     col_dist = layers.Lambda(lambda x: x, name="col")(col_dist)
 
     model = keras.Model(
-        inputs=[sequences, sequence_gatherer, column_priors, sequence_lengths],
+        inputs=[sequences, sequence_gatherer, column_priors_c, column_priors_s, sequence_lengths],
         outputs=[M_squared, relative_positions, gaps_start, gaps_in, gaps_end, col_dist],
     )
 
