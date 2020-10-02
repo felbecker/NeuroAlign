@@ -100,8 +100,9 @@ class DistanceBatchGenerator(tf.keras.utils.Sequence):
         for j,(l1,l2,s1,s2) in enumerate(zip(lens1, lens2, seq1, seq2)):
             seq[2*j,np.arange(l1),s1] = 1
             seq[2*j+1,np.arange(l2),s2] = 1
-        embedded_seq = sequence_model(seq)
-        return np.concatenate((seq, embedded_seq), axis=2), dists
+        #embedded_seq = sequence_model(seq)
+        #return np.concatenate((seq, embedded_seq), axis=2), dists
+        return seq, dists
 
 train_gen = DistanceBatchGenerator(train)
 val_gen = DistanceBatchGenerator(val)
@@ -112,6 +113,7 @@ val_gen = DistanceBatchGenerator(val)
 model = DistanceModel.make_model()
 if os.path.isfile(DistanceModel.CHECKPOINT_PATH):
     model.load_weights(DistanceModel.CHECKPOINT_PATH)
+    print("Loaded weights.", flush=True)
 
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=DistanceModel.CHECKPOINT_PATH,
                                                  save_weights_only=True,
