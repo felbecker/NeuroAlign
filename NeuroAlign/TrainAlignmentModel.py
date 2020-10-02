@@ -9,7 +9,7 @@ import time
 
 USE_GPU = False
 
-pfam = ["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
+pfam = ["A0001.fa"]#["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
 pfam_not_found = 0
 
 ##################################################################################################
@@ -20,8 +20,8 @@ msa = []
 
 for f in pfam[:1]:
     try:
-        m = MSA.Instance("Pfam/alignments/" + f + ".fasta", AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
-        #m = MSA.Instance("test/" + f, AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
+        #m = MSA.Instance("Pfam/alignments/" + f + ".fasta", AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
+        m = MSA.Instance("test/" + f, AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
         msa.append(m)
     except FileNotFoundError:
         pfam_not_found += 1
@@ -154,7 +154,7 @@ val_gen = AlignmentBatchGenerator(val)
 def make_model():
     model = AlignmentModel.make_model()
     if os.path.isfile(AlignmentModel.CHECKPOINT_PATH+".index"):
-        model = tf.keras.models.load_weights(AlignmentModel.CHECKPOINT_PATH)
+        model.load_weights(AlignmentModel.CHECKPOINT_PATH)
         print("Loaded weights", flush=True)
     return model
 

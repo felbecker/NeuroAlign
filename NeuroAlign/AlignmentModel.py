@@ -6,9 +6,9 @@ from tensorflow.keras import layers
 
 ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
-NUM_ITERATIONS = 1
-SITE_DIM = 128
-COL_DIM = 512
+NUM_ITERATIONS = 4
+SITE_DIM = 64
+COL_DIM = 256
 ENCODER_LAYERS = [256, 128]
 COL_MSGR_LAYERS = [256,256]
 SEQ_MSGR_LAYERS = [256,256]
@@ -19,7 +19,7 @@ VALIDATION_SPLIT = 0.01
 #maximum number of sites in a batch
 #must be at least as large as the sum of the two longest sequences in all families
 BATCH_SIZE = 1200
-LEARNING_RATE = 1e-3
+LEARNING_RATE = 2e-5
 MEM_LOSS = 1
 RP_LOSS = 0.5
 GAP_LOSS = 0.5
@@ -167,11 +167,11 @@ def make_model():
         encoded_sequences = seq_lstm(concat_sequences) #will always mask
 
         gathered_sequences = tf.linalg.matmul(sequence_gatherer, tf.reshape(encoded_sequences, (-1, SITE_DIM) ))
+        seq_concat = layers.Concatenate()([gathered_initial_sequences, gathered_sequences])
 
-        concat_columns = layers.Concatenate()([columns, message_seq_to_col(gathered_sequences, M)])
+        concat_columns = layers.Concatenate()([columns, message_seq_to_col(seq_concat, M)])
         columns = tf.squeeze(col_lstm(tf.expand_dims(concat_columns, axis=0)), axis=0)
 
-        seq_concat = layers.Concatenate()([gathered_initial_sequences, gathered_sequences])
         M = mem_decoder([seq_concat, columns, sequence_lengths])
 
     relative_positions, gaps_start, gaps_in, gaps_end, col_dist = sec_decoder([M, columns, sequence_lengths])
