@@ -29,8 +29,8 @@ NUM_EPOCHS = 400
 CHECKPOINT_PATH = "alignment_checkpoints/model.ckpt"
 
 
-print("iterations: ", NUM_ITERATIONS, 
-      " site_dim: ", SITE_DIM, 
+print("iterations: ", NUM_ITERATIONS,
+      " site_dim: ", SITE_DIM,
       " col_dim: ", COL_DIM,
       " encoder: ", ENCODER_LAYERS,
       "col_msg: ", COL_MSGR_LAYERS,
@@ -52,8 +52,8 @@ class MLP(layers.Layer):
 
     def build(self, input_shape):
         self.layers = [layers.Dense(l, activation="relu") for l in self.layer_sizes[:-1]]
+        self.layers.append(layers.LayerNormalization())
         self.layers.append(layers.Dense(self.layer_sizes[-1]))
-        self.layer_norm = layers.LayerNormalization()
 
     def compute_mask(self, inputs, mask=None):
         return mask
@@ -62,7 +62,7 @@ class MLP(layers.Layer):
         cur = inputs
         for l in self.layers:
             cur = l(cur)
-        return self.layer_norm(cur)
+        return cur
 
     def compute_output_shape(self, input_shape):
         return (input_shape[0], self.layer_sizes[-1])
@@ -78,8 +78,9 @@ class MembershipDecoder(layers.Layer):
         super(MembershipDecoder, self).__init__()
 
     def build(self, input_shape):
-        self.decoder_s = layers.Dense(DECODER_LAYERS[0], activation="relu")
-        self.decoder_c = layers.Dense(DECODER_LAYERS[0], activation="relu")
+        self.decoder_s = layers.Dense(DECODER_LAYERS[0])
+        self.decoder_c = layers.Dense(DECODER_LAYERS[0])
+        self.decoder_relu = layers.Activation(activations.relu)
         self.decoder = MLP(DECODER_LAYERS)
         self.out_trans = layers.Dense(1)
         self.logit_w = self.add_weight(shape=(1),
@@ -94,7 +95,7 @@ class MembershipDecoder(layers.Layer):
         col_dec = self.decoder_c(inputs[1])
         sequence_lengths = inputs[2]
         logits = tf.expand_dims(seq_dec, 1) + tf.expand_dims(col_dec, 0) #use broadcasting to efficiently get all combinations
-        logits = tf.reshape(logits, (-1, DECODER_LAYERS[0]))
+        logits = self.decoder_relu(tf.reshape(logits, (-1, DECODER_LAYERS[0])))
         logits = self.out_trans(self.decoder(logits))
         exp_logits = tf.exp(logits)
         exp_logits = tf.reshape(exp_logits, (-1, tf.shape(inputs[1])[0]))
