@@ -170,15 +170,15 @@ else:
     model = make_model()
 
 
-cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPOINT_PATH,
-                                                 save_weights_only=True,
-                                                 verbose=1)
+#cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPOINT_PATH,
+#                                                 save_weights_only=True,
+#                                                 verbose=1)
 
 model.fit(train_gen,
             #validation_data=val_gen,
             epochs = AlignmentModel.NUM_EPOCHS,
             verbose = 2,
-            callbacks=[cp_callback])
+            callbacks=[])
 
 
 #input, target = train_gen.__getitem__(0)

@@ -6,13 +6,13 @@ from tensorflow.keras import layers
 
 ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
-NUM_ITERATIONS = 4
-SITE_DIM = 64
+NUM_ITERATIONS = 10
+SITE_DIM = 128
 COL_DIM = 256
 ENCODER_LAYERS = [256, 128]
 COL_MSGR_LAYERS = [256,256]
 SEQ_MSGR_LAYERS = [256,256]
-DECODER_LAYERS = [128]
+DECODER_LAYERS = [400,400]
 
 VALIDATION_SPLIT = 0.01
 
@@ -21,12 +21,25 @@ VALIDATION_SPLIT = 0.01
 BATCH_SIZE = 1200
 LEARNING_RATE = 1e-3
 MEM_LOSS = 1
-RP_LOSS = 1
-GAP_LOSS = 1
-COL_LOSS = 1
-NUM_EPOCHS = 100
+RP_LOSS = 0
+GAP_LOSS = 0
+COL_LOSS = 0
+NUM_EPOCHS = 400
 
 CHECKPOINT_PATH = "alignment_checkpoints/model.ckpt"
+
+
+print("iterations: ", NUM_ITERATIONS, 
+      " site_dim: ", SITE_DIM, 
+      " col_dim: ", COL_DIM,
+      " encoder: ", ENCODER_LAYERS,
+      "col_msg: ", COL_MSGR_LAYERS,
+      "seq_msg: ", SEQ_MSGR_LAYERS,
+      "dec: ", DECODER_LAYERS,
+      "mem_loss: ", MEM_LOSS,
+      "rp_loss: ", RP_LOSS,
+      "gap_loss: ", GAP_LOSS,
+      "col_loss: ", COL_LOSS, flush=True)
 
 ##################################################################################################
 ##################################################################################################
@@ -69,6 +82,10 @@ class MembershipDecoder(layers.Layer):
         self.decoder_c = layers.Dense(DECODER_LAYERS[0], activation="relu")
         self.decoder = MLP(DECODER_LAYERS)
         self.out_trans = layers.Dense(1)
+        self.logit_w = self.add_weight(shape=(1),
+                                        trainable=True,
+                                        name="logit_w",
+                                        initializer = tf.constant_initializer(1))
 
     def call(self, inputs):
         if type(inputs) is not list and len(inputs) != 3:
@@ -84,7 +101,7 @@ class MembershipDecoder(layers.Layer):
         M_c = exp_logits / tf.reduce_sum(exp_logits, axis=-1, keepdims=True)
         segment_ids = tf.repeat(tf.range(tf.shape(sequence_lengths)[0], dtype=tf.int32), sequence_lengths)
         segment_sum = tf.repeat(tf.math.segment_sum(exp_logits, segment_ids), sequence_lengths, axis=0)
-        M_s = exp_logits / segment_sum
+        M_s = exp_logits*self.logit_w / (segment_sum+1)
         return M_c, M_s
 
 #decodes all secondary ouputs
