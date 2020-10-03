@@ -49,7 +49,7 @@ if os.path.isfile(SequenceModel.CHECKPOINT_PATH+".index"):
     sequence_model.layers.pop() #pop softmax
 else:
     print("No sequence model found.")
-    quit()
+    #quit()
 
 ##################################################################################################
 ##################################################################################################
@@ -111,7 +111,7 @@ val_gen = DistanceBatchGenerator(val)
 ##################################################################################################
 
 model = DistanceModel.make_model()
-if os.path.isfile(DistanceModel.CHECKPOINT_PATH):
+if os.path.isfile(DistanceModel.CHECKPOINT_PATH+"/model.ckpt.index"):
     model.load_weights(DistanceModel.CHECKPOINT_PATH)
     print("Loaded weights.", flush=True)
 
