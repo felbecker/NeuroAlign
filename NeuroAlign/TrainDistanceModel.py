@@ -87,7 +87,7 @@ class DistanceBatchGenerator(tf.keras.utils.Sequence):
     def __getitem__(self, index):
         seq1 = []
         seq2 = []
-        dists = np.zeros((DistanceModel.BATCH_SIZE,1), dtype=np.float32)
+        dists = np.zeros((DistanceModel.BATCH_SIZE), dtype=np.float32)
         for i in range(DistanceModel.BATCH_SIZE):
             s1, s2, d = self.sample_one()
             seq1.append(s1)
@@ -111,7 +111,7 @@ val_gen = DistanceBatchGenerator(val)
 ##################################################################################################
 
 model = DistanceModel.make_model()
-if os.path.isfile(DistanceModel.CHECKPOINT_PATH+"/model.ckpt.index"):
+if os.path.isfile(DistanceModel.CHECKPOINT_PATH+".index"):
     model.load_weights(DistanceModel.CHECKPOINT_PATH)
     print("Loaded weights.", flush=True)
 
@@ -121,5 +121,5 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=DistanceModel.CHECKPOI
 model.fit(train_gen,
             validation_data=val_gen,
             epochs = DistanceModel.NUM_EPOCHS,
-            verbose = 1,
+            verbose = 2,
             callbacks=[cp_callback])

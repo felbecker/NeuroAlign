@@ -61,13 +61,13 @@ print('Number of devices: {}'.format(strategy.num_replicas_in_sync), flush=True)
 
 with strategy.scope():
     model = SequenceModel.make_model()
-    if os.path.isfile(SequenceModel.CHECKPOINT_PATH+".index"):
-        model.load_weights(SequenceModel.CHECKPOINT_PATH)
-        print("Loaded weights", flush=True)
+    if os.path.isfile(SequenceModel.CHECKPOINT_PATH+"/saved_model.pb"):
+        model.load_weights(SequenceModel.CHECKPOINT_PATH+"/variables/variables")
+        print("Loaded model", flush=True)
 
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=SequenceModel.CHECKPOINT_PATH,
                                                  save_weights_only=False,
-                                                 verbose=1)
+                                                 verbose=2)
 
 model.fit(train_gen,
             validation_data=val_gen,

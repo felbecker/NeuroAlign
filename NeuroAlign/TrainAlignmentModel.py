@@ -9,7 +9,7 @@ import time
 
 USE_GPU = False
 
-pfam = ["A0001.fa"]#["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
+pfam = ["PF"+"{0:0=5d}".format(i) for i in range(1,19228)] #["A0001.fa"]
 pfam_not_found = 0
 
 ##################################################################################################
@@ -18,10 +18,10 @@ pfam_not_found = 0
 #load reference alignments
 msa = []
 
-for f in pfam[:1]:
+for f in pfam:
     try:
-        #m = MSA.Instance("Pfam/alignments/" + f + ".fasta", AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
-        m = MSA.Instance("test/" + f, AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
+        m = MSA.Instance("Pfam/alignments/" + f + ".fasta", AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
+        #m = MSA.Instance("test/" + f, AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
         msa.append(m)
     except FileNotFoundError:
         pfam_not_found += 1
@@ -31,8 +31,7 @@ random.seed(0)
 
 indices = np.arange(len(msa))
 np.random.shuffle(indices)
-train, val = np.array([0]),np.array([0])#np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))])
-
+train, val = np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))])#np.array([0]),np.array([0])
 
 ##################################################################################################
 ##################################################################################################
@@ -52,7 +51,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         self.family_probs = [w/sum_w for w in family_weights]
 
     def __len__(self):
-        return 50#len(self.split) #steps per epoch
+        return len(self.split) #steps per epoch
 
     def __getitem__(self, index):
 
@@ -76,12 +75,12 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         maxlen = max(batch_lens)
 
         #one-hot encode sequences + relative positions
-        seq = np.zeros((len(seqs_drawn), maxlen, len(AlignmentModel.ALPHABET)+2), dtype=np.float32)
+        seq = np.zeros((len(seqs_drawn), maxlen, len(AlignmentModel.ALPHABET)+1), dtype=np.float32)
         for j,(l,si) in enumerate(zip(batch_lens, seqs_drawn)):
             lrange = np.arange(l)
             seq[j,lrange,family_m.raw_seq[si]] = 1
             seq[j,lrange,len(AlignmentModel.ALPHABET)] = (lrange+1)/l
-            seq[j,lrange,len(AlignmentModel.ALPHABET)+1] = (lrange+1)/family_m.alignment_len
+            #seq[j,lrange,len(AlignmentModel.ALPHABET)+1] = (lrange+1)/family_m.alignment_len
 
         #targets
         memberships = np.zeros((len(seqs_drawn), maxlen, family_m.alignment_len), dtype=np.float32)
@@ -139,12 +138,13 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
                         "column_priors_c" : column_priors_c,
                         "column_priors_s" : column_priors_s,
                         "sequence_lengths" : np.array(batch_lens, dtype=np.int32) }
-        target_dict = {"mem" : np.matmul(memberships, np.transpose(memberships)),
-                        "rp" : relative_positions,
-                        "gs" : gaps_start,
-                        "g" : gaps_in,
-                        "ge" : gaps_end,
-                        "col" : col_dists }
+        target_dict = {"mem" : memberships}
+        # target_dict = {"mem" : memberships,#np.matmul(memberships, np.transpose(memberships)),
+        #                 "rp" : relative_positions,
+        #                 "gs" : gaps_start,
+        #                 "g" : gaps_in,
+        #                 "ge" : gaps_end,
+        #                 "col" : col_dists }
         return input_dict, target_dict
 
 
@@ -170,26 +170,26 @@ else:
     model = make_model()
 
 
-#cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPOINT_PATH,
-#                                                 save_weights_only=True,
-#                                                 verbose=1)
+cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPOINT_PATH,
+                                                save_weights_only=True,
+                                                verbose=1)
 
 model.fit(train_gen,
             #validation_data=val_gen,
             epochs = AlignmentModel.NUM_EPOCHS,
             verbose = 2,
-            callbacks=[])
+            callbacks=[cp_callback])
 
 
-#input, target = train_gen.__getitem__(0)
+input, target = train_gen.__getitem__(0)
 
-#print(input, target)
+print(input, target)
 
 #automatic model visualization... does not work especially well with many message passing iterations
 #tf.keras.utils.plot_model(model, "NeuroAlign.png", show_shapes=True)
 #
-# start = time.time()
-# out = model(input)
-# end = time.time()
-#print(out)
-# print(end-start)
+start = time.time()
+out = model(input)
+end = time.time()
+print(out)
+print(end-start)

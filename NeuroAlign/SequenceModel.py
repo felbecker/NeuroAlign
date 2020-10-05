@@ -37,6 +37,7 @@ class SequenceEmbedding(tf.keras.layers.Layer):
 class OutputShift(tf.keras.layers.Layer):
     def __init__(self):
         super(OutputShift, self).__init__()
+        self.supports_masking = True
 
     def compute_mask(self, inputs, mask=None):
         return mask
