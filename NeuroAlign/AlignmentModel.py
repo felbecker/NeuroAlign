@@ -6,30 +6,30 @@ from tensorflow.keras import layers
 
 ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
-NUM_ITERATIONS = 4
-SITE_DIM = 64
-COL_DIM = 64
-SEQ_LSTM_DIM = 128
-COL_LSTM_DIM = 128
-ENCODER_LAYERS = [128,128]
-COL_MSGR_LAYERS = [128,128]
-SEQ_MSGR_LAYERS = [128,128]
-DECODER_LAYERS = [128,128]
+NUM_ITERATIONS = 5
+SITE_DIM = 16
+COL_DIM = 32
+SEQ_LSTM_DIM = 64
+COL_LSTM_DIM = 64
+ENCODER_LAYERS = [64,64]
+COL_MSGR_LAYERS = [64,64]
+SEQ_MSGR_LAYERS = [64,64]
+DECODER_LAYERS = [64,64]
 
 VALIDATION_SPLIT = 0.01
 
 #maximum number of sites in a batch
 #must be at least as large as the sum of the two longest sequences in all families
 BATCH_SIZE = 2000
-LEARNING_RATE = 5e-5
+LEARNING_RATE = 2e-4
 MEM_LOSS = 1
-RP_LOSS = 0#1
-GAP_LOSS = 0#1
-COL_LOSS = 0#1
-NUM_EPOCHS = 500
-DROPOUT = 0.2
+RP_LOSS = 1
+GAP_LOSS = 1
+COL_LOSS = 0.1
+NUM_EPOCHS = 200
+DROPOUT = 0.0
 
-CHECKPOINT_PATH = "alignment_checkpoints_SOLO_last_it_has_perfect_info/model.ckpt"
+CHECKPOINT_PATH = "alignment_checkpoints/model.ckpt"
 
 
 print("iterations: ", NUM_ITERATIONS,
@@ -152,7 +152,7 @@ class SecDecoder(layers.Layer):
 
 def make_model():
     #define inputs
-    seq_in_dim = len(ALPHABET)+1
+    seq_in_dim = len(ALPHABET)
     sequences = keras.Input(shape=(None,seq_in_dim), name="sequences")
     sequence_lengths = keras.Input(shape=(), name="sequence_lengths", dtype=tf.int32)
     sequence_gatherer = keras.Input(shape=(None,), name="sequence_gatherer")
@@ -162,8 +162,10 @@ def make_model():
     #networks
     seq_lstm = layers.LSTM(SEQ_LSTM_DIM, return_sequences=True, dropout = DROPOUT)
     seq_dense_time_dist = layers.TimeDistributed(layers.Dense(SITE_DIM))
+    seq_layer_norm_time_dist = layers.TimeDistributed(layers.LayerNormalization())
     col_lstm = layers.LSTM(COL_LSTM_DIM, return_sequences=True, dropout = DROPOUT)
     col_dense_time_dist = layers.TimeDistributed(layers.Dense(COL_DIM))
+    col_layer_norm_time_dist = layers.TimeDistributed(layers.LayerNormalization())
     encoder = MLP(ENCODER_LAYERS+[SITE_DIM])
     col_messenger = MLP(COL_MSGR_LAYERS)
     seq_messenger = MLP(SEQ_MSGR_LAYERS)
@@ -193,7 +195,12 @@ def make_model():
     #initial columns
     columns = tf.ones((tf.shape(M_c)[1], COL_DIM))
 
-    out = []
+    mem_sq_out = []
+    rp_out = []
+    gaps_start_out = []
+    gaps_in_out = []
+    gaps_end_out = []
+    col_dist_out = []
 
     for i in range(NUM_ITERATIONS):
 
@@ -204,37 +211,53 @@ def make_model():
         #that means if one of them (initial_sequences) has a masked value, all of them will for the duration of the loop
         concat_sequences = layers.Concatenate()([sequences, encoded_sequences, message_col_to_seq(columns, M_c)])
         encoded_sequences = seq_dense_time_dist(seq_lstm(concat_sequences)) #will always mask
+        encoded_sequences = seq_layer_norm_time_dist(encoded_sequences)
 
         gathered_sequences = tf.linalg.matmul(sequence_gatherer, tf.reshape(encoded_sequences, (-1, SITE_DIM) ))
         seq_concat = layers.Concatenate()([gathered_initial_sequences, gathered_sequences])
 
         concat_columns = layers.Concatenate()([columns, message_seq_to_col(seq_concat, M_c)])
-        columns = tf.squeeze(col_dense_time_dist(col_lstm(tf.expand_dims(concat_columns, axis=0))), axis=0)
+        columns = col_dense_time_dist(col_lstm(tf.expand_dims(concat_columns, axis=0)))
+        columns = col_layer_norm_time_dist(columns)
+        columns = tf.squeeze(columns, axis=0)
 
         M_c, M_s = mem_decoder([seq_concat, columns, sequence_lengths])
 
-    #M = M_c + M_s - M_s*M_c
-    #relative_positions, gaps_start, gaps_in, gaps_end, col_dist = sec_decoder([M_c, columns, sequence_lengths])
-        M_squared = M_c#tf.linalg.matmul(M_c, M_c, transpose_b=True)
+        #M = M_c + M_s - M_s*M_c
+        relative_positions, gaps_start, gaps_in, gaps_end, col_dist = sec_decoder([M_c, columns, sequence_lengths])
+        M_squared = tf.linalg.matmul(M_c, M_c, transpose_b=True)
 
-    #name outputs by passing to identity lambdas..
-        M_squared = layers.Lambda(lambda x: x, name="mem"+str(i))(M_squared)
-        out.append(M_squared)
-    # relative_positions = layers.Lambda(lambda x: x, name="rp")(relative_positions)
-    # gaps_start = layers.Lambda(lambda x: x, name="gs")(gaps_start)
-    # gaps_in = layers.Lambda(lambda x: x, name="g")(gaps_in)
-    # gaps_end = layers.Lambda(lambda x: x, name="ge")(gaps_end)
-    # col_dist = layers.Lambda(lambda x: x, name="col")(col_dist)
+        #name outputs by passing to identity lambdas..
+        mem_sq_out.append(layers.Lambda(lambda x: x, name="mem"+str(i))(M_squared))
+        rp_out.append(layers.Lambda(lambda x: x, name="rp"+str(i))(relative_positions))
+        gaps_start_out.append(layers.Lambda(lambda x: x, name="gs"+str(i))(gaps_start))
+        gaps_in_out.append(layers.Lambda(lambda x: x, name="g"+str(i))(gaps_in))
+        gaps_end_out.append(layers.Lambda(lambda x: x, name="ge"+str(i))(gaps_end))
+        col_dist_out.append(layers.Lambda(lambda x: x, name="col"+str(i))(col_dist))
 
     model = keras.Model(
         inputs=[sequences, sequence_gatherer, column_priors_c, column_priors_s, sequence_lengths],
         #outputs=[M_squared, relative_positions, gaps_start, gaps_in, gaps_end, col_dist],
-        outputs=out#[M_squared],
+        outputs=mem_sq_out + rp_out + gaps_start_out + gaps_in_out + gaps_end_out + col_dist_out,
     )
 
-    model.compile(loss={"mem"+str(i) : "categorical_crossentropy" for i in range(NUM_ITERATIONS)},
+    losses = {"mem"+str(i) : "binary_crossentropy" for i in range(NUM_ITERATIONS)}
+    losses.update({"rp"+str(i) : "mse" for i in range(NUM_ITERATIONS)})
+    losses.update({"gs"+str(i) : "mse" for i in range(NUM_ITERATIONS)})
+    losses.update({"g"+str(i) : "mse" for i in range(NUM_ITERATIONS)})
+    losses.update({"ge"+str(i) : "mse" for i in range(NUM_ITERATIONS)})
+    losses.update({"col"+str(i) : "categorical_crossentropy" for i in range(NUM_ITERATIONS)})
+
+    loss_weights = {"mem"+str(i) : MEM_LOSS for i in range(NUM_ITERATIONS)}
+    loss_weights.update({"rp"+str(i) : RP_LOSS for i in range(NUM_ITERATIONS)})
+    loss_weights.update({"gs"+str(i) : GAP_LOSS for i in range(NUM_ITERATIONS)})
+    loss_weights.update({"g"+str(i) : GAP_LOSS for i in range(NUM_ITERATIONS)})
+    loss_weights.update({"ge"+str(i) : GAP_LOSS for i in range(NUM_ITERATIONS)})
+    loss_weights.update({"col"+str(i) : COL_LOSS for i in range(NUM_ITERATIONS)})
+
+    model.compile(loss=losses,
                     optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
-                    loss_weights={"mem"+str(i) : MEM_LOSS for i in range(NUM_ITERATIONS)},
+                    loss_weights=loss_weights,
                     metrics={"mem"+str(NUM_ITERATIONS-1) : [keras.metrics.Precision(), keras.metrics.Recall()]})
 
     # model.compile(loss={"mem" : "categorical_crossentropy",

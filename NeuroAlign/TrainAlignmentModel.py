@@ -9,7 +9,7 @@ import time
 
 USE_GPU = False
 
-pfam = ["BB11001.fasta"] #["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
+pfam = ["A0001.fa"] #["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
 pfam_not_found = 0
 
 ##################################################################################################
@@ -51,7 +51,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         self.family_probs = [w/sum_w for w in family_weights]
 
     def __len__(self):
-        return 50#len(self.split) #steps per epoch
+        return 100#len(self.split) #steps per epoch
 
     def __getitem__(self, index):
 
@@ -75,11 +75,11 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         maxlen = max(batch_lens)
 
         #one-hot encode sequences + relative positions
-        seq = np.zeros((len(seqs_drawn), maxlen, len(AlignmentModel.ALPHABET)+1), dtype=np.float32)
+        seq = np.zeros((len(seqs_drawn), maxlen, len(AlignmentModel.ALPHABET)), dtype=np.float32)
         for j,(l,si) in enumerate(zip(batch_lens, seqs_drawn)):
             lrange = np.arange(l)
             seq[j,lrange,family_m.raw_seq[si]] = 1
-            seq[j,lrange,len(AlignmentModel.ALPHABET)] = (lrange+1)/l
+            #seq[j,lrange,len(AlignmentModel.ALPHABET)] = (lrange+1)/l
             #seq[j,lrange,len(AlignmentModel.ALPHABET)+1] = (lrange+1)/family_m.alignment_len
 
         #targets
@@ -88,7 +88,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         col_dists = np.zeros((family_m.alignment_len, len(AlignmentModel.ALPHABET)+1))
         gaps_in = np.zeros((sum(batch_lens)-len(batch_lens), 1))
         gaps_start = np.zeros((len(seqs_drawn)))
-        gaps_end = np.zeros((len(seqs_drawn)))
+        gaps_end = np.zeros((len(seqs_drawn), 1))
         for j,(l, si) in enumerate(zip(batch_lens, seqs_drawn)):
             suml = sum(family_m.seq_lens[:si])
             targets = family_m.membership_targets[suml:(suml+l)]
@@ -138,8 +138,13 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
                         "column_priors_c" : column_priors_c,
                         "column_priors_s" : memberships,#column_priors_s,
                         "sequence_lengths" : np.array(batch_lens, dtype=np.int32) }
-        target_dict = {"mem"+str(i) : memberships for i in range(AlignmentModel.NUM_ITERATIONS)}
-        # target_dict = {"mem" : memberships,#np.matmul(memberships, np.transpose(memberships)),
+        target_dict = {"mem"+str(i) : np.matmul(memberships, np.transpose(memberships)) for i in range(AlignmentModel.NUM_ITERATIONS)}
+        target_dict.update({"rp"+str(i) : relative_positions for i in range(AlignmentModel.NUM_ITERATIONS)})
+        target_dict.update({"gs"+str(i) : gaps_start for i in range(AlignmentModel.NUM_ITERATIONS)})
+        target_dict.update({"g"+str(i) : gaps_in for i in range(AlignmentModel.NUM_ITERATIONS)})
+        target_dict.update({"ge"+str(i) : gaps_end for i in range(AlignmentModel.NUM_ITERATIONS)})
+        target_dict.update({"col"+str(i) : col_dists for i in range(AlignmentModel.NUM_ITERATIONS)})
+        # # target_dict = {"mem" : memberships,#np.matmul(memberships, np.transpose(memberships)),
         #                 "rp" : relative_positions,
         #                 "gs" : gaps_start,
         #                 "g" : gaps_in,
@@ -175,13 +180,13 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPO
                                                 verbose=1)
 
 model.fit(train_gen,
-            validation_data=val_gen,
+            #validation_data=val_gen,
             epochs = AlignmentModel.NUM_EPOCHS,
             verbose = 2,
             callbacks=[cp_callback])
 
 
-input, target = train_gen.__getitem__(0)
+input, target = val_gen.__getitem__(0)
 
 print(input, target)
 
