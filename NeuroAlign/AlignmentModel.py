@@ -6,13 +6,13 @@ from tensorflow.keras import layers
 
 ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
-NUM_ITERATIONS = 3
-SITE_DIM = 64
+NUM_ITERATIONS = 5
+SITE_DIM = 128
 COL_DIM = 256
 ENCODER_LAYERS = [256,256]
 COL_MSGR_LAYERS = [256,256]
 SEQ_MSGR_LAYERS = [256,256]
-DECODER_LAYERS = [100]
+DECODER_LAYERS = [256,256]
 
 VALIDATION_SPLIT = 0.01
 
@@ -26,7 +26,7 @@ GAP_LOSS = 0#1
 COL_LOSS = 0#1
 NUM_EPOCHS = 500
 
-CHECKPOINT_PATH = "alignment_checkpoints2/model.ckpt"
+CHECKPOINT_PATH = "alignment_checkpoints_SOLO_last_it_has_perfect_info/model.ckpt"
 
 
 print("iterations: ", NUM_ITERATIONS,
@@ -39,7 +39,9 @@ print("iterations: ", NUM_ITERATIONS,
       "mem_loss: ", MEM_LOSS,
       "rp_loss: ", RP_LOSS,
       "gap_loss: ", GAP_LOSS,
-      "col_loss: ", COL_LOSS, flush=True)
+      "col_loss: ", COL_LOSS,
+      "batch: ", BATCH_SIZE,
+      "learning_rate: ", LEARNING_RATE, flush=True)
 
 ##################################################################################################
 ##################################################################################################
@@ -183,7 +185,9 @@ def make_model():
     #initial columns
     columns = tf.ones((tf.shape(M_c)[1], COL_DIM))
 
-    for _ in range(NUM_ITERATIONS):
+    out = []
+
+    for i in range(NUM_ITERATIONS):
 
         # Concatenate applys keras.All to the masks of all concatenated inputs
         #that means if one of them (initial_sequences) has a masked value, all of them will for the duration of the loop
@@ -198,28 +202,32 @@ def make_model():
 
         M_c, M_s = mem_decoder([seq_concat, columns, sequence_lengths])
 
+        if i == NUM_ITERATIONS-1:
+            M_c = column_priors_s #assume perfect information on last iteration to learn a convergent algorithm
+
     #M = M_c + M_s - M_s*M_c
-    relative_positions, gaps_start, gaps_in, gaps_end, col_dist = sec_decoder([M_c, columns, sequence_lengths])
-    M_squared = M_c#tf.linalg.matmul(M_c, M_c, transpose_b=True)
+    #relative_positions, gaps_start, gaps_in, gaps_end, col_dist = sec_decoder([M_c, columns, sequence_lengths])
+        M_squared = M_c#tf.linalg.matmul(M_c, M_c, transpose_b=True)
 
     #name outputs by passing to identity lambdas..
-    M_squared = layers.Lambda(lambda x: x, name="mem")(M_squared)
-    relative_positions = layers.Lambda(lambda x: x, name="rp")(relative_positions)
-    gaps_start = layers.Lambda(lambda x: x, name="gs")(gaps_start)
-    gaps_in = layers.Lambda(lambda x: x, name="g")(gaps_in)
-    gaps_end = layers.Lambda(lambda x: x, name="ge")(gaps_end)
-    col_dist = layers.Lambda(lambda x: x, name="col")(col_dist)
+        M_squared = layers.Lambda(lambda x: x, name="mem"+str(i))(M_squared)
+        out.append(M_squared)
+    # relative_positions = layers.Lambda(lambda x: x, name="rp")(relative_positions)
+    # gaps_start = layers.Lambda(lambda x: x, name="gs")(gaps_start)
+    # gaps_in = layers.Lambda(lambda x: x, name="g")(gaps_in)
+    # gaps_end = layers.Lambda(lambda x: x, name="ge")(gaps_end)
+    # col_dist = layers.Lambda(lambda x: x, name="col")(col_dist)
 
     model = keras.Model(
         inputs=[sequences, sequence_gatherer, column_priors_c, column_priors_s, sequence_lengths],
         #outputs=[M_squared, relative_positions, gaps_start, gaps_in, gaps_end, col_dist],
-        outputs=[M_squared],
+        outputs=out#[M_squared],
     )
 
-    model.compile(loss={"mem" : "categorical_crossentropy"},
+    model.compile(loss={"mem"+str(i) : "categorical_crossentropy" for i in range(NUM_ITERATIONS)},
                     optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
-                    loss_weights={"mem" : MEM_LOSS},
-                    metrics={"mem" : [keras.metrics.Precision(), keras.metrics.Recall()]})
+                    loss_weights={"mem"+str(i) : MEM_LOSS for i in range(NUM_ITERATIONS)},
+                    metrics={"mem"+str(NUM_ITERATIONS-1) : [keras.metrics.Precision(), keras.metrics.Recall()]})
 
     # model.compile(loss={"mem" : "categorical_crossentropy",
     #                     "rp" : "mse",

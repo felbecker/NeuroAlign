@@ -9,7 +9,7 @@ import time
 
 USE_GPU = False
 
-pfam = ["PF"+"{0:0=5d}".format(i) for i in range(1,19228)] #["A0001.fa"]
+pfam = ["PF00004.fasta"] #["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
 pfam_not_found = 0
 
 ##################################################################################################
@@ -20,8 +20,8 @@ msa = []
 
 for f in pfam:
     try:
-        m = MSA.Instance("Pfam/alignments/" + f + ".fasta", AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
-        #m = MSA.Instance("test/" + f, AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
+        #m = MSA.Instance("Pfam/alignments/" + f + ".fasta", AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
+        m = MSA.Instance("test/" + f, AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
         msa.append(m)
     except FileNotFoundError:
         pfam_not_found += 1
@@ -31,7 +31,7 @@ random.seed(0)
 
 indices = np.arange(len(msa))
 np.random.shuffle(indices)
-train, val = np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))])#np.array([0]),np.array([0])
+train, val = np.array([0]),np.array([0]) #np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))])
 
 ##################################################################################################
 ##################################################################################################
@@ -51,7 +51,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         self.family_probs = [w/sum_w for w in family_weights]
 
     def __len__(self):
-        return len(self.split) #steps per epoch
+        return 50#len(self.split) #steps per epoch
 
     def __getitem__(self, index):
 
@@ -136,9 +136,9 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         input_dict = {  "sequences" : seq,
                         "sequence_gatherer" : sequence_gatherer,
                         "column_priors_c" : column_priors_c,
-                        "column_priors_s" : column_priors_s,
+                        "column_priors_s" : memberships,#column_priors_s,
                         "sequence_lengths" : np.array(batch_lens, dtype=np.int32) }
-        target_dict = {"mem" : memberships}
+        target_dict = {"mem"+str(i) : memberships for i in range(AlignmentModel.NUM_ITERATIONS)}
         # target_dict = {"mem" : memberships,#np.matmul(memberships, np.transpose(memberships)),
         #                 "rp" : relative_positions,
         #                 "gs" : gaps_start,
