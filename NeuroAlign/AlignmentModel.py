@@ -6,25 +6,28 @@ from tensorflow.keras import layers
 
 ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
-NUM_ITERATIONS = 5
-SITE_DIM = 128
-COL_DIM = 256
-ENCODER_LAYERS = [256,256]
-COL_MSGR_LAYERS = [256,256]
-SEQ_MSGR_LAYERS = [256,256]
-DECODER_LAYERS = [256,256]
+NUM_ITERATIONS = 4
+SITE_DIM = 64
+COL_DIM = 64
+SEQ_LSTM_DIM = 128
+COL_LSTM_DIM = 128
+ENCODER_LAYERS = [128,128]
+COL_MSGR_LAYERS = [128,128]
+SEQ_MSGR_LAYERS = [128,128]
+DECODER_LAYERS = [128,128]
 
 VALIDATION_SPLIT = 0.01
 
 #maximum number of sites in a batch
 #must be at least as large as the sum of the two longest sequences in all families
-BATCH_SIZE = 5000
-LEARNING_RATE = 2e-4
+BATCH_SIZE = 2000
+LEARNING_RATE = 5e-5
 MEM_LOSS = 1
 RP_LOSS = 0#1
 GAP_LOSS = 0#1
 COL_LOSS = 0#1
 NUM_EPOCHS = 500
+DROPOUT = 0.2
 
 CHECKPOINT_PATH = "alignment_checkpoints_SOLO_last_it_has_perfect_info/model.ckpt"
 
@@ -32,6 +35,8 @@ CHECKPOINT_PATH = "alignment_checkpoints_SOLO_last_it_has_perfect_info/model.ckp
 print("iterations: ", NUM_ITERATIONS,
       " site_dim: ", SITE_DIM,
       " col_dim: ", COL_DIM,
+      " seq_lstm: ", SEQ_LSTM_DIM,
+      " col_lstm: ", COL_LSTM_DIM,
       " encoder: ", ENCODER_LAYERS,
       "col_msg: ", COL_MSGR_LAYERS,
       "seq_msg: ", SEQ_MSGR_LAYERS,
@@ -47,7 +52,7 @@ print("iterations: ", NUM_ITERATIONS,
 ##################################################################################################
 
 #MLP with relu activations and layer normalized output
-#the last layer is unactivated
+#the last dense layer is unactivated
 class MLP(layers.Layer):
     def __init__(self, layer_sizes):
         super(MLP, self).__init__()
@@ -55,8 +60,8 @@ class MLP(layers.Layer):
 
     def build(self, input_shape):
         self.layers = [layers.Dense(l, activation="relu") for l in self.layer_sizes[:-1]]
-        self.layers.append(layers.LayerNormalization())
         self.layers.append(layers.Dense(self.layer_sizes[-1]))
+        self.layers.append(layers.LayerNormalization())
 
     def compute_mask(self, inputs, mask=None):
         return mask
@@ -100,7 +105,8 @@ class MembershipDecoder(layers.Layer):
         sequence_lengths = inputs[2]
         logits = tf.expand_dims(seq_dec, 1) + tf.expand_dims(col_dec, 0) #use broadcasting to efficiently get all combinations
         logits = self.decoder_relu(tf.reshape(logits, (-1, DECODER_LAYERS[0])))
-        logits = self.out_trans(self.decoder(logits))
+        logits = self.decoder(layers.Dropout(DROPOUT)(logits))
+        logits = self.out_trans(logits)
         logits = tf.reshape(logits, (-1, tf.shape(inputs[1])[0]))
         M_c = self.decoder_sm(logits)
         M_s = M_c
@@ -154,8 +160,10 @@ def make_model():
     column_priors_s = keras.Input(shape=(None,), name="column_priors_s")
 
     #networks
-    seq_lstm = layers.LSTM(SITE_DIM, return_sequences=True)
-    col_lstm = layers.LSTM(COL_DIM, return_sequences=True)
+    seq_lstm = layers.LSTM(SEQ_LSTM_DIM, return_sequences=True, dropout = DROPOUT)
+    seq_dense_time_dist = layers.TimeDistributed(layers.Dense(SITE_DIM))
+    col_lstm = layers.LSTM(COL_LSTM_DIM, return_sequences=True, dropout = DROPOUT)
+    col_dense_time_dist = layers.TimeDistributed(layers.Dense(COL_DIM))
     encoder = MLP(ENCODER_LAYERS+[SITE_DIM])
     col_messenger = MLP(COL_MSGR_LAYERS)
     seq_messenger = MLP(SEQ_MSGR_LAYERS)
@@ -189,21 +197,21 @@ def make_model():
 
     for i in range(NUM_ITERATIONS):
 
+        #if i == NUM_ITERATIONS-1:
+            #M_c = column_priors_s #assume perfect information on last iteration to learn a convergent algorithm
+
         # Concatenate applys keras.All to the masks of all concatenated inputs
         #that means if one of them (initial_sequences) has a masked value, all of them will for the duration of the loop
         concat_sequences = layers.Concatenate()([sequences, encoded_sequences, message_col_to_seq(columns, M_c)])
-        encoded_sequences = seq_lstm(concat_sequences) #will always mask
+        encoded_sequences = seq_dense_time_dist(seq_lstm(concat_sequences)) #will always mask
 
         gathered_sequences = tf.linalg.matmul(sequence_gatherer, tf.reshape(encoded_sequences, (-1, SITE_DIM) ))
         seq_concat = layers.Concatenate()([gathered_initial_sequences, gathered_sequences])
 
         concat_columns = layers.Concatenate()([columns, message_seq_to_col(seq_concat, M_c)])
-        columns = tf.squeeze(col_lstm(tf.expand_dims(concat_columns, axis=0)), axis=0)
+        columns = tf.squeeze(col_dense_time_dist(col_lstm(tf.expand_dims(concat_columns, axis=0))), axis=0)
 
         M_c, M_s = mem_decoder([seq_concat, columns, sequence_lengths])
-
-        if i == NUM_ITERATIONS-1:
-            M_c = column_priors_s #assume perfect information on last iteration to learn a convergent algorithm
 
     #M = M_c + M_s - M_s*M_c
     #relative_positions, gaps_start, gaps_in, gaps_end, col_dist = sec_decoder([M_c, columns, sequence_lengths])

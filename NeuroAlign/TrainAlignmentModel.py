@@ -9,7 +9,7 @@ import time
 
 USE_GPU = False
 
-pfam = ["PF00004.fasta"] #["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
+pfam = ["BB11001.fasta"] #["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
 pfam_not_found = 0
 
 ##################################################################################################
@@ -175,7 +175,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPO
                                                 verbose=1)
 
 model.fit(train_gen,
-            #validation_data=val_gen,
+            validation_data=val_gen,
             epochs = AlignmentModel.NUM_EPOCHS,
             verbose = 2,
             callbacks=[cp_callback])
