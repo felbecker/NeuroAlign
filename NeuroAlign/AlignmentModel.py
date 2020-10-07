@@ -7,20 +7,20 @@ from tensorflow.keras import layers
 ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
 NUM_ITERATIONS = 5
-SITE_DIM = 16
-COL_DIM = 32
-SEQ_LSTM_DIM = 64
-COL_LSTM_DIM = 64
-ENCODER_LAYERS = [64,64]
-COL_MSGR_LAYERS = [64,64]
-SEQ_MSGR_LAYERS = [64,64]
-DECODER_LAYERS = [64,64]
+SITE_DIM = 64
+COL_DIM = 100
+SEQ_LSTM_DIM = 256
+COL_LSTM_DIM = 256
+ENCODER_LAYERS = [256,256]
+COL_MSGR_LAYERS = [256,256]
+SEQ_MSGR_LAYERS = [256,256]
+DECODER_LAYERS = [100]
 
 VALIDATION_SPLIT = 0.01
 
 #maximum number of sites in a batch
 #must be at least as large as the sum of the two longest sequences in all families
-BATCH_SIZE = 2000
+BATCH_SIZE = 6800
 LEARNING_RATE = 2e-4
 MEM_LOSS = 1
 RP_LOSS = 1

@@ -7,9 +7,9 @@ import os.path
 import time
 
 
-USE_GPU = False
+USE_MULTIPLE_GPU = False
 
-pfam = ["A0001.fa"] #["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
+pfam = ["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
 pfam_not_found = 0
 
 ##################################################################################################
@@ -20,8 +20,8 @@ msa = []
 
 for f in pfam:
     try:
-        #m = MSA.Instance("Pfam/alignments/" + f + ".fasta", AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
-        m = MSA.Instance("test/" + f, AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
+        m = MSA.Instance("Pfam/alignments/" + f + ".fasta", AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
+        #m = MSA.Instance("test/" + f, AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
         msa.append(m)
     except FileNotFoundError:
         pfam_not_found += 1
@@ -31,7 +31,7 @@ random.seed(0)
 
 indices = np.arange(len(msa))
 np.random.shuffle(indices)
-train, val = np.array([0]),np.array([0]) #np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))])
+train, val = np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))])
 
 ##################################################################################################
 ##################################################################################################
@@ -51,7 +51,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         self.family_probs = [w/sum_w for w in family_weights]
 
     def __len__(self):
-        return 100#len(self.split) #steps per epoch
+        return int(len(self.split)/5) #steps per epoch
 
     def __getitem__(self, index):
 
@@ -166,7 +166,7 @@ def make_model():
         print("Loaded weights", flush=True)
     return model
 
-if USE_GPU:
+if USE_MULTIPLE_GPU:
     strategy = tf.distribute.MirroredStrategy()
     print('Number of devices: {}'.format(strategy.num_replicas_in_sync), flush=True)
     with strategy.scope():
@@ -180,7 +180,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPO
                                                 verbose=1)
 
 model.fit(train_gen,
-            #validation_data=val_gen,
+            validation_data=val_gen,
             epochs = AlignmentModel.NUM_EPOCHS,
             verbose = 2,
             callbacks=[cp_callback])
