@@ -9,7 +9,7 @@ import time
 
 USE_GPU = False
 
-pfam = ["A0001.fa"] #["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
+pfam = ["A0001.fa", "BB11001.fasta", "BB11002.fasta", "BB11003.fasta"] #["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
 pfam_not_found = 0
 
 ##################################################################################################
@@ -31,7 +31,7 @@ random.seed(0)
 
 indices = np.arange(len(msa))
 np.random.shuffle(indices)
-train, val = np.array([0]),np.array([0]) #np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))])
+train, val = np.array([1,2,3]),np.array([0]) #np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))])
 
 ##################################################################################################
 ##################################################################################################
@@ -51,7 +51,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         self.family_probs = [w/sum_w for w in family_weights]
 
     def __len__(self):
-        return 100#len(self.split) #steps per epoch
+        return 50#len(self.split) #steps per epoch
 
     def __getitem__(self, index):
 
@@ -79,16 +79,9 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         for j,(l,si) in enumerate(zip(batch_lens, seqs_drawn)):
             lrange = np.arange(l)
             seq[j,lrange,family_m.raw_seq[si]] = 1
-            #seq[j,lrange,len(AlignmentModel.ALPHABET)] = (lrange+1)/l
-            #seq[j,lrange,len(AlignmentModel.ALPHABET)+1] = (lrange+1)/family_m.alignment_len
 
         #targets
         memberships = np.zeros((len(seqs_drawn), maxlen, family_m.alignment_len), dtype=np.float32)
-        relative_positions = np.zeros((len(seqs_drawn), maxlen), dtype=np.float32)
-        col_dists = np.zeros((family_m.alignment_len, len(AlignmentModel.ALPHABET)+1))
-        gaps_in = np.zeros((sum(batch_lens)-len(batch_lens), 1))
-        gaps_start = np.zeros((len(seqs_drawn)))
-        gaps_end = np.zeros((len(seqs_drawn), 1))
         for j,(l, si) in enumerate(zip(batch_lens, seqs_drawn)):
             suml = sum(family_m.seq_lens[:si])
             targets = family_m.membership_targets[suml:(suml+l)]
@@ -96,20 +89,6 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
 
             #memberships site <-> columns
             memberships[j,r,targets] = 1
-
-            #relative positions of sequence nodes
-            relative_positions[j,r] = targets/family_m.alignment_len
-
-            #aminoacid-distribution for each column
-            col_dists[targets, family_m.raw_seq[si]] += 1
-
-            #inner gap lengths between sites
-            gaps_in[r[:-1] + sum(batch_lens[:j]) - j, 0] = family_m.gap_lengths[(suml+si+1):(suml+si+l)] / family_m.alignment_len
-            gaps_start[j] = family_m.gap_lengths[suml+si] / family_m.alignment_len
-            gaps_end[j] = family_m.gap_lengths[suml+si+l] / family_m.alignment_len
-
-        col_dists[:,len(AlignmentModel.ALPHABET)] = len(seqs_drawn) - np.sum(col_dists, axis=1)
-        col_dists /= len(seqs_drawn)
 
         memberships = np.reshape(memberships, (-1, family_m.alignment_len))
 
@@ -120,36 +99,15 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
             sequence_gatherer[np.arange(suml, suml+l), np.arange(i*maxlen, i*maxlen+l)] = 1
             suml += l
 
-        # #initial column memberships
-        M_c = np.ones((len(seqs_drawn), max(batch_lens), family_m.alignment_len), dtype=np.float32)
-        M_c /= family_m.alignment_len #sum over columns = 1
-        M_s = np.ones_like(M_c)
-        M_s /= np.reshape(np.array(batch_lens), (-1,1,1)) #sum over sequence = 1
-        #column_priors = M_s + M_c - M_s * M_c
-
-        column_priors_c = np.matmul(sequence_gatherer, np.reshape(M_c, (-1, family_m.alignment_len)))
-        column_priors_s = np.matmul(sequence_gatherer, np.reshape(M_s, (-1, family_m.alignment_len)))
-
         memberships = np.matmul(sequence_gatherer, memberships)
-        relative_positions = np.matmul(sequence_gatherer, np.reshape(relative_positions, (-1, 1)))
+        memberships_sq = np.matmul(memberships, np.transpose(memberships))
+
+        initial_memberships = np.ones((sum(batch_lens), family_m.alignment_len)) / family_m.alignment_len
 
         input_dict = {  "sequences" : seq,
                         "sequence_gatherer" : sequence_gatherer,
-                        "column_priors_c" : column_priors_c,
-                        "column_priors_s" : memberships,#column_priors_s,
-                        "sequence_lengths" : np.array(batch_lens, dtype=np.int32) }
-        target_dict = {"mem"+str(i) : np.matmul(memberships, np.transpose(memberships)) for i in range(AlignmentModel.NUM_ITERATIONS)}
-        target_dict.update({"rp"+str(i) : relative_positions for i in range(AlignmentModel.NUM_ITERATIONS)})
-        target_dict.update({"gs"+str(i) : gaps_start for i in range(AlignmentModel.NUM_ITERATIONS)})
-        target_dict.update({"g"+str(i) : gaps_in for i in range(AlignmentModel.NUM_ITERATIONS)})
-        target_dict.update({"ge"+str(i) : gaps_end for i in range(AlignmentModel.NUM_ITERATIONS)})
-        target_dict.update({"col"+str(i) : col_dists for i in range(AlignmentModel.NUM_ITERATIONS)})
-        # # target_dict = {"mem" : memberships,#np.matmul(memberships, np.transpose(memberships)),
-        #                 "rp" : relative_positions,
-        #                 "gs" : gaps_start,
-        #                 "g" : gaps_in,
-        #                 "ge" : gaps_end,
-        #                 "col" : col_dists }
+                        "initial_memberships" : initial_memberships }
+        target_dict = {"mem"+str(i) : memberships_sq for i in range(AlignmentModel.NUM_ITERATIONS)}
         return input_dict, target_dict
 
 
