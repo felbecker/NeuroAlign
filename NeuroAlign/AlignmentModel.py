@@ -13,12 +13,12 @@ ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',
 ##################################################################################################
 
 #number of message passing iterations to perform
-NUM_ITERATIONS = 3
+NUM_ITERATIONS = 10
 
 #the dimensions for the different internal representations
 SITE_DIM = 64
-SEQ_LSTM_DIM = 256
-CONS_LSTM_DIM = 256
+SEQ_LSTM_DIM = 1028
+CONS_LSTM_DIM = 1028
 
 #hidden layer sizes for the MLPs
 ENCODER_LAYERS = [256, 256]
@@ -34,7 +34,7 @@ VALIDATION_SPLIT = 0.01
 
 #maximum number of sites in a batch
 #must be at least as large as the sum of the two longest sequences in all families
-BATCH_SIZE = 5000
+BATCH_SIZE = 2000
 
 #number of splits for the membership updates
 #this step is typically the memory-bottleneck of the model
@@ -42,7 +42,7 @@ BATCH_SIZE = 5000
 #memory requirements during inference
 COL_BATCHES = 1
 
-LEARNING_RATE = 2e-4
+LEARNING_RATE = 2e-5
 NUM_EPOCHS = 1000
 
 CHECKPOINT_PATH = "alignment_checkpoints/model.ckpt"
@@ -142,14 +142,14 @@ def make_model():
         seq_lstm = [layers.LSTM(SEQ_LSTM_DIM, return_sequences=True)]*NUM_ITERATIONS
         seq_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM))]*NUM_ITERATIONS
         cons_lstm = [layers.LSTM(CONS_LSTM_DIM, return_sequences=True)]*NUM_ITERATIONS
-        cons_dense = [layers.TimeDistributed(layers.Dense(2*SITE_DIM))]*NUM_ITERATIONS
+        cons_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM))]*NUM_ITERATIONS
         seq_to_cons_messenger = [Messenger(SEQUENCE_MSGR_LAYERS)]*NUM_ITERATIONS
         cons_to_seq_messenger = [Messenger(CONSENSUS_MSGR_LAYERS)]*NUM_ITERATIONS
     else:
         seq_lstm = [layers.LSTM(SEQ_LSTM_DIM, return_sequences=True) for _ in range(NUM_ITERATIONS)]
         seq_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM)) for _ in range(NUM_ITERATIONS)]
         cons_lstm = [layers.LSTM(CONS_LSTM_DIM, return_sequences=True) for _ in range(NUM_ITERATIONS)]
-        cons_dense = [layers.TimeDistributed(layers.Dense(2*SITE_DIM)) for _ in range(NUM_ITERATIONS)]
+        cons_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM)) for _ in range(NUM_ITERATIONS)]
         seq_to_cons_messenger = [Messenger(SEQUENCE_MSGR_LAYERS) for _ in range(NUM_ITERATIONS)]
         cons_to_seq_messenger = [Messenger(CONSENSUS_MSGR_LAYERS) for _ in range(NUM_ITERATIONS)]
 
@@ -157,10 +157,10 @@ def make_model():
     masked_sequences = layers.Masking(mask_value=0.0)(sequences)
     encoded_sequences = layers.TimeDistributed(encoder)(masked_sequences)
     gathered_initial_sequences = tf.linalg.matmul(sequence_gatherer, tf.reshape(encoded_sequences, (-1, SITE_DIM) ))
-    gathered_sequences = layers.Concatenate()([gathered_initial_sequences, gathered_initial_sequences])
+    gathered_sequences = gathered_initial_sequences
 
     #initial consensus
-    consensus = tf.zeros((tf.shape(initial_memberships)[1], 2*SITE_DIM))
+    consensus = tf.zeros((tf.shape(initial_memberships)[1], SITE_DIM))
 
     M = mem_decoder([gathered_sequences, consensus])
 
@@ -181,8 +181,8 @@ def make_model():
         consensus = cons_dense[i](cons_lstm[i](tf.expand_dims(concat_cons, axis=0)))
         consensus = tf.squeeze(consensus, axis=0)
 
-        M = mem_decoder([gathered_sequences_Concat, consensus])
-        M_squared = tf.linalg.matmul(M, M, transpose_b=True)
+        M = mem_decoder([gathered_sequences, consensus])
+        M_squared = M#tf.linalg.matmul(M, M, transpose_b=True)
         mem_sq_out.append(layers.Lambda(lambda x: x, name="mem"+str(i))(M_squared))
 
     model = keras.Model(
@@ -190,10 +190,10 @@ def make_model():
         outputs=mem_sq_out
     )
 
-    losses = {"mem"+str(i) : "binary_crossentropy" for i in range(NUM_ITERATIONS)}
+    losses = {"mem"+str(i) : "categorical_crossentropy" for i in range(NUM_ITERATIONS)}
 
     model.compile(loss=losses,
                     optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
-                    metrics={"mem"+str(NUM_ITERATIONS-1) : [keras.metrics.Precision(), keras.metrics.Recall()]})
+                    metrics={"mem"+str(NUM_ITERATIONS-1) : [keras.metrics.CategoricalAccuracy()]})
 
     return model

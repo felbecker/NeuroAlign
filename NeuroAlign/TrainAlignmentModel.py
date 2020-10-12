@@ -7,9 +7,7 @@ import os.path
 import time
 
 
-USE_GPU = False
-
-pfam = ["A0001.fa", "BB11001.fasta", "BB11002.fasta", "BB11003.fasta"] #["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
+pfam = ["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
 pfam_not_found = 0
 
 ##################################################################################################
@@ -20,8 +18,8 @@ msa = []
 
 for f in pfam:
     try:
-        #m = MSA.Instance("Pfam/alignments/" + f + ".fasta", AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
-        m = MSA.Instance("test/" + f, AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
+        m = MSA.Instance("Pfam/alignments/" + f + ".fasta", AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
+        #m = MSA.Instance("test/" + f, AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
         msa.append(m)
     except FileNotFoundError:
         pfam_not_found += 1
@@ -31,7 +29,7 @@ random.seed(0)
 
 indices = np.arange(len(msa))
 np.random.shuffle(indices)
-train, val = np.array([1,2,3]),np.array([0]) #np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))])
+train, val = np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))])
 
 ##################################################################################################
 ##################################################################################################
@@ -39,7 +37,7 @@ train, val = np.array([1,2,3]),np.array([0]) #np.split(indices, [int(len(msa)*(1
 #provides training batches
 #each batch has an upper limit of sites
 #sequences are drawn randomly from a protein family until all available sequences are chosen or
-#the batch limit is exhausted. An error is thrown, if the batch limit is such that less than 2 sequences fit into it
+#the batch limit is exhausted.
 class AlignmentBatchGenerator(tf.keras.utils.Sequence):
     def __init__(self, split):
         self.split = split
@@ -51,7 +49,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         self.family_probs = [w/sum_w for w in family_weights]
 
     def __len__(self):
-        return 50#len(self.split) #steps per epoch
+        return len(self.split) #steps per epoch
 
     def __getitem__(self, index):
 
@@ -66,7 +64,8 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
             batch_size += family_m.seq_lens[si]
             if batch_size > AlignmentModel.BATCH_SIZE:
                 if len(seqs_drawn) < 2:
-                    raise Exception("Batch size too small to fit at least 2 sequences.")
+                    #print("Batch size too small to fit at least 2 sequences. Resampling...")
+                    return self.__getitem__(index)
                 break
             else:
                 seqs_drawn.append(si)
@@ -74,23 +73,35 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
 
         maxlen = max(batch_lens)
 
-        #one-hot encode sequences + relative positions
+        #one-hot encode sequences
         seq = np.zeros((len(seqs_drawn), maxlen, len(AlignmentModel.ALPHABET)), dtype=np.float32)
         for j,(l,si) in enumerate(zip(batch_lens, seqs_drawn)):
             lrange = np.arange(l)
             seq[j,lrange,family_m.raw_seq[si]] = 1
 
-        #targets
-        memberships = np.zeros((len(seqs_drawn), maxlen, family_m.alignment_len), dtype=np.float32)
+        #remove empty columns
+        col_sizes = np.zeros(family_m.alignment_len)
         for j,(l, si) in enumerate(zip(batch_lens, seqs_drawn)):
             suml = sum(family_m.seq_lens[:si])
-            targets = family_m.membership_targets[suml:(suml+l)]
-            r = np.arange(l)
+            col_sizes[family_m.membership_targets[suml:(suml+l)]] += 1
+        empty = (col_sizes == 0)
+        num_columns = np.sum(~empty)
+        cum_cols = np.cumsum(empty)
 
+        corrected_targets = []
+        for j,(l, si) in enumerate(zip(batch_lens, seqs_drawn)):
+            suml = sum(family_m.seq_lens[:si])
+            ct = family_m.membership_targets[suml:(suml+l)]
+            corrected_targets.append(ct - cum_cols[ct])
+
+        #targets
+        memberships = np.zeros((len(seqs_drawn), maxlen, num_columns), dtype=np.float32)
+        for j,(l, targets) in enumerate(zip(batch_lens, corrected_targets)):
+            r = np.arange(l)
             #memberships site <-> columns
             memberships[j,r,targets] = 1
 
-        memberships = np.reshape(memberships, (-1, family_m.alignment_len))
+        memberships = np.reshape(memberships, (-1, num_columns))
 
         #maps padded sequences to unpadded
         sequence_gatherer = np.zeros((sum(batch_lens), len(seqs_drawn)*maxlen), dtype=np.float32)
@@ -102,12 +113,12 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
         memberships = np.matmul(sequence_gatherer, memberships)
         memberships_sq = np.matmul(memberships, np.transpose(memberships))
 
-        initial_memberships = np.ones((sum(batch_lens), family_m.alignment_len)) / family_m.alignment_len
+        initial_memberships = np.ones((sum(batch_lens), num_columns)) / num_columns
 
         input_dict = {  "sequences" : seq,
                         "sequence_gatherer" : sequence_gatherer,
                         "initial_memberships" : initial_memberships }
-        target_dict = {"mem"+str(i) : memberships_sq for i in range(AlignmentModel.NUM_ITERATIONS)}
+        target_dict = {"mem"+str(i) : memberships for i in range(AlignmentModel.NUM_ITERATIONS)}
         return input_dict, target_dict
 
 
@@ -117,42 +128,17 @@ val_gen = AlignmentBatchGenerator(val)
 ##################################################################################################
 ##################################################################################################
 
-def make_model():
-    model = AlignmentModel.make_model()
-    if os.path.isfile(AlignmentModel.CHECKPOINT_PATH+".index"):
-        model.load_weights(AlignmentModel.CHECKPOINT_PATH)
-        print("Loaded weights", flush=True)
-    return model
-
-if USE_GPU:
-    strategy = tf.distribute.MirroredStrategy()
-    print('Number of devices: {}'.format(strategy.num_replicas_in_sync), flush=True)
-    with strategy.scope():
-        model = make_model()
-else:
-    model = make_model()
-
+model = AlignmentModel.make_model()
+if os.path.isfile(AlignmentModel.CHECKPOINT_PATH+".index"):
+    model.load_weights(AlignmentModel.CHECKPOINT_PATH)
+    print("Loaded weights", flush=True)
 
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPOINT_PATH,
                                                 save_weights_only=True,
                                                 verbose=1)
 
 model.fit(train_gen,
-            #validation_data=val_gen,
+            validation_data=val_gen,
             epochs = AlignmentModel.NUM_EPOCHS,
             verbose = 2,
             callbacks=[cp_callback])
-
-
-input, target = val_gen.__getitem__(0)
-
-print(input, target)
-
-#automatic model visualization... does not work especially well with many message passing iterations
-#tf.keras.utils.plot_model(model, "NeuroAlign.png", show_shapes=True)
-#
-start = time.time()
-out = model(input)
-end = time.time()
-print(out)
-print(end-start)
