@@ -5,10 +5,20 @@ import MSA
 import AlignmentModel
 import os.path
 import time
+from tensorflow import keras
+from tensorflow.keras import layers
 
 
 pfam = ["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
 pfam_not_found = 0
+
+GPUS = tf.config.experimental.list_logical_devices('GPU')
+NUM_DEVICES = max(1, len(GPUS))
+
+if len(GPUS) > 0:
+    print("Using ", NUM_DEVICES, " GPU devices.")
+else:
+    print("Using CPU.")
 
 ##################################################################################################
 ##################################################################################################
@@ -29,7 +39,7 @@ random.seed(0)
 
 indices = np.arange(len(msa))
 np.random.shuffle(indices)
-train, val = np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))])
+train, val = np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))]) #np.array([0]), np.array([0])
 
 ##################################################################################################
 ##################################################################################################
@@ -51,7 +61,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
     def __len__(self):
         return len(self.split) #steps per epoch
 
-    def __getitem__(self, index):
+    def sample_family(self, ext = ""):
 
         #draw a random family and sequences from that family
         family_i = np.random.choice(len(self.split), p=self.family_probs)
@@ -65,7 +75,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
             if batch_size > AlignmentModel.BATCH_SIZE:
                 if len(seqs_drawn) < 2:
                     #print("Batch size too small to fit at least 2 sequences. Resampling...")
-                    return self.__getitem__(index)
+                    return self.sample_family(ext)
                 break
             else:
                 seqs_drawn.append(si)
@@ -115,11 +125,23 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
 
         initial_memberships = np.ones((sum(batch_lens), num_columns)) / num_columns
 
-        input_dict = {  "sequences" : seq,
-                        "sequence_gatherer" : sequence_gatherer,
-                        "initial_memberships" : initial_memberships }
-        target_dict = {"mem"+str(i) : memberships for i in range(AlignmentModel.NUM_ITERATIONS)}
+        input_dict = {  ext+"sequences" : seq,
+                        ext+"sequence_gatherer" : sequence_gatherer,
+                        ext+"initial_memberships" : initial_memberships }
+        target_dict = {ext+"mem"+str(i) : memberships for i in range(AlignmentModel.NUM_ITERATIONS)}
         return input_dict, target_dict
+
+
+    def __getitem__(self, index):
+        if NUM_DEVICES == 1:
+            return self.sample_family()
+        else:
+            input_dict, target_dict = {}, {}
+            for i in range(NUM_DEVICES):
+                id, td = self.sample_family("GPU_"+str(i)+"_")
+                input_dict.update(id)
+                target_dict.update(td)
+            return input_dict, target_dict
 
 
 train_gen = AlignmentBatchGenerator(train)
@@ -128,10 +150,82 @@ val_gen = AlignmentBatchGenerator(val)
 ##################################################################################################
 ##################################################################################################
 
-model = AlignmentModel.make_model()
-if os.path.isfile(AlignmentModel.CHECKPOINT_PATH+".index"):
-    model.load_weights(AlignmentModel.CHECKPOINT_PATH)
-    print("Loaded weights", flush=True)
+class MyAdamOptimizer(tf.compat.v1.train.AdamOptimizer):
+    def compute_gradients(self,
+                          loss,
+                          var_list=None,
+                          gate_gradients=tf.compat.v1.train.Optimizer.GATE_OP,
+                          aggregation_method=None,
+                          colocate_gradients_with_ops=True,
+                          grad_loss=None):
+        return super(MyAdamOptimizer, self).compute_gradients(
+            loss,
+            var_list=None,
+            gate_gradients=tf.compat.v1.train.Optimizer.GATE_OP,
+            aggregation_method=None,
+            colocate_gradients_with_ops=True,
+            grad_loss=None)
+
+    def minimize(
+            loss,
+            global_step=None,
+            var_list=None,
+            gate_gradients=tf.compat.v1.train.Optimizer.GATE_OP,
+            aggregation_method=None,
+            colocate_gradients_with_ops=True,
+            name=None,
+            grad_loss=None):
+        return super(MyAdamOptimizer, self).minimize(
+            loss,
+            global_step=None,
+            var_list=None,
+            gate_gradients=tf.compat.v1.train.Optimizer.GATE_OP,
+            aggregation_method=None,
+            colocate_gradients_with_ops=True,
+            name=None,
+            grad_loss=None)
+
+##################################################################################################
+##################################################################################################
+
+with tf.device('/cpu:0'):
+    al_model = AlignmentModel.make_model()
+    if os.path.isfile(AlignmentModel.CHECKPOINT_PATH+".index"):
+        al_model.load_weights(AlignmentModel.CHECKPOINT_PATH)
+        print("Loaded weights", flush=True)
+
+if NUM_DEVICES == 1:
+    model = al_model
+    losses = {"mem"+str(i) : "categorical_crossentropy" for i in range(AlignmentModel.NUM_ITERATIONS)}
+
+    model.compile(loss=losses,
+                    optimizer=MyAdamOptimizer(learning_rate=AlignmentModel.LEARNING_RATE),
+                    metrics={"mem"+str(AlignmentModel.NUM_ITERATIONS-1) : [keras.metrics.CategoricalAccuracy()]})
+else:
+    inputs, all_outputs = [], []
+    for i, gpu in enumerate(GPUS):
+        with tf.device(gpu.name):
+            sequences = keras.Input(shape=(None,AlignmentModel.SEQ_IN_DIM), name="GPU_"+str(i)+"_sequences")
+            sequence_gatherer = keras.Input(shape=(None,), name="GPU_"+str(i)+"_sequence_gatherer")
+            initial_memberships = keras.Input(shape=(None,), name="GPU_"+str(i)+"_initial_memberships")
+            input_dict = {  "sequences" : sequences,
+                            "sequence_gatherer" : sequence_gatherer,
+                            "initial_memberships" : initial_memberships }
+            outputs = al_model(input_dict)
+            for j,o in enumerate(outputs):
+                all_outputs.append(layers.Lambda(lambda x: x, name="GPU_"+str(i)+"_mem"+str(j))(o))
+            inputs.extend([sequences, sequence_gatherer, initial_memberships])
+
+    model = keras.Model(inputs=inputs, outputs=all_outputs)
+    losses = {}
+    metrics = {}
+    for i, gpu in enumerate(GPUS):
+        losses.update({"GPU_"+str(i)+"_mem"+str(j) : "categorical_crossentropy" for j in range(AlignmentModel.NUM_ITERATIONS)})
+        metrics.update({"GPU_"+str(i)+"_mem"+str(AlignmentModel.NUM_ITERATIONS-1) : [keras.metrics.CategoricalAccuracy()]})
+
+    model.compile(loss=losses,
+                    optimizer=MyAdamOptimizer(learning_rate=AlignmentModel.LEARNING_RATE),
+                    metrics=metrics)
 
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPOINT_PATH,
                                                 save_weights_only=True,

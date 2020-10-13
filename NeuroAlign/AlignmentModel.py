@@ -13,10 +13,10 @@ ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',
 ##################################################################################################
 
 #number of message passing iterations to perform
-NUM_ITERATIONS = 10
+NUM_ITERATIONS = 4
 
 #the dimensions for the different internal representations
-SITE_DIM = 64
+SITE_DIM = 50
 SEQ_LSTM_DIM = 1028
 CONS_LSTM_DIM = 1028
 
@@ -26,7 +26,7 @@ SEQUENCE_MSGR_LAYERS = [256,256]
 CONSENSUS_MSGR_LAYERS = [256,256]
 
 #if false, each message passing iteration uses unique parameters
-SHARED_ITERATIONS = True
+SHARED_ITERATIONS = False
 
 
 VALIDATION_SPLIT = 0.01
@@ -46,6 +46,8 @@ LEARNING_RATE = 2e-5
 NUM_EPOCHS = 1000
 
 CHECKPOINT_PATH = "alignment_checkpoints/model.ckpt"
+
+SEQ_IN_DIM = len(ALPHABET)
 
 ##################################################################################################
 ##################################################################################################
@@ -130,8 +132,7 @@ class Messenger(layers.Layer):
 
 def make_model():
     #define inputs
-    seq_in_dim = len(ALPHABET)
-    sequences = keras.Input(shape=(None,seq_in_dim), name="sequences")
+    sequences = keras.Input(shape=(None,SEQ_IN_DIM), name="sequences")
     sequence_gatherer = keras.Input(shape=(None,), name="sequence_gatherer")
     initial_memberships = keras.Input(shape=(None,), name="initial_memberships")
 
@@ -189,11 +190,5 @@ def make_model():
         inputs=[sequences, sequence_gatherer, initial_memberships],
         outputs=mem_sq_out
     )
-
-    losses = {"mem"+str(i) : "categorical_crossentropy" for i in range(NUM_ITERATIONS)}
-
-    model.compile(loss=losses,
-                    optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
-                    metrics={"mem"+str(NUM_ITERATIONS-1) : [keras.metrics.CategoricalAccuracy()]})
 
     return model
