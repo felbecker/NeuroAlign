@@ -188,6 +188,22 @@ class MyAdamOptimizer(tf.compat.v1.train.AdamOptimizer):
 ##################################################################################################
 ##################################################################################################
 
+def weighted_binary_crossentropy(y_true, y_pred):
+
+        POS_WEIGHT = 1 #155.5
+        NEG_WEIGHT = 1 #0.5
+
+        y_true = tf.reshape(y_true, (-1,1))
+        y_pred = tf.reshape(y_pred, (-1,1))
+        b_ce = tf.keras.losses.binary_crossentropy(y_true, y_pred)
+        weight_vector = tf.squeeze(y_true * POS_WEIGHT + (1. - y_true) * NEG_WEIGHT, -1)
+        weighted_b_ce = weight_vector * b_ce
+        return tf.keras.backend.sum(weighted_b_ce) / tf.keras.backend.sum(weight_vector)
+
+
+##################################################################################################
+##################################################################################################
+
 with tf.device('/cpu:0'):
     al_model = AlignmentModel.make_model()
     if os.path.isfile(AlignmentModel.CHECKPOINT_PATH+".index"):
@@ -196,11 +212,17 @@ with tf.device('/cpu:0'):
 
 if NUM_DEVICES == 1:
     model = al_model
-    losses = {"mem"+str(i) : "categorical_crossentropy" for i in range(AlignmentModel.NUM_ITERATIONS)}
+    losses = {"mem"+str(i) : weighted_binary_crossentropy for i in range(AlignmentModel.NUM_ITERATIONS)}
 
     model.compile(loss=losses,
                     optimizer=MyAdamOptimizer(learning_rate=AlignmentModel.LEARNING_RATE),
-                    metrics={"mem"+str(AlignmentModel.NUM_ITERATIONS-1) : [keras.metrics.CategoricalAccuracy()]})
+                    metrics={"mem"+str(AlignmentModel.NUM_ITERATIONS-1) : [keras.metrics.TruePositives(name='tp'),
+                                    keras.metrics.FalsePositives(name='fp'),
+                                    keras.metrics.TrueNegatives(name='tn'),
+                                    keras.metrics.FalseNegatives(name='fn'),
+                                    keras.metrics.BinaryAccuracy(name='accuracy'),
+                                    keras.metrics.Precision(name='precision'),
+                                    keras.metrics.Recall(name='recall')]})
 else:
     inputs, all_outputs = [], []
     for i, gpu in enumerate(GPUS):
@@ -220,8 +242,14 @@ else:
     losses = {}
     metrics = {}
     for i, gpu in enumerate(GPUS):
-        losses.update({"GPU_"+str(i)+"_mem"+str(j) : "categorical_crossentropy" for j in range(AlignmentModel.NUM_ITERATIONS)})
-        metrics.update({"GPU_"+str(i)+"_mem"+str(AlignmentModel.NUM_ITERATIONS-1) : [keras.metrics.CategoricalAccuracy()]})
+        losses.update({"GPU_"+str(i)+"_mem"+str(j) : weighted_binary_crossentropy for j in range(AlignmentModel.NUM_ITERATIONS)})
+        metrics.update({"GPU_"+str(i)+"_mem"+str(AlignmentModel.NUM_ITERATIONS-1) : [keras.metrics.TruePositives(name='tp'),
+                                    keras.metrics.FalsePositives(name='fp'),
+                                    keras.metrics.TrueNegatives(name='tn'),
+                                    keras.metrics.FalseNegatives(name='fn'),
+                                    keras.metrics.BinaryAccuracy(name='accuracy'),
+                                    keras.metrics.Precision(name='precision'),
+                                    keras.metrics.Recall(name='recall')]})
 
     model.compile(loss=losses,
                     optimizer=MyAdamOptimizer(learning_rate=AlignmentModel.LEARNING_RATE),
