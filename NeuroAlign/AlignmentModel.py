@@ -2,23 +2,26 @@ import tensorflow as tf
 import numpy as np
 from tensorflow import keras
 from tensorflow.keras import layers
+import argparse
+import os
+
+jobid = 9999#int(os.getenv('SLURM_ARRAY_TASK_ID'))
 
 ##################################################################################################
 ##################################################################################################
 
 ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
-
 ##################################################################################################
 ##################################################################################################
 
 #number of message passing iterations to perform
-NUM_ITERATIONS = 4
+NUM_ITERATIONS = 2
 
 #the dimensions for the different internal representations
 SITE_DIM = 50
-SEQ_LSTM_DIM = 1028
-CONS_LSTM_DIM = 1028
+SEQ_LSTM_DIM = 512
+CONS_LSTM_DIM = 512
 
 #hidden layer sizes for the MLPs
 ENCODER_LAYERS = [256, 256]
@@ -26,10 +29,10 @@ SEQUENCE_MSGR_LAYERS = [256,256]
 CONSENSUS_MSGR_LAYERS = [256,256]
 
 #if false, each message passing iteration uses unique parameters
-SHARED_ITERATIONS = False
+SHARED_ITERATIONS = False#True if jobid-1 < 4 else False
 
 
-VALIDATION_SPLIT = 0.01
+VALIDATION_SPLIT = 0.25#0.01
 
 
 #maximum number of sites in a batch
@@ -42,24 +45,44 @@ BATCH_SIZE = 2000
 #memory requirements during inference
 COL_BATCHES = 1
 
-LEARNING_RATE = 2e-5
-NUM_EPOCHS = 1000
+LEARNING_RATE = 1e-5
+NUM_EPOCHS = 200
 
-CHECKPOINT_PATH = "alignment_checkpoints/model.ckpt"
+NAME = "alignment_model"+str(jobid-1)
 
 SEQ_IN_DIM = len(ALPHABET)
 
+__POS_WEIGHT = [40,90,40,90]
+POS_WEIGHT = 7#__POS_WEIGHT[(jobid-1)%4]#70#155.5
+NEG_WEIGHT = 1#0.5
+
+__LAST_ITERATION_WEIGHT = [1,1,8,8]
+LAST_ITERATION_WEIGHT = 3#__LAST_ITERATION_WEIGHT[(jobid-1)%4]
+
 ##################################################################################################
 ##################################################################################################
 
-print("NeuroAlign config  \n",
-      "iterations: ", NUM_ITERATIONS,
-      " site_dim: ", SITE_DIM,
-      " encoder: ", ENCODER_LAYERS,
-      "sequence_messenger: ", SEQUENCE_MSGR_LAYERS,
-      "consensus_messenger: ", CONSENSUS_MSGR_LAYERS,
-      "batch: ", BATCH_SIZE,
-      "learning_rate: ", LEARNING_RATE, flush=True)
+CHECKPOINT_PATH = NAME+"/model.ckpt"
+
+##################################################################################################
+##################################################################################################
+
+CFG_TXT = ("NeuroAlign config  \n" +
+      " iterations: "+ str(NUM_ITERATIONS)+
+      " - site dim: "+ str(SITE_DIM)+
+      " - seq lstm dim: "+ str(SEQ_LSTM_DIM)+
+      " - cons lstm dim: "+ str(CONS_LSTM_DIM)+
+      " - encoder: "+ str(ENCODER_LAYERS)+ " \n"+
+      " - sequence messenger: "+ str(SEQUENCE_MSGR_LAYERS)+
+      " - consensus messenger: "+ str(CONSENSUS_MSGR_LAYERS)+
+      " - shared iterations: "+ str(SHARED_ITERATIONS)+ " \n"+
+      " - pos weight: "+ str(POS_WEIGHT)+
+      " - neg weight: "+ str(NEG_WEIGHT)+
+      " - batch: "+ str(BATCH_SIZE)+
+      " - last iteration weight: "+ str(LAST_ITERATION_WEIGHT)+
+      " - learning rate: "+ str(LEARNING_RATE))
+
+print(CFG_TXT, flush=True)
 
 ##################################################################################################
 ##################################################################################################
@@ -169,21 +192,21 @@ def make_model():
 
     for i in range(NUM_ITERATIONS):
 
-        messages_cons_to_seq = cons_to_seq_messenger[i]([consensus, M])
-        messages_cons_to_seq = tf.linalg.matmul(sequence_gatherer, messages_cons_to_seq, transpose_a = True)
-        messages_cons_to_seq = tf.reshape(messages_cons_to_seq, (tf.shape(sequences)[0], tf.shape(sequences)[1], CONSENSUS_MSGR_LAYERS[-1]))
-        concat_sequences = layers.Concatenate()([masked_sequences, encoded_sequences, messages_cons_to_seq])
-        encoded_sequences = seq_dense[i](seq_lstm[i](concat_sequences)) #will always mask
-
-        gathered_sequences = tf.linalg.matmul(sequence_gatherer, tf.reshape(encoded_sequences, (-1, SITE_DIM) ))
         gathered_sequences_Concat = layers.Concatenate()([gathered_initial_sequences, gathered_sequences])
         messages_seq_to_cons = seq_to_cons_messenger[i]([gathered_sequences_Concat, tf.transpose(M)])
         concat_cons = layers.Concatenate()([consensus, messages_seq_to_cons])
         consensus = cons_dense[i](cons_lstm[i](tf.expand_dims(concat_cons, axis=0)))
         consensus = tf.squeeze(consensus, axis=0)
 
+        messages_cons_to_seq = cons_to_seq_messenger[i]([consensus, M])
+        messages_cons_to_seq = tf.linalg.matmul(sequence_gatherer, messages_cons_to_seq, transpose_a = True)
+        messages_cons_to_seq = tf.reshape(messages_cons_to_seq, (tf.shape(sequences)[0], tf.shape(sequences)[1], CONSENSUS_MSGR_LAYERS[-1]))
+        concat_sequences = layers.Concatenate()([masked_sequences, encoded_sequences, messages_cons_to_seq])
+        encoded_sequences = seq_dense[i](seq_lstm[i](concat_sequences)) #will always mask
+        gathered_sequences = tf.linalg.matmul(sequence_gatherer, tf.reshape(encoded_sequences, (-1, SITE_DIM) ))
+
         M = mem_decoder([gathered_sequences, consensus])
-        M_squared = M#tf.linalg.matmul(M, M, transpose_b=True)
+        M_squared = tf.linalg.matmul(M, M, transpose_b=True)
         mem_sq_out.append(layers.Lambda(lambda x: x, name="mem"+str(i))(M_squared))
 
     model = keras.Model(
