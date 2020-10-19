@@ -41,9 +41,12 @@ BATCH_SIZE = 2000
 
 #number of splits for the membership updates
 #this step is typically the memory-bottleneck of the model
-#by choosing a value > 1, runtime can be traded to reduce
+#by choosing a value > 1, runtime can be traded for reduced
 #memory requirements during inference
-COL_BATCHES = 1
+#for instance, inference on a computer with 8GB RAM for
+#1000 input sequences of average length 150 is possible with
+#COL_BATCHES = 20
+COL_BATCHES = 20
 
 LEARNING_RATE = 1e-5
 NUM_EPOCHS = 200
@@ -127,8 +130,12 @@ class MembershipDecoder(layers.Layer):
         if type(inputs) is not list and len(inputs) != 2:
             raise Exception('MembershipDecoder must be called on a list of exactly 2 tensors ')
         sites = tf.expand_dims(inputs[0], 1)
-        consensus = tf.expand_dims(inputs[1], 0)
-        norm = tf.norm(sites - consensus, ord=1, axis=-1)
+        n_batch_size = tf.cast(tf.math.ceil(tf.cast(tf.shape(inputs[1])[0], dtype=tf.float32)/COL_BATCHES), dtype=tf.int32)
+        norm = []
+        for i in range(COL_BATCHES):
+            consensus = tf.expand_dims(inputs[1][(i*n_batch_size):((i+1)*n_batch_size)], 0)
+            norm.append(tf.norm(sites - consensus, ord=1, axis=-1))
+        norm = tf.concat(norm, axis=1)
         return self.softmax(-norm)
 
 ##################################################################################################
@@ -153,10 +160,10 @@ class Messenger(layers.Layer):
 ##################################################################################################
 ##################################################################################################
 
-def make_model():
+def make_model(training = True):
     #define inputs
     sequences = keras.Input(shape=(None,SEQ_IN_DIM), name="sequences")
-    sequence_gatherer = keras.Input(shape=(None,), name="sequence_gatherer")
+    sequence_gather_indices = keras.Input(shape=(), name="sequence_gather_indices", dtype=tf.int32)
     initial_memberships = keras.Input(shape=(None,), name="initial_memberships")
 
     encoder = MLP(ENCODER_LAYERS+[SITE_DIM])
@@ -180,7 +187,7 @@ def make_model():
     #encode the sequences
     masked_sequences = layers.Masking(mask_value=0.0)(sequences)
     encoded_sequences = layers.TimeDistributed(encoder)(masked_sequences)
-    gathered_initial_sequences = tf.linalg.matmul(sequence_gatherer, tf.reshape(encoded_sequences, (-1, SITE_DIM) ))
+    gathered_initial_sequences = tf.gather(tf.reshape(encoded_sequences, (-1, SITE_DIM) ), sequence_gather_indices, axis=0)
     gathered_sequences = gathered_initial_sequences
 
     #initial consensus
@@ -188,7 +195,7 @@ def make_model():
 
     M = mem_decoder([gathered_sequences, consensus])
 
-    mem_sq_out = []
+    mem_out = []
 
     for i in range(NUM_ITERATIONS):
 
@@ -199,19 +206,29 @@ def make_model():
         consensus = tf.squeeze(consensus, axis=0)
 
         messages_cons_to_seq = cons_to_seq_messenger[i]([consensus, M])
-        messages_cons_to_seq = tf.linalg.matmul(sequence_gatherer, messages_cons_to_seq, transpose_a = True)
+        messages_cons_to_seq = tf.scatter_nd(tf.expand_dims(sequence_gather_indices, -1), messages_cons_to_seq,
+                                                shape=(tf.shape(sequences)[0] * tf.shape(sequences)[1], CONSENSUS_MSGR_LAYERS[-1]))
         messages_cons_to_seq = tf.reshape(messages_cons_to_seq, (tf.shape(sequences)[0], tf.shape(sequences)[1], CONSENSUS_MSGR_LAYERS[-1]))
         concat_sequences = layers.Concatenate()([masked_sequences, encoded_sequences, messages_cons_to_seq])
         encoded_sequences = seq_dense[i](seq_lstm[i](concat_sequences)) #will always mask
-        gathered_sequences = tf.linalg.matmul(sequence_gatherer, tf.reshape(encoded_sequences, (-1, SITE_DIM) ))
+        gathered_sequences = tf.gather(tf.reshape(encoded_sequences, (-1, SITE_DIM) ), sequence_gather_indices, axis=0)
 
         M = mem_decoder([gathered_sequences, consensus])
-        M_squared = tf.linalg.matmul(M, M, transpose_b=True)
-        mem_sq_out.append(layers.Lambda(lambda x: x, name="mem"+str(i))(M_squared))
+
+
+        if training:
+            n_batch_size = tf.cast(tf.math.ceil(tf.cast(tf.shape(M)[1], dtype=tf.float32)/COL_BATCHES), dtype=tf.int32)
+            M_squared = tf.zeros((tf.shape(M)[0], tf.shape(M)[0]))
+            for j in range(COL_BATCHES-1):
+                M_batch = M[:, j*n_batch_size : (j+1)*n_batch_size]
+                M_squared += tf.linalg.matmul(M_batch, M_batch, transpose_b=True)
+            mem_out.append(layers.Lambda(lambda x: x, name="mem"+str(i))(M_squared))
+        else:
+            mem_out.append(M)
 
     model = keras.Model(
-        inputs=[sequences, sequence_gatherer, initial_memberships],
-        outputs=mem_sq_out
+        inputs=[sequences, sequence_gather_indices, initial_memberships],
+        outputs=mem_out
     )
 
     return model
