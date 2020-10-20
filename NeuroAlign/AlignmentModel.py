@@ -37,6 +37,7 @@ VALIDATION_SPLIT = 0.05#0.01
 
 #maximum number of sites in a batch
 #must be at least as large as the sum of the two longest sequences in all families
+
 BATCH_SIZE = 2000
 
 #number of splits for the membership updates
@@ -49,6 +50,7 @@ BATCH_SIZE = 2000
 COL_BATCHES = 1
 
 LEARNING_RATE = 1e-5
+
 NUM_EPOCHS = 200
 
 NAME = "alignment_model"+str(jobid-1)
@@ -230,5 +232,5 @@ def make_model(training = True):
         inputs=[sequences, sequence_gather_indices, initial_memberships],
         outputs=mem_out
     )
-
+    
     return model

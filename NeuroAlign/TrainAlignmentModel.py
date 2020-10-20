@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 ##################################################################################################
 
 pfam = ["PF"+"{0:0=5d}".format(i) for i in range(1,19228)]
+
 pfam_not_found = 0
 
 GPUS = tf.config.experimental.list_logical_devices('GPU')
@@ -46,6 +47,7 @@ random.seed(0)
 
 indices = np.arange(len(msa))
 np.random.shuffle(indices)
+
 train, val = np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT))]) #np.array([0]), np.array([0])
 
 ##################################################################################################
@@ -234,7 +236,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPO
 history = model.fit(train_gen,
             validation_data=val_gen,
             epochs = AlignmentModel.NUM_EPOCHS,
-            verbose = 2,
+            verbose = 1,
             callbacks=[cp_callback])
 
 

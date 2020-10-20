@@ -7,7 +7,7 @@ LSTM_STACKED = 2
 ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',  'M',  'F',  'P', 'S',  'T',  'W',  'Y',  'V',  'B',  'Z',  'X', 'U', 'O']
 
 LEARNING_RATE = 1e-3
-BATCH_SIZE = 800
+BATCH_SIZE = 400#800
 NUM_EPOCHS = 100
 VALIDATION_SPLIT = 0.05
 
@@ -68,6 +68,7 @@ class StackedLSTM(tf.keras.layers.Layer):
         self.go_backwards = go_backwards
         self.return_sequences = return_sequences
         self.return_state = return_state
+        self.supports_masking = True
         for i in range(LSTM_STACKED):
             self.lstms.append(tf.keras.layers.LSTM(LSTM_DIM,
                                                     go_backwards=go_backwards,

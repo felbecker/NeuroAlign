@@ -43,13 +43,15 @@ train, val = np.split(indices, [int(len(msa)*(1-DistanceModel.VALIDATION_SPLIT))
 ##################################################################################################
 
 sequence_model = SequenceModel.make_model()
-if os.path.isfile(SequenceModel.CHECKPOINT_PATH+".index"):
-    sequence_model.load_weights(SequenceModel.CHECKPOINT_PATH)
-    sequence_model.layers.pop() #pop time distributed dense
-    sequence_model.layers.pop() #pop softmax
+if os.path.isfile(SequenceModel.CHECKPOINT_PATH+"/saved_model.pb"):
+    sequence_model.load_weights(SequenceModel.CHECKPOINT_PATH+"/variables/variables")
+    sequence_model.pop() #pop softmax
+    sequence_model.pop() #pop time distributed dense
+    sequence_model.pop() #pop LSTM output shift
+    print("Sequence model loaded.", flush=True)
 else:
-    print("No sequence model found.")
-    #quit()
+    print("No sequence model found.", flush=True)
+    quit()
 
 ##################################################################################################
 ##################################################################################################
@@ -79,6 +81,9 @@ class DistanceBatchGenerator(tf.keras.utils.Sequence):
             print("ValueError: {0}".format(err))
             print(m.seq_ids)
             print(m.filename, m.seq_ids[s1], m.seq_ids[s2])
+        if m.raw_seq[s1].shape[0] == 0 or m.raw_seq[s2].shape[0] == 0:
+            print("Found a length 0 sequence, resampling...", flush = True)
+            return self.sample_one()
         return m.raw_seq[s1], m.raw_seq[s2], dist
 
     def __len__(self):
@@ -100,9 +105,18 @@ class DistanceBatchGenerator(tf.keras.utils.Sequence):
         for j,(l1,l2,s1,s2) in enumerate(zip(lens1, lens2, seq1, seq2)):
             seq[2*j,np.arange(l1),s1] = 1
             seq[2*j+1,np.arange(l2),s2] = 1
-        #embedded_seq = sequence_model(seq)
-        #return np.concatenate((seq, embedded_seq), axis=2), dists
-        return seq, dists
+        embedded_seq = sequence_model(seq).numpy()
+        for j,(l1,l2) in enumerate(zip(lens1, lens2)):
+            embedded_seq[2*j,l1:,:] = 0
+            embedded_seq[2*j+1,l2:,:] = 0
+        #np.set_printoptions(threshold=np.inf)
+        #print(np.concatenate((seq, embedded_seq, np.expand_dims(np.argmax(seq, axis=2) == np.argmax(embedded_seq, axis=2), axis=2)), axis=2))
+        # same = np.argmax(seq, axis=2) == np.argmax(embedded_seq, axis=2)
+        # for i,l in enumerate(lens1+lens2):
+        #     same[i, l:] = False
+        # print(same)
+        return np.concatenate((seq, embedded_seq), axis=2), dists
+        #return seq, dists
 
 train_gen = DistanceBatchGenerator(train)
 val_gen = DistanceBatchGenerator(val)

@@ -65,12 +65,14 @@ with strategy.scope():
         model.load_weights(SequenceModel.CHECKPOINT_PATH+"/variables/variables")
         print("Loaded model", flush=True)
 
-cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=SequenceModel.CHECKPOINT_PATH,
-                                                 save_weights_only=False,
-                                                 verbose=2)
+# cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=SequenceModel.CHECKPOINT_PATH,
+#                                                  save_weights_only=False,
+#                                                  verbose=2)
+#
+# model.fit(train_gen,
+#             validation_data=val_gen,
+#             epochs = SequenceModel.NUM_EPOCHS,
+#             verbose = 2,
+#             callbacks=[cp_callback])
 
-model.fit(train_gen,
-            validation_data=val_gen,
-            epochs = SequenceModel.NUM_EPOCHS,
-            verbose = 2,
-            callbacks=[cp_callback])
+model.evaluate(val_gen, verbose=2)
