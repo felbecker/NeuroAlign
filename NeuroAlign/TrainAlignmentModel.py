@@ -68,7 +68,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
 
     def __len__(self):
         if self.training:
-          return int(len(self.split)/10)
+          return int(len(self.split)/3)
         else:
           return len(self.split)
 
@@ -124,20 +124,16 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
 
         memberships = np.reshape(memberships, (-1, num_columns))
 
-        #maps padded sequences to unpadded
-        sequence_gatherer = np.zeros((sum(batch_lens), len(seqs_drawn)*maxlen), dtype=np.float32)
-        suml = 0
-        for i,l in enumerate(batch_lens):
-            sequence_gatherer[np.arange(suml, suml+l), np.arange(i*maxlen, i*maxlen+l)] = 1
-            suml += l
+        sequence_gather_indices = np.concatenate([(i*maxlen + np.arange(l)) for i,l in enumerate(batch_lens)], axis=0)
+        sequence_gather_indices = sequence_gather_indices.astype(np.int32)
 
-        memberships = np.matmul(sequence_gatherer, memberships)
+        memberships = np.take(memberships, sequence_gather_indices, axis=0)
         memberships_sq = np.matmul(memberships, np.transpose(memberships))
 
         initial_memberships = np.ones((sum(batch_lens), num_columns)) / num_columns
 
         input_dict = {  ext+"sequences" : seq,
-                        ext+"sequence_gatherer" : sequence_gatherer,
+                        ext+"sequence_gather_indices" : sequence_gather_indices,
                         ext+"initial_memberships" : initial_memberships }
         target_dict = {ext+"mem"+str(i) : memberships_sq for i in range(AlignmentModel.NUM_ITERATIONS)}
         return input_dict, target_dict
@@ -201,15 +197,15 @@ else:
     for i, gpu in enumerate(GPUS):
         with tf.device(gpu.name):
             sequences = keras.Input(shape=(None,AlignmentModel.SEQ_IN_DIM), name="GPU_"+str(i)+"_sequences")
-            sequence_gatherer = keras.Input(shape=(None,), name="GPU_"+str(i)+"_sequence_gatherer")
+            sequence_gather_indices = keras.Input(shape=(), name="GPU_"+str(i)+"_sequence_gather_indices", dtype=tf.int32)
             initial_memberships = keras.Input(shape=(None,), name="GPU_"+str(i)+"_initial_memberships")
             input_dict = {  "sequences" : sequences,
-                            "sequence_gatherer" : sequence_gatherer,
+                            "sequence_gather_indices" : sequence_gather_indices,
                             "initial_memberships" : initial_memberships }
             outputs = al_model(input_dict)
             for j,o in enumerate(outputs):
                 all_outputs.append(layers.Lambda(lambda x: x, name="GPU_"+str(i)+"_mem"+str(j))(o))
-            inputs.extend([sequences, sequence_gatherer, initial_memberships])
+            inputs.extend([sequences, sequence_gather_indices, initial_memberships])
 
     model = keras.Model(inputs=inputs, outputs=all_outputs)
     losses = {}

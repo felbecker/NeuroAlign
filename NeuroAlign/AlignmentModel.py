@@ -5,7 +5,7 @@ from tensorflow.keras import layers
 import argparse
 import os
 
-jobid = 9999#int(os.getenv('SLURM_ARRAY_TASK_ID'))
+jobid = 777#int(os.getenv('SLURM_ARRAY_TASK_ID'))
 
 ##################################################################################################
 ##################################################################################################
@@ -16,23 +16,23 @@ ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',
 ##################################################################################################
 
 #number of message passing iterations to perform
-NUM_ITERATIONS = 2
+NUM_ITERATIONS = 4
 
 #the dimensions for the different internal representations
 SITE_DIM = 50
-SEQ_LSTM_DIM = 512
-CONS_LSTM_DIM = 512
+SEQ_LSTM_DIM = 1028
+CONS_LSTM_DIM = 1028
 
 #hidden layer sizes for the MLPs
-ENCODER_LAYERS = [256, 256]
-SEQUENCE_MSGR_LAYERS = [256,256]
-CONSENSUS_MSGR_LAYERS = [256,256]
+ENCODER_LAYERS = [512, 512]
+SEQUENCE_MSGR_LAYERS = [512,512]
+CONSENSUS_MSGR_LAYERS = [512,512]
 
 #if false, each message passing iteration uses unique parameters
-SHARED_ITERATIONS = False#True if jobid-1 < 4 else False
+SHARED_ITERATIONS = True#True if jobid-1 < 4 else False
 
 
-VALIDATION_SPLIT = 0.25#0.01
+VALIDATION_SPLIT = 0.05#0.01
 
 
 #maximum number of sites in a batch
@@ -46,7 +46,7 @@ BATCH_SIZE = 2000
 #for instance, inference on a computer with 8GB RAM for
 #1000 input sequences of average length 150 is possible with
 #COL_BATCHES = 20
-COL_BATCHES = 20
+COL_BATCHES = 1
 
 LEARNING_RATE = 1e-5
 NUM_EPOCHS = 200
@@ -60,7 +60,7 @@ POS_WEIGHT = 7#__POS_WEIGHT[(jobid-1)%4]#70#155.5
 NEG_WEIGHT = 1#0.5
 
 __LAST_ITERATION_WEIGHT = [1,1,8,8]
-LAST_ITERATION_WEIGHT = 3#__LAST_ITERATION_WEIGHT[(jobid-1)%4]
+LAST_ITERATION_WEIGHT = 1#__LAST_ITERATION_WEIGHT[(jobid-1)%4]
 
 ##################################################################################################
 ##################################################################################################
@@ -215,14 +215,14 @@ def make_model(training = True):
 
         M = mem_decoder([gathered_sequences, consensus])
 
-
         if training:
             n_batch_size = tf.cast(tf.math.ceil(tf.cast(tf.shape(M)[1], dtype=tf.float32)/COL_BATCHES), dtype=tf.int32)
-            M_squared = tf.zeros((tf.shape(M)[0], tf.shape(M)[0]))
-            for j in range(COL_BATCHES-1):
+            M_squared = []
+            for j in range(COL_BATCHES):
                 M_batch = M[:, j*n_batch_size : (j+1)*n_batch_size]
-                M_squared += tf.linalg.matmul(M_batch, M_batch, transpose_b=True)
-            mem_out.append(layers.Lambda(lambda x: x, name="mem"+str(i))(M_squared))
+                M_squared.append(tf.linalg.matmul(M_batch, M_batch, transpose_b=True))
+            M_squared_add = tf.add_n(M_squared)
+            mem_out.append(layers.Lambda(lambda x: x, name="mem"+str(i))(M_squared_add))
         else:
             mem_out.append(M)
 
