@@ -37,8 +37,8 @@ for f in pfam:
         m = MSA.Instance("Pfam/alignments/" + f + ".fasta", AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
         #m = MSA.Instance("test/" + f, AlignmentModel.ALPHABET, gaps = True, contains_lower_case = True)
         msa.append(m)
-        # if len(msa) == 4:
-        #     break
+        if len(msa) == 50:
+            break
     except FileNotFoundError:
         pfam_not_found += 1
 
@@ -52,6 +52,8 @@ train, val = np.split(indices, [int(len(msa)*(1-AlignmentModel.VALIDATION_SPLIT)
 
 ##################################################################################################
 ##################################################################################################
+
+EPOCH_PART = 1#/3
 
 #provides training batches
 #each batch has an upper limit of sites
@@ -70,7 +72,7 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
 
     def __len__(self):
         if self.training:
-          return int(len(self.split)/3)
+          return int(len(self.split)*EPOCH_PART)
         else:
           return len(self.split)
 
@@ -134,10 +136,24 @@ class AlignmentBatchGenerator(tf.keras.utils.Sequence):
 
         initial_memberships = np.ones((sum(batch_lens), num_columns)) / num_columns
 
+        if AlignmentModel.USE_GAP_MULTI_TASK_LOSS:
+            gaps = np.argmax(memberships, axis=-1)
+            gaps = (np.expand_dims(gaps, 0) - np.expand_dims(gaps, 1))/num_columns
+
         input_dict = {  ext+"sequences" : seq,
                         ext+"sequence_gather_indices" : sequence_gather_indices,
                         ext+"initial_memberships" : initial_memberships }
-        target_dict = {ext+"mem"+str(i) : memberships_sq for i in range(AlignmentModel.NUM_ITERATIONS)}
+
+        if AlignmentModel.LOSS_OVER_ALL_ITERATIONS:
+            target_dict = {ext+"mem"+str(i) : memberships_sq for i in range(AlignmentModel.NUM_ITERATIONS)}
+            if AlignmentModel.USE_GAP_MULTI_TASK_LOSS:
+                target_dict.update({ext+"gap"+str(i) : gaps for i in range(AlignmentModel.NUM_ITERATIONS)})
+        else:
+            if AlignmentModel.USE_GAP_MULTI_TASK_LOSS:
+                target_dict = {ext+"mem" : memberships_sq, ext+"gap" : gaps}
+            else:
+                target_dict = {ext+"mem" : memberships_sq}
+
         return input_dict, target_dict
 
 
@@ -178,22 +194,39 @@ if os.path.isfile(AlignmentModel.CHECKPOINT_PATH+".index"):
     al_model.load_weights(AlignmentModel.CHECKPOINT_PATH)
     print("Loaded weights", flush=True)
 
+
+def losses_prefixed(losses, loss_weights, metrics, prefix=""):
+    if AlignmentModel.LOSS_OVER_ALL_ITERATIONS:
+        losses.update({prefix+"mem"+str(i) : weighted_binary_crossentropy for i in range(AlignmentModel.NUM_ITERATIONS)})
+        loss_weights.update({prefix+"mem"+str(i) : AlignmentModel.MEM_LOSS_WEIGHT for i in range(AlignmentModel.NUM_ITERATIONS-1)})
+        loss_weights[prefix+"mem"+str(AlignmentModel.NUM_ITERATIONS-1)] = AlignmentModel.MEM_LOSS_WEIGHT*AlignmentModel.LAST_ITERATION_WEIGHT
+        if AlignmentModel.USE_GAP_MULTI_TASK_LOSS:
+            losses.update({prefix+"gap"+str(i) : "mse" for i in range(AlignmentModel.NUM_ITERATIONS)})
+            loss_weights.update({prefix+"gap"+str(i) : (1-AlignmentModel.MEM_LOSS_WEIGHT) for i in range(AlignmentModel.NUM_ITERATIONS-1)})
+            loss_weights[prefix+"gap"+str(AlignmentModel.NUM_ITERATIONS-1)] = (1-AlignmentModel.MEM_LOSS_WEIGHT)*AlignmentModel.LAST_ITERATION_WEIGHT
+    else:
+        losses.update({prefix+"mem" : weighted_binary_crossentropy})
+        loss_weights.update({prefix+"mem" : AlignmentModel.MEM_LOSS_WEIGHT})
+        if AlignmentModel.USE_GAP_MULTI_TASK_LOSS:
+            losses[prefix+"gap"] = "mse"
+            loss_weights[prefix+"gap"] = 1-AlignmentModel.MEM_LOSS_WEIGHT
+    if AlignmentModel.LOSS_OVER_ALL_ITERATIONS:
+        metrics.update({"mem"+str(AlignmentModel.NUM_ITERATIONS-1) : [
+                        keras.metrics.Precision(name='precision'),
+                        keras.metrics.Recall(name='recall')]})
+    else:
+        metrics.update({"mem" : [
+                        keras.metrics.Precision(name='precision'),
+                        keras.metrics.Recall(name='recall')]})
+
 if NUM_DEVICES == 1:
     model = al_model
-    losses = {"mem"+str(i) : weighted_binary_crossentropy for i in range(AlignmentModel.NUM_ITERATIONS)}
-    loss_weights = {"mem"+str(i) : 1 for i in range(AlignmentModel.NUM_ITERATIONS-1)}
-    loss_weights["mem"+str(AlignmentModel.NUM_ITERATIONS-1)] = AlignmentModel.LAST_ITERATION_WEIGHT
-
+    losses, loss_weights, metrics = {}, {}, {}
+    losses_prefixed(losses, loss_weights, metrics)
     model.compile(loss=losses,
                   loss_weights = loss_weights,
                     optimizer=tf.keras.optimizers.Adam(learning_rate=AlignmentModel.LEARNING_RATE),
-                    metrics={"mem"+str(AlignmentModel.NUM_ITERATIONS-1) : [
-                                    keras.metrics.TruePositives(name='tp'),
-                                    keras.metrics.FalsePositives(name='fp'),
-                                    keras.metrics.TrueNegatives(name='tn'),
-                                    keras.metrics.FalseNegatives(name='fn'),
-                                    keras.metrics.Precision(name='precision'),
-                                    keras.metrics.Recall(name='recall')]})
+                    metrics=metrics)
 else:
     inputs, all_outputs = [], []
     for i, gpu in enumerate(GPUS):
@@ -214,16 +247,8 @@ else:
     loss_weights = {}
     metrics = {}
     for i, gpu in enumerate(GPUS):
-        losses.update({"GPU_"+str(i)+"_mem"+str(j) : weighted_binary_crossentropy for j in range(AlignmentModel.NUM_ITERATIONS)})
-        loss_weights.update({"GPU_"+str(i)+"_mem"+str(j) : 1 for j in range(AlignmentModel.NUM_ITERATIONS-1)})
-        loss_weights["GPU_"+str(i)+"_mem"+str(AlignmentModel.NUM_ITERATIONS-1)] = AlignmentModel.LAST_ITERATION_WEIGHT
-        metrics.update({"GPU_"+str(i)+"_mem"+str(AlignmentModel.NUM_ITERATIONS-1) : [
-                        keras.metrics.TruePositives(name='tp'),
-                        keras.metrics.FalsePositives(name='fp'),
-                        keras.metrics.TrueNegatives(name='tn'),
-                        keras.metrics.FalseNegatives(name='fn'),
-                        keras.metrics.Precision(name='precision'),
-                        keras.metrics.Recall(name='recall')]})
+        losses, loss_weights = {}, {}
+        losses_prefixed(losses, loss_weights, metrics, "GPU_"+str(i)+"_")
 
     model.compile(loss=losses, loss_weights=loss_weights,
                     optimizer=tf.keras.optimizers.Adam(learning_rate=AlignmentModel.LEARNING_RATE),
@@ -236,7 +261,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=AlignmentModel.CHECKPO
 history = model.fit(train_gen,
             validation_data=val_gen,
             epochs = AlignmentModel.NUM_EPOCHS,
-            verbose = 1,
+            verbose = 2,
             callbacks=[cp_callback])
 
 
@@ -259,12 +284,18 @@ def plot_loss(history, label, n):
   plt.legend()
 
 def plot_metrics(history):
-  metrics =  ['loss',
-              'mem'+str(AlignmentModel.NUM_ITERATIONS-1)+'_loss',
-              'mem'+str(AlignmentModel.NUM_ITERATIONS-1)+'_precision',
-              'mem'+str(AlignmentModel.NUM_ITERATIONS-1)+'_recall']
-  for n, metric in enumerate(metrics):
-    name = metric.replace("_"," ").capitalize()
+    if AlignmentModel.LOSS_OVER_ALL_ITERATIONS:
+        metrics =  ['mem'+str(AlignmentModel.NUM_ITERATIONS-1)+'_loss',
+                  'gap'+str(AlignmentModel.NUM_ITERATIONS-1)+'_loss',
+                  'mem'+str(AlignmentModel.NUM_ITERATIONS-1)+'_precision',
+                  'mem'+str(AlignmentModel.NUM_ITERATIONS-1)+'_recall']
+    else:
+        metrics =  ['mem_loss',
+                  'gap_loss',
+                  'mem_precision',
+                  'mem_recall']
+    for n, metric in enumerate(metrics):
+        name = metric.replace("_"," ").capitalize()
     plt.subplot(2,2,n+1)
     plt.plot(history.epoch,  history.history[metric], color=colors[0], label='Train')
     plt.plot(history.epoch, history.history['val_'+metric],
@@ -272,11 +303,11 @@ def plot_metrics(history):
     plt.xlabel('Epoch')
     plt.ylabel(name)
     if metric == 'loss':
-      plt.ylim([0, plt.ylim()[1]])
+        plt.ylim([0, plt.ylim()[1]])
     elif metric == 'auc':
-      plt.ylim([0.8,1])
+        plt.ylim([0.8,1])
     else:
-      plt.ylim([0,1])
+        plt.ylim([0,1])
 
     plt.legend()
 

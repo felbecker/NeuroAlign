@@ -16,22 +16,29 @@ ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',
 ##################################################################################################
 
 #number of message passing iterations to perform
-NUM_ITERATIONS = 4
+NUM_ITERATIONS = 2
 
 #the dimensions for the different internal representations
-SITE_DIM = 50
-SEQ_LSTM_DIM = 1028
-CONS_LSTM_DIM = 1028
+SITE_DIM = 25
+SEQ_LSTM_DIM = 50
+CONS_LSTM_DIM = 50
 
 #hidden layer sizes for the MLPs
-ENCODER_LAYERS = [512, 512]
-SEQUENCE_MSGR_LAYERS = [512,512]
-CONSENSUS_MSGR_LAYERS = [512,512]
+ENCODER_LAYERS = [50, 50]
+SEQUENCE_MSGR_LAYERS = [50, 50]
+CONSENSUS_MSGR_LAYERS = [50, 50]
 
 #if false, each message passing iteration uses unique parameters
 SHARED_ITERATIONS = True#True if jobid-1 < 4 else False
 
+#if true, total loss is the sum of losses from all iterations
+LOSS_OVER_ALL_ITERATIONS = False
 
+#if true, a seconary loss term for gap lengths between all pairs of sites is used for training
+USE_GAP_MULTI_TASK_LOSS = True
+
+
+#percentage of families not used for training
 VALIDATION_SPLIT = 0.05#0.01
 
 
@@ -45,11 +52,11 @@ BATCH_SIZE = 2000
 #by choosing a value > 1, runtime can be traded for reduced
 #memory requirements during inference
 #for instance, inference on a computer with 8GB RAM for
-#1000 input sequences of average length 150 is possible with
-#COL_BATCHES = 20
+#1000 input sequences of average length 150 is possible with COL_BATCHES = 20
+#this parameter has no effect during training
 COL_BATCHES = 1
 
-LEARNING_RATE = 1e-5
+LEARNING_RATE = 1e-4
 
 NUM_EPOCHS = 200
 
@@ -63,6 +70,8 @@ NEG_WEIGHT = 1#0.5
 
 __LAST_ITERATION_WEIGHT = [1,1,8,8]
 LAST_ITERATION_WEIGHT = 1#__LAST_ITERATION_WEIGHT[(jobid-1)%4]
+
+MEM_LOSS_WEIGHT = 0.8
 
 ##################################################################################################
 ##################################################################################################
@@ -79,8 +88,10 @@ CFG_TXT = ("NeuroAlign config  \n" +
       " - cons lstm dim: "+ str(CONS_LSTM_DIM)+
       " - encoder: "+ str(ENCODER_LAYERS)+ " \n"+
       " - sequence messenger: "+ str(SEQUENCE_MSGR_LAYERS)+
-      " - consensus messenger: "+ str(CONSENSUS_MSGR_LAYERS)+
-      " - shared iterations: "+ str(SHARED_ITERATIONS)+ " \n"+
+      " - consensus messenger: "+ str(CONSENSUS_MSGR_LAYERS)+" \n"+
+      " - shared iterations: "+ str(SHARED_ITERATIONS)+
+      " - loss over all iterations: "+ str(LOSS_OVER_ALL_ITERATIONS)+
+      " - secondary gap loss: "+ str(USE_GAP_MULTI_TASK_LOSS)+ " \n"+
       " - pos weight: "+ str(POS_WEIGHT)+
       " - neg weight: "+ str(NEG_WEIGHT)+
       " - batch: "+ str(BATCH_SIZE)+
@@ -143,6 +154,21 @@ class MembershipDecoder(layers.Layer):
 ##################################################################################################
 ##################################################################################################
 
+#decodes gap lengths for all combinations of sites
+#by soft-argmaxing their column membership vectors
+class GapDecoder(layers.Layer):
+    def __init__(self):
+        super(GapDecoder, self).__init__()
+
+    def call(self, M):
+        col_range = tf.expand_dims(tf.range(tf.shape(M)[-1], dtype=M.dtype), 0)
+        soft_argmax = tf.reduce_sum(M * col_range, axis=-1)
+        gaps = tf.expand_dims(soft_argmax, 0) - tf.expand_dims(soft_argmax, 1)
+        return gaps/tf.cast(tf.shape(M)[-1], dtype=M.dtype)
+
+##################################################################################################
+##################################################################################################
+
 #computes messages based on inputs according to given soft memberships
 class Messenger(layers.Layer):
     def __init__(self, layers):
@@ -170,18 +196,24 @@ def make_model(training = True):
 
     encoder = MLP(ENCODER_LAYERS+[SITE_DIM])
     mem_decoder = MembershipDecoder()
+    if USE_GAP_MULTI_TASK_LOSS:
+        gap_decoder = GapDecoder()
     #networks
     if SHARED_ITERATIONS:
-        seq_lstm = [layers.LSTM(SEQ_LSTM_DIM, return_sequences=True)]*NUM_ITERATIONS
+        seq_lstm = [layers.Bidirectional(layers.LSTM(SEQ_LSTM_DIM, return_sequences=True),
+                                        backward_layer=layers.LSTM(SEQ_LSTM_DIM, return_sequences=True, go_backwards=True))]*NUM_ITERATIONS
         seq_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM))]*NUM_ITERATIONS
-        cons_lstm = [layers.LSTM(CONS_LSTM_DIM, return_sequences=True)]*NUM_ITERATIONS
+        cons_lstm = [layers.Bidirectional(layers.LSTM(CONS_LSTM_DIM, return_sequences=True),
+                                        backward_layer=layers.LSTM(SEQ_LSTM_DIM, return_sequences=True, go_backwards=True))]*NUM_ITERATIONS
         cons_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM))]*NUM_ITERATIONS
         seq_to_cons_messenger = [Messenger(SEQUENCE_MSGR_LAYERS)]*NUM_ITERATIONS
         cons_to_seq_messenger = [Messenger(CONSENSUS_MSGR_LAYERS)]*NUM_ITERATIONS
     else:
-        seq_lstm = [layers.LSTM(SEQ_LSTM_DIM, return_sequences=True) for _ in range(NUM_ITERATIONS)]
+        seq_lstm = [layers.Bidirectional(layers.LSTM(SEQ_LSTM_DIM, return_sequences=True),
+                                        backward_layer=layers.LSTM(SEQ_LSTM_DIM, return_sequences=True, go_backwards=True)) for _ in range(NUM_ITERATIONS)]
         seq_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM)) for _ in range(NUM_ITERATIONS)]
-        cons_lstm = [layers.LSTM(CONS_LSTM_DIM, return_sequences=True) for _ in range(NUM_ITERATIONS)]
+        cons_lstm = [layers.Bidirectional(layers.LSTM(CONS_LSTM_DIM, return_sequences=True),
+                                        backward_layer=layers.LSTM(SEQ_LSTM_DIM, return_sequences=True, go_backwards=True)) for _ in range(NUM_ITERATIONS)]
         cons_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM)) for _ in range(NUM_ITERATIONS)]
         seq_to_cons_messenger = [Messenger(SEQUENCE_MSGR_LAYERS) for _ in range(NUM_ITERATIONS)]
         cons_to_seq_messenger = [Messenger(CONSENSUS_MSGR_LAYERS) for _ in range(NUM_ITERATIONS)]
@@ -197,7 +229,7 @@ def make_model(training = True):
 
     M = mem_decoder([gathered_sequences, consensus])
 
-    mem_out = []
+    outputs = []
 
     for i in range(NUM_ITERATIONS):
 
@@ -217,20 +249,24 @@ def make_model(training = True):
 
         M = mem_decoder([gathered_sequences, consensus])
 
-        if training:
-            n_batch_size = tf.cast(tf.math.ceil(tf.cast(tf.shape(M)[1], dtype=tf.float32)/COL_BATCHES), dtype=tf.int32)
-            M_squared = []
-            for j in range(COL_BATCHES):
-                M_batch = M[:, j*n_batch_size : (j+1)*n_batch_size]
-                M_squared.append(tf.linalg.matmul(M_batch, M_batch, transpose_b=True))
-            M_squared_add = tf.add_n(M_squared)
-            mem_out.append(layers.Lambda(lambda x: x, name="mem"+str(i))(M_squared_add))
-        else:
-            mem_out.append(M)
+        if LOSS_OVER_ALL_ITERATIONS:
+            if training:
+                outputs.append(layers.Lambda(lambda x: x, name="mem"+str(i))(tf.linalg.matmul(M, M, transpose_b=True)))
+                if USE_GAP_MULTI_TASK_LOSS:
+                    outputs.append(layers.Lambda(lambda x: x, name="gap"+str(i))(gap_decoder(M)))
+            else:
+                outputs.append(M)
+        elif i == (NUM_ITERATIONS-1):
+            if training:
+                outputs.append(layers.Lambda(lambda x: x, name="mem")(tf.linalg.matmul(M, M, transpose_b=True)))
+                if USE_GAP_MULTI_TASK_LOSS:
+                    outputs.append(layers.Lambda(lambda x: x, name="gap")(gap_decoder(M)))
+            else:
+                outputs.append(M)
 
     model = keras.Model(
         inputs=[sequences, sequence_gather_indices, initial_memberships],
-        outputs=mem_out
+        outputs=outputs
     )
-    
+
     return model
