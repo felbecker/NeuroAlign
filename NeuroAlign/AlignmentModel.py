@@ -205,7 +205,7 @@ def make_model(training = True):
         seq_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM))]*NUM_ITERATIONS
         cons_lstm = [layers.Bidirectional(layers.LSTM(CONS_LSTM_DIM, return_sequences=True),
                                         backward_layer=layers.LSTM(SEQ_LSTM_DIM, return_sequences=True, go_backwards=True))]*NUM_ITERATIONS
-        cons_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM))]*NUM_ITERATIONS
+        cons_dense = [layers.TimeDistributed(layers.Dense(2*SITE_DIM))]*NUM_ITERATIONS
         seq_to_cons_messenger = [Messenger(SEQUENCE_MSGR_LAYERS)]*NUM_ITERATIONS
         cons_to_seq_messenger = [Messenger(CONSENSUS_MSGR_LAYERS)]*NUM_ITERATIONS
     else:
@@ -214,7 +214,7 @@ def make_model(training = True):
         seq_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM)) for _ in range(NUM_ITERATIONS)]
         cons_lstm = [layers.Bidirectional(layers.LSTM(CONS_LSTM_DIM, return_sequences=True),
                                         backward_layer=layers.LSTM(SEQ_LSTM_DIM, return_sequences=True, go_backwards=True)) for _ in range(NUM_ITERATIONS)]
-        cons_dense = [layers.TimeDistributed(layers.Dense(SITE_DIM)) for _ in range(NUM_ITERATIONS)]
+        cons_dense = [layers.TimeDistributed(layers.Dense(2*SITE_DIM)) for _ in range(NUM_ITERATIONS)]
         seq_to_cons_messenger = [Messenger(SEQUENCE_MSGR_LAYERS) for _ in range(NUM_ITERATIONS)]
         cons_to_seq_messenger = [Messenger(CONSENSUS_MSGR_LAYERS) for _ in range(NUM_ITERATIONS)]
 
@@ -225,9 +225,9 @@ def make_model(training = True):
     gathered_sequences = gathered_initial_sequences
 
     #initial consensus
-    consensus = tf.zeros((tf.shape(initial_memberships)[1], SITE_DIM))
+    consensus = tf.zeros((tf.shape(initial_memberships)[1], 2*SITE_DIM))
 
-    M = mem_decoder([gathered_sequences, consensus])
+    M = mem_decoder([layers.Concatenate()([gathered_initial_sequences, gathered_sequences]), consensus])
 
     outputs = []
 
@@ -247,7 +247,7 @@ def make_model(training = True):
         encoded_sequences = seq_dense[i](seq_lstm[i](concat_sequences)) #will always mask
         gathered_sequences = tf.gather(tf.reshape(encoded_sequences, (-1, SITE_DIM) ), sequence_gather_indices, axis=0)
 
-        M = mem_decoder([gathered_sequences, consensus])
+        M = mem_decoder([layers.Concatenate()([gathered_initial_sequences, gathered_sequences]), consensus])
 
         if LOSS_OVER_ALL_ITERATIONS:
             if training:
