@@ -16,17 +16,17 @@ ALPHABET = ['A', 'R',  'N',  'D',  'C',  'Q',  'E',  'G',  'H', 'I',  'L',  'K',
 ##################################################################################################
 
 #number of message passing iterations to perform
-NUM_ITERATIONS = 2
+NUM_ITERATIONS = 4
 
 #the dimensions for the different internal representations
-SITE_DIM = 25
-SEQ_LSTM_DIM = 50
-CONS_LSTM_DIM = 50
+SITE_DIM = 32
+SEQ_LSTM_DIM = 300
+CONS_LSTM_DIM = 300
 
 #hidden layer sizes for the MLPs
-ENCODER_LAYERS = [50, 50]
-SEQUENCE_MSGR_LAYERS = [50, 50]
-CONSENSUS_MSGR_LAYERS = [50, 50]
+ENCODER_LAYERS = [100]
+SEQUENCE_MSGR_LAYERS = [200, 200]
+CONSENSUS_MSGR_LAYERS = [200, 200]
 
 #if false, each message passing iteration uses unique parameters
 SHARED_ITERATIONS = True#True if jobid-1 < 4 else False
@@ -45,7 +45,7 @@ VALIDATION_SPLIT = 0.05#0.01
 #maximum number of sites in a batch
 #must be at least as large as the sum of the two longest sequences in all families
 
-BATCH_SIZE = 2000
+BATCH_SIZE = 4000
 
 #number of splits for the membership updates
 #this step is typically the memory-bottleneck of the model
@@ -58,20 +58,20 @@ COL_BATCHES = 1
 
 LEARNING_RATE = 1e-4
 
-NUM_EPOCHS = 200
+NUM_EPOCHS = 20
 
-NAME = "alignment_model"+str(jobid-1)
+NAME = "alignment_model"#+str(jobid-1)
 
 SEQ_IN_DIM = len(ALPHABET)
 
 __POS_WEIGHT = [40,90,40,90]
-POS_WEIGHT = 7#__POS_WEIGHT[(jobid-1)%4]#70#155.5
+POS_WEIGHT = 10#__POS_WEIGHT[(jobid-1)%4]#70#155.5
 NEG_WEIGHT = 1#0.5
 
 __LAST_ITERATION_WEIGHT = [1,1,8,8]
 LAST_ITERATION_WEIGHT = 1#__LAST_ITERATION_WEIGHT[(jobid-1)%4]
 
-MEM_LOSS_WEIGHT = 0.8
+MEM_LOSS_WEIGHT = 0.5
 
 ##################################################################################################
 ##################################################################################################
@@ -225,7 +225,8 @@ def make_model(training = True):
     gathered_sequences = gathered_initial_sequences
 
     #initial consensus
-    consensus = tf.zeros((tf.shape(initial_memberships)[1], 2*SITE_DIM))
+    #consensus = tf.zeros((tf.shape(initial_memberships)[1], 2*SITE_DIM))
+    consensus = layers.Dense(2*SITE_DIM)(tf.expand_dims(tf.range(tf.shape(initial_memberships)[1], dtype=tf.float32), 1))
 
     M = mem_decoder([layers.Concatenate()([gathered_initial_sequences, gathered_sequences]), consensus])
 
@@ -249,20 +250,17 @@ def make_model(training = True):
 
         M = mem_decoder([layers.Concatenate()([gathered_initial_sequences, gathered_sequences]), consensus])
 
-        if LOSS_OVER_ALL_ITERATIONS:
-            if training:
-                outputs.append(layers.Lambda(lambda x: x, name="mem"+str(i))(tf.linalg.matmul(M, M, transpose_b=True)))
-                if USE_GAP_MULTI_TASK_LOSS:
-                    outputs.append(layers.Lambda(lambda x: x, name="gap"+str(i))(gap_decoder(M)))
-            else:
-                outputs.append(M)
-        elif i == (NUM_ITERATIONS-1):
-            if training:
-                outputs.append(layers.Lambda(lambda x: x, name="mem")(tf.linalg.matmul(M, M, transpose_b=True)))
-                if USE_GAP_MULTI_TASK_LOSS:
-                    outputs.append(layers.Lambda(lambda x: x, name="gap")(gap_decoder(M)))
-            else:
-                outputs.append(M)
+        if training:
+            if LOSS_OVER_ALL_ITERATIONS:
+                    outputs.append(layers.Lambda(lambda x: x, name="mem"+str(i))(tf.linalg.matmul(M, M, transpose_b=True)))
+                    if USE_GAP_MULTI_TASK_LOSS:
+                        outputs.append(layers.Lambda(lambda x: x, name="gap"+str(i))(gap_decoder(M)))
+            elif i == (NUM_ITERATIONS-1):
+                    outputs.append(layers.Lambda(lambda x: x, name="mem")(tf.linalg.matmul(M, M, transpose_b=True)))
+                    if USE_GAP_MULTI_TASK_LOSS:
+                        outputs.append(layers.Lambda(lambda x: x, name="gap")(gap_decoder(M)))
+        else:
+            outputs.append(M)
 
     model = keras.Model(
         inputs=[sequences, sequence_gather_indices, initial_memberships],
